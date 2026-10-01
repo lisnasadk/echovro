@@ -368,7 +368,7 @@ const avLoader=new T.GLTFLoader();avLoader.setDRACOLoader(draco);   // shared lo
 function ensure(g){if(!R3)return;AVATARS[g].forEach(a=>{if(models[a.id]||loading[a.id])return;loading[a.id]=1;
  avLoader.load(a.model,gl=>{const root=gl.scene;root.traverse(o=>{if(o.isMesh)o.frustumCulled=false});
   const f=frameOf(root),pivot=new T.Group();root.position.x-=f.x;root.position.z-=f.z;pivot.add(root);pivot.visible=false;
-  pivot.userData={y:f.y,d:f.s/2/Math.tan(14*Math.PI/180)*1.05,rot:a.rot||0};sc3.add(pivot);models[a.id]=pivot},undefined,e=>{delete loading[a.id];console.warn('Avatar failed to load (serve the site over http/https):',a.model,e)})})}
+  pivot.userData={y:f.y,d:f.s/2/Math.tan(14*Math.PI/180)*1.05,rot:a.rot||0,clips:gl.animations||[]};sc3.add(pivot);models[a.id]=pivot},undefined,e=>{delete loading[a.id];console.warn('Avatar failed to load (serve the site over http/https):',a.model,e)})})}
 (function loop3(t){requestAnimationFrame(loop3);if(!R3)return;
  if(t-(loop3.l||0)<33)return;loop3.l=t;   // ~30fps is plenty for a gentle sway
  document.querySelectorAll('.pvw').forEach(w=>{const s=w.closest('.scr');if(!s||!s.classList.contains('on'))return;const m=models[w.dataset.id];if(!m)return;
