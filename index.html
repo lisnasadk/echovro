@@ -11,9 +11,9 @@
 *{box-sizing:inherit;margin:0}
 html,body{height:100%;overflow:hidden;background:radial-gradient(120% 90% at 65% 40%,#1d3358 0%,#0f1b33 55%,#08101f 100%);color:var(--cream);font-family:'Cormorant Garamond',Georgia,serif}
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
-#pl{opacity:0;pointer-events:none;transition:opacity .7s}#pl.on{opacity:1;pointer-events:auto}
+#pl{opacity:0;pointer-events:none;transition:opacity .5s}#pl.on{opacity:1;pointer-events:auto}
 .vig{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 55%,rgba(5,9,18,.7) 100%)}
-.scr{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:calc(24px + env(safe-area-inset-top,0px)) 22px calc(60px + env(safe-area-inset-bottom,0px));opacity:0;pointer-events:none;transform:translateY(24px);transition:opacity .7s,transform .7s cubic-bezier(.2,.7,.2,1);overflow-y:auto}
+.scr{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:calc(24px + env(safe-area-inset-top,0px)) 22px calc(60px + env(safe-area-inset-bottom,0px));opacity:0;pointer-events:none;transform:translateY(24px);transition:opacity .5s,transform .5s cubic-bezier(.2,.7,.2,1);overflow-y:auto}
 .scr.on{opacity:1;pointer-events:auto;transform:none}
 .logo{display:flex;align-items:center;gap:14px;justify-content:center}
 .logo svg{width:clamp(34px,5vw,52px)}
@@ -51,7 +51,7 @@ input:focus{border-color:var(--cream)}
 .pc em{display:block;font-style:normal;font-size:34px;margin-bottom:8px}.pc b{display:block;font:500 22px 'Playfair Display',serif}.pc span{display:block;margin-top:6px;font-style:italic;font-size:17px;color:var(--silver)}
 .dots{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(22px + env(safe-area-inset-bottom,0px));display:flex;gap:10px;z-index:3}
 .dots i{width:8px;height:8px;border:1px solid var(--cream);border-radius:50%;transition:background .3s}.dots i.on{background:var(--cream)}
-#toast{position:fixed;top:calc(18px + env(safe-area-inset-top,0px));left:50%;transform:translate(-50%,-80px);padding:10px 18px;background:var(--cream);color:var(--navy);font:12px ui-monospace,monospace;letter-spacing:.06em;transition:transform .4s;z-index:9;max-width:90vw}
+#toast{position:fixed;top:calc(18px + env(safe-area-inset-top,0px));left:50%;transform:translate(-50%,-80px);padding:10px 18px;background:var(--cream);color:var(--navy);font:12px ui-monospace,monospace;letter-spacing:.06em;transition:transform .3s;z-index:9;max-width:90vw}
 #toast.on{transform:translate(-50%,0)}
 .cr{font:11px/1.6 ui-monospace,monospace;color:var(--silver);opacity:.6;margin-top:18px;max-width:680px}.cr a{color:inherit}
 
@@ -63,25 +63,24 @@ input:focus{border-color:var(--cream)}
 .barw{height:3px;background:rgba(184,191,202,.3)}#bar{height:100%;width:0;background:var(--cream);transition:width .2s}
 #ld p{margin-top:12px;color:var(--silver);font-size:18px}
 
-/* Interactive Action & Movement Bar */
+/* Action Bar */
 #act-bar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:8px auto;width:100%;max-width:760px;z-index:5}
-.act-btn{all:unset;cursor:pointer;padding:9px 16px;background:rgba(15,27,51,.85);border:1px solid rgba(184,191,202,.45);color:var(--cream);font:11px ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;backdrop-filter:blur(6px);transition:transform .15s, background .15s, box-shadow .15s;display:flex;align-items:center;gap:6px;border-radius:4px;-webkit-user-select:none;user-select:none;touch-action:none}
-.act-btn:hover{background:rgba(239,229,207,.15);border-color:var(--cream);transform:translateY(-2px)}
-.act-btn:active, .act-btn.holding, .act-btn.active{background:var(--cream);color:var(--navy);box-shadow:0 0 20px rgba(239,229,207,.6);transform:translateY(1px) scale(0.97)}
+.act-btn{all:unset;cursor:pointer;padding:9px 16px;background:rgba(15,27,51,.85);border:1px solid rgba(184,191,202,.45);color:var(--cream);font:11px ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;backdrop-filter:blur(6px);transition:transform .12s, background .12s;display:flex;align-items:center;gap:6px;border-radius:4px;-webkit-user-select:none;user-select:none;touch-action:none}
+.act-btn:hover{background:rgba(239,229,207,.15);border-color:var(--cream)}
+.act-btn:active, .act-btn.holding, .act-btn.active{background:var(--cream);color:var(--navy);box-shadow:0 0 15px rgba(239,229,207,.5);transform:scale(0.97)}
 
-#hint-box{position:fixed;top:calc(74px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);background:rgba(15,27,51,.75);border:1px solid rgba(184,191,202,.25);padding:6px 14px;font:11px ui-monospace,monospace;color:var(--silver);border-radius:20px;pointer-events:none;z-index:4}
+#hint-box{position:fixed;top:calc(74px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);background:rgba(15,27,51,.8);border:1px solid rgba(184,191,202,.25);padding:5px 12px;font:11px ui-monospace,monospace;color:var(--silver);border-radius:20px;pointer-events:none;z-index:4}
 
-#sheet{width:min(720px,100%);align-self:center;max-height:28vh;overflow-y:auto;padding:14px 18px;background:rgba(15,27,51,.84);border:1px solid rgba(184,191,202,.3);backdrop-filter:blur(10px);z-index:5}
-#sheet h3{font:500 18px 'Playfair Display',serif;margin:4px 0 8px}
-.pr{display:flex;gap:14px;overflow-x:auto;padding-bottom:4px}.pp{width:80px;flex:none;text-align:center}.pp .pvw{width:50px;margin:0 auto 4px;border:1px solid var(--cream)}
-.pp b{display:block;font-size:15px;font-weight:500}.pp i{display:block;font-size:13px;color:var(--silver);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sg{display:grid;grid-template-columns:1fr auto;column-gap:12px;padding:8px 0;border-top:1px solid rgba(184,191,202,.2);color:inherit;text-decoration:none}
-.sg b{font:500 18px 'Playfair Display',serif}.sg span{grid-column:1;color:var(--silver);font-size:16px}
-.sg em{grid-row:1/3;grid-column:2;align-self:center;font:11px ui-monospace,monospace;font-style:normal;letter-spacing:.14em;text-transform:uppercase}
+#sheet{width:min(720px,100%);align-self:center;max-height:26vh;overflow-y:auto;padding:12px 16px;background:rgba(15,27,51,.88);border:1px solid rgba(184,191,202,.3);backdrop-filter:blur(8px);z-index:5}
+#sheet h3{font:500 17px 'Playfair Display',serif;margin:4px 0 6px}
+.pr{display:flex;gap:12px;overflow-x:auto;padding-bottom:4px}.pp{width:75px;flex:none;text-align:center}.pp .pvw{width:46px;margin:0 auto 4px;border:1px solid var(--cream)}
+.pp b{display:block;font-size:14px;font-weight:500}.pp i{display:block;font-size:12px;color:var(--silver);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sg{display:grid;grid-template-columns:1fr auto;column-gap:10px;padding:6px 0;border-top:1px solid rgba(184,191,202,.2);color:inherit;text-decoration:none}
+.sg b{font:500 17px 'Playfair Display',serif}.sg span{grid-column:1;color:var(--silver);font-size:15px}
+.sg em{grid-row:1/3;grid-column:2;align-self:center;font:10px ui-monospace,monospace;font-style:normal;letter-spacing:.12em;text-transform:uppercase}
 
-/* On-screen touch D-pad for mobile */
-#dpad{position:fixed;right:20px;bottom:calc(34vh + 10px);display:grid;grid-template-columns:40px 40px 40px;grid-template-rows:40px 40px;gap:4px;z-index:6}
-.dp-btn{all:unset;cursor:pointer;background:rgba(22,41,74,.75);border:1px solid rgba(184,191,202,.3);color:var(--cream);font:16px monospace;display:flex;align-items:center;justify-content:center;border-radius:4px;-webkit-user-select:none;user-select:none;touch-action:none}
+#dpad{position:fixed;right:20px;bottom:calc(32vh + 10px);display:grid;grid-template-columns:38px 38px 38px;grid-template-rows:38px 38px;gap:4px;z-index:6}
+.dp-btn{all:unset;cursor:pointer;background:rgba(22,41,74,.85);border:1px solid rgba(184,191,202,.3);color:var(--cream);font:15px monospace;display:flex;align-items:center;justify-content:center;border-radius:4px;-webkit-user-select:none;user-select:none;touch-action:none}
 .dp-btn:active{background:var(--cream);color:var(--navy)}
 
 body.in5 #c,body.in5 .vig{display:none}
@@ -116,7 +115,7 @@ body.in5 #c,body.in5 .vig{display:none}
   <p class="cr" id="cr"></p>
 </section>
 
-<!-- 3 · LINK MUSIC (required) -->
+<!-- 3 · LINK MUSIC -->
 <section class="scr" id="s3">
   <div class="me" id="me3"></div>
   <h2 id="hi">Hi!</h2><p class="sub">Link your music to continue.</p>
@@ -132,18 +131,18 @@ body.in5 #c,body.in5 .vig{display:none}
   <div class="grid" id="places"></div>
 </section>
 
-<!-- 5 · PLACE (3D scene + people + interactive hold/click avatar controls) -->
+<!-- 5 · PLACE -->
 <section class="scr" id="s5">
   <div class="top"><button class="btn g" id="bk">Back</button><div><h2 id="pn"></h2><p class="sub" id="pb"></p></div></div>
-  <div id="hint-box">💡 Click or HOLD buttons below to Walk, Sit (90° posture), Climb Stairs & Jam</div>
+  <div id="hint-box">💡 Click or HOLD buttons below to Walk, Sit (90°), Climb Stairs & Jam</div>
   <div id="ld"><div class="barw"><div id="bar"></div></div><p id="lt"></p></div>
   
   <div id="act-bar">
-    <button class="act-btn" id="btn-walk" data-act="walk">🚶 Walk / Roam</button>
-    <button class="act-btn" id="btn-sit" data-act="sit">🪑 Sit Down</button>
-    <button class="act-btn" id="btn-stairs" data-act="stairs">🪜 Climb Stairs</button>
-    <button class="act-btn" id="btn-dance" data-act="dance">🕺 Jam / Dance</button>
-    <button class="act-btn" id="btn-cam">🎥 Follow Cam</button>
+    <button class="act-btn" id="btn-walk" data-act="walk">🚶 Walk</button>
+    <button class="act-btn" id="btn-sit" data-act="sit">🪑 Sit</button>
+    <button class="act-btn" id="btn-stairs" data-act="stairs">🪜 Stairs</button>
+    <button class="act-btn" id="btn-dance" data-act="dance">🕺 Jam</button>
+    <button class="act-btn" id="btn-cam">🎥 Follow</button>
   </div>
 
   <div id="dpad" style="display:none">
@@ -226,7 +225,7 @@ function go(n){
  if(n===3)warmPlaces();
  if(n===3||n===4){const h=pvw(findAv());$('#me3').innerHTML=$('#me4').innerHTML=h;$('#hi').textContent='Hi, '+state.username+'!';$('#done').textContent='Where shall we meet, '+state.username+'?'}
  if(n===4){ensure('male');ensure('female');drawPlaces()}}
-function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),3200)}
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2800)}
 
 function face(l){let back='',top='';const h=l.hair;
  if(l.style==='long')back=`<path d="M26 52Q24 22 50 20Q76 22 74 52L77 82L23 82Z" fill="${h}"/>`;
@@ -272,29 +271,32 @@ $('#b3').onclick=()=>state.music?finish3():toast('Link a music service to contin
 function drawPlaces(){$('#places').innerHTML=Object.entries(PLACES).map(([k,p],i)=>`<button class="pc" style="--i:${i}" data-k="${k}"><em>${p.icon}</em><b>${p.name}</b><span>${p.blurb}</span></button>`).join('');
  $$('.pc').forEach(b=>b.onclick=()=>enterPlace(b.dataset.k))}
 
-/* ================= 3D INTERACTIVE PLACE SYSTEM ================= */
+/* ================= 3D HIGH PERFORMANCE PLACE SYSTEM ================= */
 let R5=null,ctl=null,cur=null,run=false,seq=0,avatarHeight=1;
 const sc5=new THREE.Scene(),cam5=new THREE.PerspectiveCamera(50,1,.1,1000);
 const SKY={park:['#5f9bd6','#e3edf7'],city:['#0b1226','#3a4f7a'],cafe:['#2a1c14','#7a5a40'],gallery:['#16294a','#9db3d3']};
 const skyTex={};let floor=null,myAvatarWrapper=null,isFollowCam=true;
 const keys={w:0,a:0,s:0,d:0};
 let holdingAction=null;
+let walkableMeshes=[],cachedStairSpots=[];
 
 function skyFor(k){if(skyTex[k])return skyTex[k];
- const c=document.createElement('canvas');c.width=2;c.height=512;const g=c.getContext('2d'),gr=g.createLinearGradient(0,0,0,512),s=SKY[k]||SKY.gallery;
- gr.addColorStop(0,s[0]);gr.addColorStop(1,s[1]);g.fillStyle=gr;g.fillRect(0,0,2,512);
+ const c=document.createElement('canvas');c.width=2;c.height=256;const g=c.getContext('2d'),gr=g.createLinearGradient(0,0,0,256),s=SKY[k]||SKY.gallery;
+ gr.addColorStop(0,s[0]);gr.addColorStop(1,s[1]);g.fillStyle=gr;g.fillRect(0,0,2,256);
  const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;return skyTex[k]=t}
 
 function setBackdrop(k,b,r){
  sc5.background=skyFor(k);
  if(floor){sc5.remove(floor);floor.geometry.dispose();floor.material.dispose()}
- floor=new THREE.Mesh(new THREE.CircleGeometry(r*12,64),new THREE.MeshBasicMaterial({color:(SKY[k]||SKY.gallery)[1]}));
+ floor=new THREE.Mesh(new THREE.CircleGeometry(r*8,32),new THREE.MeshBasicMaterial({color:(SKY[k]||SKY.gallery)[1]}));
  floor.rotation.x=-Math.PI/2;floor.position.y=b.min.y-r*.004;sc5.add(floor)}
 
 function init5(){if(R5)return;
- R5=new THREE.WebGLRenderer({canvas:$('#pl'),alpha:true,antialias:true});R5.setPixelRatio(Math.min(devicePixelRatio||1,2));R5.outputEncoding=THREE.sRGBEncoding;
+ R5=new THREE.WebGLRenderer({canvas:$('#pl'),alpha:true,antialias:true,powerPreference:'high-performance'});
+ R5.setPixelRatio(Math.min(devicePixelRatio||1,1.25)); // Optimized pixel ratio for fast 60fps
+ R5.outputEncoding=THREE.sRGBEncoding;
  const d=new THREE.DirectionalLight(0xfff1d6,1.4);d.position.set(5,10,6);sc5.add(new THREE.HemisphereLight(0xffffff,0x445577,1.1),d);
- ctl=new THREE.OrbitControls(cam5,R5.domElement);ctl.enableDamping=true;ctl.autoRotate=false;ctl.autoRotateSpeed=.6;
+ ctl=new THREE.OrbitControls(cam5,R5.domElement);ctl.enableDamping=true;ctl.dampingFactor=0.08;ctl.autoRotate=false;ctl.autoRotateSpeed=.6;
  addEventListener('resize',fit5);fit5();setupPlaceInteractions()}
 
 function fit5(){if(!R5)return;R5.setSize(innerWidth,innerHeight,false);cam5.aspect=innerWidth/innerHeight;cam5.updateProjectionMatrix()}
@@ -314,38 +316,34 @@ async function warmPlaces(){if(warmed)return;warmed=1;for(const k in PLACES){try
 function drop(){
  run=false;if(cur){sc5.remove(cur);cur=null}if(floor){sc5.remove(floor);floor=null}
  if(crowd){sc5.remove(crowd);crowd.traverse(o=>{if(o.isSprite){o.material.map.dispose();o.material.dispose()}});crowd=null}
- myAvatarWrapper=null;holdingAction=null;}
+ myAvatarWrapper=null;holdingAction=null;walkableMeshes=[];cachedStairSpots=[];}
 
 let crowd=null;
 const avReady=id=>new Promise(ok=>{let n=0;(function w(){if(models[id]||++n>80)return ok(models[id]);setTimeout(w,100)})()});
 
-function nameTag(txt,me,H){const c=document.createElement('canvas');c.width=256;c.height=64;const g=c.getContext('2d');
- g.fillStyle=me?'rgba(239,229,207,.95)':'rgba(15,27,51,.82)';g.fillRect(0,8,256,48);g.fillStyle=me?'#0f1b33':'#efe5cf';g.font='26px ui-monospace,monospace';g.textAlign='center';g.textBaseline='middle';g.fillText(txt,128,32);
+function nameTag(txt,me,H){const c=document.createElement('canvas');c.width=128;c.height=32;const g=c.getContext('2d');
+ g.fillStyle=me?'rgba(239,229,207,.95)':'rgba(15,27,51,.82)';g.fillRect(0,4,128,24);g.fillStyle=me?'#0f1b33':'#efe5cf';g.font='14px ui-monospace,monospace';g.textAlign='center';g.textBaseline='middle';g.fillText(txt,64,16);
  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthTest:false}));sp.scale.set(H*.9,H*.225,1);sp.position.y=H*1.15;sp.renderOrder=9;return sp}
 
-function findElevationSpots(root,b,H){
+/* Index scene meshes once on load for blazing-fast raycasting */
+function indexWalkableMeshes(root){
+ walkableMeshes=[];
+ root.traverse(o=>{if(o.isMesh)walkableMeshes.push(o);});
+}
+
+function precomputeStairsAndElevations(root,b,H){
  const ray=new THREE.Raycaster(),down=new THREE.Vector3(0,-1,0),spots=[];
- for(let x=b.min.x;x<=b.max.x;x+=H*1.2){
-  for(let z=b.min.z;z<=b.max.z;z+=H*1.2){
-   ray.set(new THREE.Vector3(x,b.max.y+5,z),down);
-   const hit=ray.intersectObject(root,true)[0];
+ const step=H*1.8;
+ for(let x=b.min.x;x<=b.max.x;x+=step){
+  for(let z=b.min.z;z<=b.max.z;z+=step){
+   ray.set(new THREE.Vector3(x,b.max.y+2,z),down);
+   const hit=ray.intersectObjects(walkableMeshes,false)[0];
    if(hit&&hit.point)spots.push({x:hit.point.x,y:hit.point.y,z:hit.point.z});
   }
  }
- return spots;
+ cachedStairSpots=spots;
 }
 
-function groundSpots(root,ray,b,H,n){
- const down=new THREE.Vector3(0,-1,0),pts=[];
- for(let rr=0;rr<=H*10;rr+=H*1.4)for(let k=0;k<(rr?14:1);k++){const a=k/14*6.283,x=Math.cos(a)*rr,z=Math.sin(a)*rr;
-  ray.set(new THREE.Vector3(x,b.max.y+1,z),down);const h=ray.intersectObject(root,true)[0];
-  if(h&&h.face&&h.face.normal.clone().transformDirection(h.object.matrixWorld).y>.85)pts.push({x,z,y:h.point.y})}
- if(pts.length<n)return null;
- const ys=pts.map(q=>q.y).sort((a,c)=>a-c),g=ys[Math.floor(ys.length*.2)],out=[];
- for(const q of pts){if(Math.abs(q.y-g)>H*.15)continue;if(out.every(o=>Math.hypot(o.x-q.x,o.z-q.z)>H*1.1))out.push(q);if(out.length===n)break}
- return out.length===n?out:null}
-
-/* Precise bone identification: Upper leg (hip joint) vs Lower leg (knee joint) */
 function mapAvatarBones(mesh){
  const bones={leftUpLeg:null,rightUpLeg:null,leftLeg:null,rightLeg:null,leftArm:null,rightArm:null,hips:null,spine:null};
  mesh.traverse(o=>{
@@ -353,17 +351,13 @@ function mapAvatarBones(mesh){
   const n=o.name.toLowerCase();
   if(!bones.hips&&(n.includes('hip')||n.includes('pelvis')))bones.hips=o;
   if(!bones.spine&&(n.includes('spine')||n.includes('chest')))bones.spine=o;
-  // Upper Leg (Thigh / Hip joint)
   if(!bones.leftUpLeg&&(n.includes('leftupleg')||n.includes('thigh_l')||n.includes('thigh.l')||n.includes('upperleg_l')||n.includes('up_l')))bones.leftUpLeg=o;
   if(!bones.rightUpLeg&&(n.includes('rightupleg')||n.includes('thigh_r')||n.includes('thigh.r')||n.includes('upperleg_r')||n.includes('up_r')))bones.rightUpLeg=o;
-  // Lower Leg (Knee / Calf / Shin joint)
   if(!bones.leftLeg&&(n.includes('leftleg')||n.includes('calf_l')||n.includes('calf.l')||n.includes('shin_l')||n.includes('knee_l')||n.includes('leg_l')||n.includes('lowerleg_l')))bones.leftLeg=o;
   if(!bones.rightLeg&&(n.includes('rightleg')||n.includes('calf_r')||n.includes('calf.r')||n.includes('shin_r')||n.includes('knee_r')||n.includes('leg_r')||n.includes('lowerleg_r')))bones.rightLeg=o;
-  // Arms
   if(!bones.leftArm&&(n.includes('arm_l')||n.includes('shoulder_l')||n.includes('leftarm')||n.includes('upperarm_l')))bones.leftArm=o;
   if(!bones.rightArm&&(n.includes('arm_r')||n.includes('shoulder_r')||n.includes('rightarm')||n.includes('upperarm_r')))bones.rightArm=o;
  });
- // Fallback if upleg not named specifically
  if(!bones.leftUpLeg&&bones.leftLeg){bones.leftUpLeg=bones.leftLeg;bones.leftLeg=null;}
  if(!bones.rightUpLeg&&bones.rightLeg){bones.rightUpLeg=bones.rightLeg;bones.rightLeg=null;}
  return bones;
@@ -372,15 +366,18 @@ function mapAvatarBones(mesh){
 async function spawnCrowd(root,fp,tok){
  const f=await fp;if(tok!==seq)return;
  root.updateMatrixWorld(true);
+ indexWalkableMeshes(root);
  const b=new THREE.Box3().setFromObject(root),sz=b.getSize(new THREE.Vector3()),r=Math.max(sz.x,sz.y,sz.z)||1,H=r*.05;
  avatarHeight=H;
+ precomputeStairsAndElevations(root,b,H);
+
  const list=[{u:state.username,av:state.avatar,me:1},...((f&&f.people)||[]).map(p=>({u:p.u,av:p.av}))];
- const grp=new THREE.Group(),ray=new THREE.Raycaster(),n=list.length,R=H*1.5;
- const g0=PLACES[state.place].ground?groundSpots(root,ray,b,H,n):null,spots=[];
- for(let i=0;i<n;i++){if(g0){spots.push(g0[i]);continue}
+ const grp=new THREE.Group(),n=list.length,R=H*1.5,spots=[];
+ for(let i=0;i<n;i++){
   const ang=n===1?0:(i/(n-1)-.5)*Math.PI*.9+Math.PI/4,px=Math.sin(ang)*R,pz=Math.cos(ang)*R;
-  ray.set(new THREE.Vector3(px,b.min.y+sz.y*.4,pz),new THREE.Vector3(0,-1,0));
-  const hit=ray.intersectObject(root,true)[0];spots.push({x:px,z:pz,y:hit?hit.point.y:b.min.y})}
+  const gy=getElevationAt(px,pz,b.min.y);
+  spots.push({x:px,z:pz,y:gy});
+ }
  const cx=spots.reduce((a,q)=>a+q.x,0)/n,cz=spots.reduce((a,q)=>a+q.z,0)/n,gy0=spots[0].y,camX=cx+H*3.4,camZ=cz+H*3.4;
 
  for(let i=0;i<n;i++){
@@ -410,7 +407,8 @@ async function spawnCrowd(root,fp,tok){
    isMe:P.me,
    timer:Math.random()*5,
    climbTarget:null,
-   sitBaseY:gy
+   sitBaseY:gy,
+   lastElevCheck:0
   };
   w.rotation.y=w.userData.ry;
   grp.add(w);
@@ -422,28 +420,28 @@ async function spawnCrowd(root,fp,tok){
  ctl.target.set(cx,gy0+H*.55,cz);cam5.position.set(camX,gy0+H*1.7,camZ);ctl.minDistance=H*0.8;ctl.update();
 }
 
+/* Highly Optimized Non-Blocking Raycaster */
 const rayDown=new THREE.Raycaster();
 const vDown=new THREE.Vector3(0,-1,0);
 function getElevationAt(x,z,currentY){
- if(!cur)return currentY;
- rayDown.set(new THREE.Vector3(x,currentY+avatarHeight*2.5,z),vDown);
- const hits=rayDown.intersectObject(cur,true);
+ if(!walkableMeshes.length)return currentY;
+ rayDown.set(new THREE.Vector3(x,currentY+avatarHeight*2,z),vDown);
+ const hits=rayDown.intersectObjects(walkableMeshes,false);
  if(hits.length>0){
-  for(let h of hits){
-   if(h.point.y<=currentY+avatarHeight*1.8)return h.point.y;
+  for(let i=0;i<hits.length;i++){
+   if(hits[i].point.y<=currentY+avatarHeight*1.6)return hits[i].point.y;
   }
   return hits[0].point.y;
  }
  return currentY;
 }
 
-/* Update Avatars Physics & Humanoid Kinematics */
+/* 60FPS Physics Engine */
 let lastT=performance.now();
 function updateAvatarPhysics(dt){
  if(!crowd||!cur)return;
  const t=performance.now()/1000;
  
- // Process user inputs / button holding
  if(myAvatarWrapper){
   const me=myAvatarWrapper;
   const H=avatarHeight;
@@ -453,18 +451,15 @@ function updateAvatarPhysics(dt){
    let moveDir=new THREE.Vector3();
    
    if(holdingAction==='stairs'){
-    if(!me.userData.climbTarget||Math.hypot(me.userData.climbTarget.x-me.position.x,me.userData.climbTarget.z-me.position.z)<H*0.3){
-     const allSpots=findElevationSpots(cur,new THREE.Box3().setFromObject(cur),H);
-     const higher=allSpots.filter(s=>s.y>me.position.y+H*0.1);
+    if(!me.userData.climbTarget||Math.hypot(me.userData.climbTarget.x-me.position.x,me.userData.climbTarget.z-me.position.z)<H*0.4){
+     const higher=cachedStairSpots.filter(s=>s.y>me.position.y+H*0.1);
      if(higher.length){
       higher.sort((a,b)=>Math.hypot(a.x-me.position.x,a.z-me.position.z)-Math.hypot(b.x-me.position.x,b.z-me.position.z));
       me.userData.climbTarget=higher[0];
      }
     }
     if(me.userData.climbTarget){
-     const dx=me.userData.climbTarget.x-me.position.x;
-     const dz=me.userData.climbTarget.z-me.position.z;
-     moveDir.set(dx,0,dz).normalize();
+     moveDir.set(me.userData.climbTarget.x-me.position.x,0,me.userData.climbTarget.z-me.position.z).normalize();
     }else{
      cam5.getWorldDirection(moveDir);moveDir.y=0;moveDir.normalize();
     }
@@ -475,40 +470,41 @@ function updateAvatarPhysics(dt){
    const stepLen=me.userData.walkSpeed*dt;
    const nextX=me.position.x+moveDir.x*stepLen;
    const nextZ=me.position.z+moveDir.z*stepLen;
-   const nextY=getElevationAt(nextX,nextZ,me.position.y);
+   
+   // Throttle raycast checks to save CPU
+   let nextY=me.position.y;
+   if(t-me.userData.lastElevCheck>0.04){
+    nextY=getElevationAt(nextX,nextZ,me.position.y);
+    me.userData.lastElevCheck=t;
+   }
    
    me.position.x=nextX;
    me.position.z=nextZ;
    const isClimbing=nextY>me.position.y+0.01;
-   me.position.y+=(nextY-me.position.y)*Math.min(1,dt*(isClimbing?14:8));
+   me.position.y+=(nextY-me.position.y)*Math.min(1,dt*12);
    
    const targetAngle=Math.atan2(moveDir.x,moveDir.z);
    me.rotation.y+=(targetAngle-me.rotation.y)*Math.min(1,dt*10);
 
-   // Gait & Stair Climbing Kinematics
    const walkFreq=holdingAction==='stairs'?7.5:9.5;
    const stepCycle=Math.sin(t*walkFreq);
-   const legLift=Math.abs(Math.cos(t*walkFreq))*(isClimbing?H*0.22:H*0.06);
+   const legLift=Math.abs(Math.cos(t*walkFreq))*(isClimbing?H*0.2:H*0.05);
    me.children[0].position.y=me.userData.baseInnerY+legLift;
    
    const b=me.userData.bones;
    if(b.leftUpLeg&&b.rightUpLeg){
-    // Forward stride / Knee bend (forward is negative X, knees bend positive X)
     b.leftUpLeg.rotation.x=-stepCycle*0.55;
     b.rightUpLeg.rotation.x=stepCycle*0.55;
     if(b.leftLeg)b.leftLeg.rotation.x=Math.max(0,stepCycle*0.7);
     if(b.rightLeg)b.rightLeg.rotation.x=Math.max(0,-stepCycle*0.7);
-    if(b.leftArm)b.leftArm.rotation.x=stepCycle*0.45;
-    if(b.rightArm)b.rightArm.rotation.x=-stepCycle*0.45;
-   }else{
-    me.children[0].rotation.z=stepCycle*0.05;
+    if(b.leftArm)b.leftArm.rotation.x=stepCycle*0.4;
+    if(b.rightArm)b.rightArm.rotation.x=-stepCycle*0.4;
    }
   }else if(holdingAction==='sit'){
    me.userData.mode='sit';
   }else if(holdingAction==='dance'){
    me.userData.mode='dance';
   }else{
-   // WASD keyboard movement
    const moveZ=keys.w?-1:(keys.s?1:0);
    const moveX=keys.a?-1:(keys.d?1:0);
    if(moveZ!==0||moveX!==0){
@@ -522,8 +518,11 @@ function updateAvatarPhysics(dt){
     const stepLen=me.userData.walkSpeed*dt;
     const nextX=me.position.x+moveDir.x*stepLen;
     const nextZ=me.position.z+moveDir.z*stepLen;
-    const nextY=getElevationAt(nextX,nextZ,me.position.y);
-    
+    let nextY=me.position.y;
+    if(t-me.userData.lastElevCheck>0.04){
+     nextY=getElevationAt(nextX,nextZ,me.position.y);
+     me.userData.lastElevCheck=t;
+    }
     me.position.x=nextX;
     me.position.z=nextZ;
     me.position.y+=(nextY-me.position.y)*Math.min(1,dt*12);
@@ -534,46 +533,39 @@ function updateAvatarPhysics(dt){
   }
  }
 
- crowd.children.forEach((w,i)=>{
+ for(let i=0;i<crowd.children.length;i++){
+  const w=crowd.children[i];
   const u=w.userData;
   const inner=w.children[0];
   const H=avatarHeight;
   const b=u.bones;
 
-  // Background Peer AI roaming
   if(!u.isMe){
    u.timer-=dt;
    if(u.timer<=0){
-    u.timer=4+Math.random()*6;
+    u.timer=5+Math.random()*6;
     const rnd=Math.random();
     if(rnd<0.45){
-     const ang=Math.random()*Math.PI*2,dist=H*(1+Math.random()*4);
+     const ang=Math.random()*Math.PI*2,dist=H*(1+Math.random()*3);
      u.targetPos=new THREE.Vector3(w.position.x+Math.cos(ang)*dist,w.position.y,w.position.z+Math.sin(ang)*dist);
      u.mode='walk';
-    }else if(rnd<0.7){
-     u.mode='sit';
-    }else if(rnd<0.85){
-     u.mode='stairs';
-    }else{
-     u.mode='idle';
-     u.targetPos=null;
-    }
+    }else if(rnd<0.7){u.mode='sit';}
+    else if(rnd<0.85){u.mode='stairs';}
+    else{u.mode='idle';u.targetPos=null;}
    }
   }
 
-  // Handle Modes
   if(u.mode==='walk'||u.mode==='stairs'){
-   if(u.isMe&&holdingAction)return;
+   if(u.isMe&&holdingAction)continue;
 
    if(u.mode==='stairs'&&!u.climbTarget){
-    const allSpots=findElevationSpots(cur,new THREE.Box3().setFromObject(cur),H);
-    const higher=allSpots.filter(s=>s.y>w.position.y+H*0.2);
+    const higher=cachedStairSpots.filter(s=>s.y>w.position.y+H*0.1);
     if(higher.length){
      higher.sort((a,b)=>Math.hypot(a.x-w.position.x,a.z-w.position.z)-Math.hypot(b.x-w.position.x,b.z-w.position.z));
      u.targetPos=new THREE.Vector3(higher[0].x,higher[0].y,higher[0].z);
     }else{
      const ang=Math.random()*6.28;
-     u.targetPos=new THREE.Vector3(w.position.x+Math.cos(ang)*H*3,w.position.y,w.position.z+Math.sin(ang)*H*3);
+     u.targetPos=new THREE.Vector3(w.position.x+Math.cos(ang)*H*2.5,w.position.y,w.position.z+Math.sin(ang)*H*2.5);
     }
    }
 
@@ -581,17 +573,17 @@ function updateAvatarPhysics(dt){
     const dx=u.targetPos.x-w.position.x;
     const dz=u.targetPos.z-w.position.z;
     const dist=Math.hypot(dx,dz);
-    if(dist>H*0.15){
+    if(dist>H*0.2){
      const dirX=dx/dist,dirZ=dz/dist;
      const moveAmt=Math.min(dist,u.walkSpeed*dt);
      const nx=w.position.x+dirX*moveAmt;
      const nz=w.position.z+dirZ*moveAmt;
-     const ny=getElevationAt(nx,nz,w.position.y);
+     let ny=w.position.y;
+     if(t-u.lastElevCheck>0.05){ny=getElevationAt(nx,nz,w.position.y);u.lastElevCheck=t;}
      
      w.position.x=nx;
      w.position.z=nz;
-     const isClimbing=ny>w.position.y+0.01;
-     w.position.y+=(ny-w.position.y)*Math.min(1,dt*(isClimbing?14:8));
+     w.position.y+=(ny-w.position.y)*Math.min(1,dt*10);
 
      const tarRot=Math.atan2(dirX,dirZ);
      let diff=tarRot-w.rotation.y;
@@ -601,7 +593,7 @@ function updateAvatarPhysics(dt){
 
      const walkFreq=u.mode==='stairs'?7.5:9.5;
      const stepCycle=Math.sin(t*walkFreq+i*2);
-     const legLift=Math.abs(Math.cos(t*walkFreq+i*2))*(isClimbing?H*0.22:H*0.06);
+     const legLift=Math.abs(Math.cos(t*walkFreq+i*2))*(H*0.06);
      inner.position.y=u.baseInnerY+legLift;
      
      if(b.leftUpLeg&&b.rightUpLeg){
@@ -609,14 +601,10 @@ function updateAvatarPhysics(dt){
       b.rightUpLeg.rotation.x=stepCycle*0.55;
       if(b.leftLeg)b.leftLeg.rotation.x=Math.max(0,stepCycle*0.7);
       if(b.rightLeg)b.rightLeg.rotation.x=Math.max(0,-stepCycle*0.7);
-      if(b.leftArm)b.leftArm.rotation.x=stepCycle*0.45;
-      if(b.rightArm)b.rightArm.rotation.x=-stepCycle*0.45;
-     }else{
-      inner.rotation.z=stepCycle*0.05;
      }
     }else{
      u.targetPos=null;
-     if(u.mode==='stairs'){u.mode='sit';if(u.isMe)toast('Reached top of stairs & resting.');}
+     if(u.mode==='stairs'){u.mode='sit';if(u.isMe)toast('Reached top & resting.');}
      else if(u.isMe){u.mode='idle';}
     }
    }else if(u.isMe&&keys.w===0&&keys.s===0&&keys.a===0&&keys.d===0){
@@ -627,43 +615,24 @@ function updateAvatarPhysics(dt){
     if(b.rightLeg)b.rightLeg.rotation.x*=0.85;
    }
   }else if(u.mode==='sit'){
-   // 🪑 PROPER 90-DEGREE SITTING POSTURE
-   // 1. Lower hips to bench height
    const sitY=u.baseInnerY-H*0.38;
    inner.position.y+=(sitY-inner.position.y)*Math.min(1,dt*6);
-   
-   // 2. Thighs bend FORWARD 90° (-Math.PI / 2)
-   const targetThighAngle=-Math.PI*0.5; // -90 deg
-   // 3. Knees bend BACKWARD/DOWNWARD 90° (+Math.PI / 2)
-   const targetKneeAngle=Math.PI*0.5;   // +90 deg
-
    if(b.leftUpLeg&&b.rightUpLeg){
-    b.leftUpLeg.rotation.x+=(targetThighAngle-b.leftUpLeg.rotation.x)*0.12;
-    b.rightUpLeg.rotation.x+=(targetThighAngle-b.rightUpLeg.rotation.x)*0.12;
-    if(b.leftLeg)b.leftLeg.rotation.x+=(targetKneeAngle-b.leftLeg.rotation.x)*0.12;
-    if(b.rightLeg)b.rightLeg.rotation.x+=(targetKneeAngle-b.rightLeg.rotation.x)*0.12;
-    if(b.leftArm)b.leftArm.rotation.x+=(-0.3-b.leftArm.rotation.x)*0.1;
-    if(b.rightArm)b.rightArm.rotation.x+=(-0.3-b.rightArm.rotation.x)*0.1;
-   }else{
-    inner.rotation.x+=(0.2-inner.rotation.x)*0.1;
+    b.leftUpLeg.rotation.x+=(-Math.PI*0.5-b.leftUpLeg.rotation.x)*0.12;
+    b.rightUpLeg.rotation.x+=(-Math.PI*0.5-b.rightUpLeg.rotation.x)*0.12;
+    if(b.leftLeg)b.leftLeg.rotation.x+=(Math.PI*0.5-b.leftLeg.rotation.x)*0.12;
+    if(b.rightLeg)b.rightLeg.rotation.x+=(Math.PI*0.5-b.rightLeg.rotation.x)*0.12;
    }
   }else if(u.mode==='dance'){
-   // 🕺 JAM / GROOVE ANIMATION
    inner.position.y=u.baseInnerY+Math.abs(Math.sin(t*7+i))*H*0.08;
    inner.rotation.y=Math.sin(t*5)*0.25;
-   inner.rotation.z=Math.cos(t*5)*0.08;
    if(b.leftUpLeg)b.leftUpLeg.rotation.x=Math.sin(t*7)*0.2;
    if(b.rightUpLeg)b.rightUpLeg.rotation.x=-Math.sin(t*7)*0.2;
-   if(b.leftLeg)b.leftLeg.rotation.x=Math.abs(Math.sin(t*7))*0.3;
-   if(b.rightLeg)b.rightLeg.rotation.x=Math.abs(Math.cos(t*7))*0.3;
    if(b.leftArm)b.leftArm.rotation.z=-0.9+Math.sin(t*7)*0.5;
    if(b.rightArm)b.rightArm.rotation.z=0.9-Math.cos(t*7)*0.5;
   }else{
-   // 🧍 IDLE NATURAL SWAY & RELAX
    inner.position.y+=(u.baseInnerY-inner.position.y)*0.1;
    inner.rotation.y+=(0-inner.rotation.y)*0.1;
-   inner.rotation.z+=(0-inner.rotation.z)*0.1;
-   inner.rotation.x+=(0-inner.rotation.x)*0.1;
    if(b.leftUpLeg)b.leftUpLeg.rotation.x*=0.85;
    if(b.rightUpLeg)b.rightUpLeg.rotation.x*=0.85;
    if(b.leftLeg)b.leftLeg.rotation.x*=0.85;
@@ -672,7 +641,7 @@ function updateAvatarPhysics(dt){
    if(b.rightArm){b.rightArm.rotation.x*=0.85;b.rightArm.rotation.z*=0.85;}
    w.rotation.y=u.ry+Math.sin(t*.8+i*1.7)*.14;
   }
- });
+ }
 
  if(isFollowCam&&myAvatarWrapper&&ctl){
   const p=myAvatarWrapper.position;
@@ -684,7 +653,7 @@ function updateAvatarPhysics(dt){
  requestAnimationFrame(loop5);
  if(run){
   const now=performance.now();
-  const dt=Math.min((now-lastT)/1000,0.1);
+  const dt=Math.min((now-lastT)/1000,0.06);
   lastT=now;
   updateAvatarPhysics(dt);
   ctl.update();
@@ -692,19 +661,18 @@ function updateAvatarPhysics(dt){
  }
 })();
 
-/* Tap/Click on terrain to walk to position */
 const mouseRay=new THREE.Raycaster();
 const mouseVec=new THREE.Vector2();
 
 function setupPlaceInteractions(){
  const canvas=$('#pl');
  canvas.addEventListener('pointerdown',e=>{
-  if(!run||!myAvatarWrapper||!cur)return;
+  if(!run||!myAvatarWrapper||!walkableMeshes.length)return;
   if(e.clientY<80||e.clientY>innerHeight-140)return;
   mouseVec.x=(e.clientX/innerWidth)*2-1;
   mouseVec.y=-(e.clientY/innerHeight)*2+1;
   mouseRay.setFromCamera(mouseVec,cam5);
-  const hits=mouseRay.intersectObject(cur,true);
+  const hits=mouseRay.intersectObjects(walkableMeshes,false);
   if(hits.length>0){
    const pt=hits[0].point;
    myAvatarWrapper.userData.targetPos=new THREE.Vector3(pt.x,pt.y,pt.z);
@@ -713,7 +681,6 @@ function setupPlaceInteractions(){
   }
  });
 
- // Keyboard Controls
  addEventListener('keydown',e=>{
   const k=e.key.toLowerCase();
   if(keys[k]!==undefined){keys[k]=1;if(myAvatarWrapper)myAvatarWrapper.userData.mode='walk';}
@@ -728,7 +695,6 @@ function setupPlaceInteractions(){
   }
  });
 
- // HOLD / CLICK CONTINUOUS BUTTON SYSTEM
  $$('.act-btn[data-act]').forEach(btn=>{
   const act=btn.dataset.act;
 
@@ -740,22 +706,20 @@ function setupPlaceInteractions(){
    myAvatarWrapper.userData.mode=act;
    myAvatarWrapper.userData.targetPos=null;
 
-   if(act==='walk')toast('🚶 Walking forward… (Hold to keep walking)');
-   else if(act==='sit')toast('🪑 Sitting down (90° posture)…');
+   if(act==='walk')toast('🚶 Walking…');
+   else if(act==='sit')toast('🪑 Sitting (90° posture)…');
    else if(act==='stairs'){
     myAvatarWrapper.userData.climbTarget=null;
-    toast('🪜 Climbing stairs & ascending… (Hold to keep climbing)');
-   }else if(act==='dance')toast('🕺 Jamming & dancing!');
+    toast('🪜 Climbing stairs…');
+   }else if(act==='dance')toast('🕺 Jamming!');
   };
 
   const stopAction=(e)=>{
    if(holdingAction===act){
     holdingAction=null;
     btn.classList.remove('holding');
-    if(myAvatarWrapper){
-     if(act==='walk'||act==='stairs'||act==='dance'){
-      myAvatarWrapper.userData.mode='idle';
-     }
+    if(myAvatarWrapper&&(act==='walk'||act==='stairs'||act==='dance')){
+     myAvatarWrapper.userData.mode='idle';
     }
    }
   };
@@ -773,7 +737,6 @@ function setupPlaceInteractions(){
   toast(isFollowCam?'Camera locked to Avatar.':'Free Orbit Camera enabled.');
  };
 
- // Touch D-Pad for Mobile
  $$('.dp-btn').forEach(b=>{
   const k=b.dataset.k;
   b.addEventListener('pointerdown',e=>{e.preventDefault();keys[k]=1;if(myAvatarWrapper)myAvatarWrapper.userData.mode='walk';});
@@ -804,14 +767,14 @@ async function enterPlace(k){
  }catch(e){delete placeCache[k];console.error('Place load failed',P.url,e);if(tok===seq)$('#lt').textContent='Could not load '+P.url+' — '+((e&&e.message)||(e&&e.target&&('HTTP '+(e.target.status||'error')))||String(e))}}
 $('#bk').onclick=()=>{seq++;drop();go(4)};
 
-/* ===== 3D avatar previews ===== */
+/* ===== 3D avatar previews (Sleeping when not on Step 2) ===== */
 const PV=256;
 const pvw=a=>`<div class="pvw" data-id="${a.id}"><div class="ph">${face(a.look)}</div><canvas class="pv" width="${PV}" height="${PV}"></canvas></div>`;
 const T=THREE,models={},loading={};let R3=null;
 const sc3=new T.Scene(),cam3=new T.PerspectiveCamera(28,1,.01,100);
-try{R3=new T.WebGLRenderer({alpha:true,antialias:true});R3.setSize(PV,PV,false);R3.outputEncoding=T.sRGBEncoding;R3.toneMapping=T.ACESFilmicToneMapping;R3.toneMappingExposure=1.05;
+try{R3=new T.WebGLRenderer({alpha:true,antialias:true});R3.setSize(PV,PV,false);R3.outputEncoding=T.sRGBEncoding;R3.toneMapping=T.ACESFilmicToneMapping;
  const kl=new T.DirectionalLight(0xfff1d6,1.7),rl=new T.DirectionalLight(0x8fa8cc,1.2);kl.position.set(2,3,4);rl.position.set(-3,2,-3);sc3.add(new T.HemisphereLight(0xdfe8ff,0x16294a,.9),kl,rl)}
-catch(e){R3=null;console.warn('WebGL unavailable',e)}
+catch(e){R3=null;}
 
 function frameOf(root){root.updateMatrixWorld(true);let head=null,hips=null;
  root.traverse(o=>{if(o.isBone){if(/^Head(_\d+)?$/.test(o.name))head=o;if(/^Hips(_\d+)?$/.test(o.name))hips=o}});
@@ -822,34 +785,35 @@ const avLoader=new T.GLTFLoader();avLoader.setDRACOLoader(draco);
 function ensure(g){if(!R3)return;AVATARS[g].forEach(a=>{if(models[a.id]||loading[a.id])return;loading[a.id]=1;
  avLoader.load(a.model,gl=>{const root=gl.scene;root.traverse(o=>{if(o.isMesh)o.frustumCulled=false});
   const f=frameOf(root),pivot=new T.Group();root.position.x-=f.x;root.position.z-=f.z;pivot.add(root);pivot.visible=false;
-  pivot.userData={y:f.y,d:f.s/2/Math.tan(14*Math.PI/180)*1.05,rot:a.rot||0,clips:gl.animations||[]};sc3.add(pivot);models[a.id]=pivot},undefined,e=>{delete loading[a.id];console.warn('Avatar load failed:',a.model,e)})})}
+  pivot.userData={y:f.y,d:f.s/2/Math.tan(14*Math.PI/180)*1.05,rot:a.rot||0,clips:gl.animations||[]};sc3.add(pivot);models[a.id]=pivot},undefined,e=>{delete loading[a.id];})})}
 
-(function loop3(t){requestAnimationFrame(loop3);if(!R3)return;
- if(t-(loop3.l||0)<33)return;loop3.l=t;
- document.querySelectorAll('.pvw').forEach(w=>{const s=w.closest('.scr');if(!s||!s.classList.contains('on'))return;const m=models[w.dataset.id];if(!m)return;
+(function loop3(t){requestAnimationFrame(loop3);if(!R3||step!==2)return; // Freeze preview renderer outside Step 2
+ if(t-(loop3.l||0)<40)return;loop3.l=t;
+ document.querySelectorAll('#s2 .pvw').forEach(w=>{const m=models[w.dataset.id];if(!m)return;
   const u=m.userData,id=w.dataset.id;m.rotation.y=u.rot+Math.sin(t*.0008+id.charCodeAt(id.length-1))*.45;
   cam3.position.set(0,u.y,u.d);cam3.near=u.d*.05;cam3.far=u.d*30;cam3.updateProjectionMatrix();cam3.lookAt(0,u.y,0);
   m.visible=true;R3.render(sc3,cam3);m.visible=false;
   const c=w.querySelector('canvas').getContext('2d');c.clearRect(0,0,PV,PV);c.drawImage(R3.domElement,0,0);w.classList.add('rdy')})})(0);
 ['male','female'].forEach(ensure);
 
-/* ===== Background Floating Music Notes ===== */
+/* ===== Background Floating Music Notes (Fast Canvas Loop) ===== */
 const cv=$('#c'),x=cv.getContext('2d'),G=['♪','♫','♩','♬'],COL=['#efe5cf','#8fa8cc','#c9d2e0','#efe5cf'];
 let W,H,dpr,notes=[],rip=[];
-function size(){dpr=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cv.width=W*dpr;cv.height=H*dpr;x.setTransform(dpr,0,0,dpr,0,0)}
+function size(){dpr=1;W=innerWidth;H=innerHeight;cv.width=W;cv.height=H;}
 addEventListener('resize',size);size();
-const N=W<700?34:60;
-for(let i=0;i<N;i++)notes.push({g:G[i%4],c:COL[i%4],tx:Math.random()*W,ty:Math.random()*H,sz:22+Math.random()*46,delay:Math.random()*2.4,dur:.55+Math.random()*.35,sp:14+Math.random()*30,ph:Math.random()*6.28,hit:false});
+const N=W<700?20:36;
+for(let i=0;i<N;i++)notes.push({g:G[i%4],c:COL[i%4],tx:Math.random()*W,ty:Math.random()*H,sz:18+Math.random()*34,delay:Math.random()*2,dur:.55+Math.random()*.3,sp:14+Math.random()*24,ph:Math.random()*6.28,hit:false});
 let t0=performance.now();
-function loop(now){requestAnimationFrame(loop);if(step===5)return;const t=(now-t0)/1000;x.clearRect(0,0,W,H);x.textAlign='center';x.textBaseline='middle';
- rip=rip.filter(r=>r.u<1);rip.forEach(r=>{r.u+=.022;x.strokeStyle=`rgba(239,229,207,${(1-r.u)*.55})`;x.lineWidth=2;x.beginPath();x.arc(r.x,r.y,8+r.u*r.r,0,6.283);x.stroke()});
+function loop(now){requestAnimationFrame(loop);if(step===5)return; // Completely sleeping during Step 5
+ const t=(now-t0)/1000;x.clearRect(0,0,W,H);x.textAlign='center';x.textBaseline='middle';
+ rip=rip.filter(r=>r.u<1);rip.forEach(r=>{r.u+=.025;x.strokeStyle=`rgba(239,229,207,${(1-r.u)*.45})`;x.lineWidth=1.5;x.beginPath();x.arc(r.x,r.y,8+r.u*r.r,0,6.283);x.stroke()});
  notes.forEach(n=>{const u=(t-n.delay)/n.dur;if(u<0)return;let px,py,s,a;
   if(u<1){const e=u*u*u;px=W/2+(n.tx-W/2)*e;py=H/2+(n.ty-H/2)*e;s=.05+e*1.35;a=Math.min(1,u*2.5)}
-  else{if(!n.hit){n.hit=true;n.land=t;rip.push({x:n.tx,y:n.ty,u:0,r:n.sz*2.6})}
+  else{if(!n.hit){n.hit=true;n.land=t;rip.push({x:n.tx,y:n.ty,u:0,r:n.sz*2.2})}
    const f=t-n.land,k=Math.max(0,1-f*3);s=1+.35*k*Math.sin(f*22);a=1;
    n.ty-=n.sp*.016;if(n.ty<-60){n.ty=H+60;n.tx=Math.random()*W}
-   px=n.tx+Math.sin(t*.7+n.ph)*22;py=n.ty+Math.sin(t*.9+n.ph)*8}
-  x.globalAlpha=a*(py>H-80?Math.max(0,(H+60-py)/140):1);x.font=`${n.sz*s}px serif`;x.shadowColor='rgba(143,168,204,.9)';x.shadowBlur=14;x.fillStyle=n.c;x.save();x.translate(px,py);x.rotate(Math.sin(t*.6+n.ph)*.25);x.fillText(n.g,0,0);x.restore()});
- x.globalAlpha=1;x.shadowBlur=0}
+   px=n.tx+Math.sin(t*.7+n.ph)*18;py=n.ty+Math.sin(t*.9+n.ph)*6}
+  x.globalAlpha=a*(py>H-80?Math.max(0,(H+60-py)/140):1);x.font=`${n.sz*s}px serif`;x.fillStyle=n.c;x.save();x.translate(px,py);x.rotate(Math.sin(t*.6+n.ph)*.25);x.fillText(n.g,0,0);x.restore()});
+ x.globalAlpha=1;}
 requestAnimationFrame(loop);
 </script></body></html>
