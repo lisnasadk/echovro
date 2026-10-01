@@ -230,14 +230,14 @@ function go(n){
  document.body.classList.toggle('in5',n===5);
  if(n===1)ensure('male');
  if(n===2){drawAvatars();ensure(state.gender)}
- if(n===3){warmPlaces();linkedUI();}
+ if(n===3){linkedUI();}
  if(n===3||n===4){
   const curAv=findAv();
   if(curAv){const h=pvw(curAv);$('#me3').innerHTML=$('#me4').innerHTML=h;}
   $('#hi').textContent='Hi, '+state.username+'!';
   $('#done').textContent='Where shall we meet, '+state.username+'?';
  }
- if(n===4){ensure('male');ensure('female');drawPlaces()}}
+ if(n===4){drawPlaces()}}
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2800)}
 
 function face(l){let back='',top='';const h=l.hair;
@@ -258,7 +258,7 @@ $('#b1').onclick=()=>{const e=$('#em').value.trim(),u=$('#un').value.trim(),er=$
  er.textContent='';state.email=e;state.username=u;go(2)};
 $('#b2').onclick=()=>go(3);
 
-/* ===== Step 3: Linked Music UI & Connection Logic ===== */
+/* ===== Step 3: Link Music UI ===== */
 function linkedUI(){
  const m=state.music&&state.music.service;
  $$('[data-svc]').forEach(b=>{
@@ -301,7 +301,6 @@ async function connect(k){
  else{q.set('scope',CONFIG.YT_SCOPES);q.set('access_type','offline');location.href='https://accounts.google.com/o/oauth2/v2/auth?'+q;}
 }
 
-// Bind music buttons explicitly
 $$('[data-svc]').forEach(b=>{
  b.addEventListener('click',()=>connect(b.dataset.svc));
 });
@@ -324,14 +323,14 @@ $('#b3').onclick=()=>state.music?finish3():toast('Link a music service to contin
 function drawPlaces(){$('#places').innerHTML=Object.entries(PLACES).map(([k,p],i)=>`<button class="pc" style="--i:${i}" data-k="${k}"><em>${p.icon}</em><b>${p.name}</b><span>${p.blurb}</span></button>`).join('');
  $$('.pc').forEach(b=>b.onclick=()=>enterPlace(b.dataset.k))}
 
-/* ================= 3D HIGH PERFORMANCE PLACE SYSTEM ================= */
+/* ================= 3D PLACE SYSTEM (Freeze-Free) ================= */
 let R5=null,ctl=null,cur=null,run=false,seq=0,avatarHeight=1;
 const sc5=new THREE.Scene(),cam5=new THREE.PerspectiveCamera(50,1,.1,1000);
 const SKY={park:['#5f9bd6','#e3edf7'],city:['#0b1226','#3a4f7a'],cafe:['#2a1c14','#7a5a40'],gallery:['#16294a','#9db3d3']};
 const skyTex={};let floor=null,myAvatarWrapper=null,isFollowCam=true;
 const keys={w:0,a:0,s:0,d:0};
 let holdingAction=null;
-let walkableMeshes=[],cachedStairSpots=[];
+let walkableMeshes=[];
 
 function skyFor(k){if(skyTex[k])return skyTex[k];
  const c=document.createElement('canvas');c.width=2;c.height=256;const g=c.getContext('2d'),gr=g.createLinearGradient(0,0,0,256),s=SKY[k]||SKY.gallery;
@@ -363,13 +362,11 @@ const loadGLTF=(u,pr)=>new Promise((ok,no)=>{
 
 const placeCache={},prog={};
 const getPlace=k=>placeCache[k]||(placeCache[k]=loadGLTF(PLACES[k].url,p=>prog[k]&&prog[k](p)));
-let warmed=0;
-async function warmPlaces(){if(warmed)return;warmed=1;for(const k in PLACES){try{await getPlace(k)}catch(e){delete placeCache[k]}}}
 
 function drop(){
  run=false;if(cur){sc5.remove(cur);cur=null}if(floor){sc5.remove(floor);floor=null}
  if(crowd){sc5.remove(crowd);crowd.traverse(o=>{if(o.isSprite){o.material.map.dispose();o.material.dispose()}});crowd=null}
- myAvatarWrapper=null;holdingAction=null;walkableMeshes=[];cachedStairSpots=[];}
+ myAvatarWrapper=null;holdingAction=null;walkableMeshes=[];}
 
 let crowd=null;
 const avReady=id=>new Promise(ok=>{let n=0;(function w(){if(models[id]||++n>80)return ok(models[id]);setTimeout(w,100)})()});
@@ -381,19 +378,6 @@ function nameTag(txt,me,H){const c=document.createElement('canvas');c.width=128;
 function indexWalkableMeshes(root){
  walkableMeshes=[];
  root.traverse(o=>{if(o.isMesh)walkableMeshes.push(o);});
-}
-
-function precomputeStairsAndElevations(root,b,H){
- const ray=new THREE.Raycaster(),down=new THREE.Vector3(0,-1,0),spots=[];
- const step=H*1.8;
- for(let x=b.min.x;x<=b.max.x;x+=step){
-  for(let z=b.min.z;z<=b.max.z;z+=step){
-   ray.set(new THREE.Vector3(x,b.max.y+2,z),down);
-   const hit=ray.intersectObjects(walkableMeshes,false)[0];
-   if(hit&&hit.point)spots.push({x:hit.point.x,y:hit.point.y,z:hit.point.z});
-  }
- }
- cachedStairSpots=spots;
 }
 
 function mapAvatarBones(mesh){
@@ -421,7 +405,6 @@ async function spawnCrowd(root,fp,tok){
  indexWalkableMeshes(root);
  const b=new THREE.Box3().setFromObject(root),sz=b.getSize(new THREE.Vector3()),r=Math.max(sz.x,sz.y,sz.z)||1,H=r*.05;
  avatarHeight=H;
- precomputeStairsAndElevations(root,b,H);
 
  const list=[{u:state.username,av:state.avatar,me:1},...((f&&f.people)||[]).map(p=>({u:p.u,av:p.av}))];
  const grp=new THREE.Group(),n=list.length,R=H*1.5,spots=[];
@@ -487,7 +470,7 @@ function getElevationAt(x,z,currentY){
  return currentY;
 }
 
-/* 60FPS Physics Engine */
+/* 60FPS Animation Loop */
 let lastT=performance.now();
 function updateAvatarPhysics(dt){
  if(!crowd||!cur)return;
@@ -500,23 +483,7 @@ function updateAvatarPhysics(dt){
   if(holdingAction==='walk'||holdingAction==='stairs'){
    me.userData.mode=holdingAction;
    let moveDir=new THREE.Vector3();
-   
-   if(holdingAction==='stairs'){
-    if(!me.userData.climbTarget||Math.hypot(me.userData.climbTarget.x-me.position.x,me.userData.climbTarget.z-me.position.z)<H*0.4){
-     const higher=cachedStairSpots.filter(s=>s.y>me.position.y+H*0.1);
-     if(higher.length){
-      higher.sort((a,b)=>Math.hypot(a.x-me.position.x,a.z-me.position.z)-Math.hypot(b.x-me.position.x,b.z-me.position.z));
-      me.userData.climbTarget=higher[0];
-     }
-    }
-    if(me.userData.climbTarget){
-     moveDir.set(me.userData.climbTarget.x-me.position.x,0,me.userData.climbTarget.z-me.position.z).normalize();
-    }else{
-     cam5.getWorldDirection(moveDir);moveDir.y=0;moveDir.normalize();
-    }
-   }else{
-    cam5.getWorldDirection(moveDir);moveDir.y=0;moveDir.normalize();
-   }
+   cam5.getWorldDirection(moveDir);moveDir.y=0;moveDir.normalize();
 
    const stepLen=me.userData.walkSpeed*dt;
    const nextX=me.position.x+moveDir.x*stepLen;
@@ -600,24 +567,12 @@ function updateAvatarPhysics(dt){
      u.targetPos=new THREE.Vector3(w.position.x+Math.cos(ang)*dist,w.position.y,w.position.z+Math.sin(ang)*dist);
      u.mode='walk';
     }else if(rnd<0.7){u.mode='sit';}
-    else if(rnd<0.85){u.mode='stairs';}
     else{u.mode='idle';u.targetPos=null;}
    }
   }
 
   if(u.mode==='walk'||u.mode==='stairs'){
    if(u.isMe&&holdingAction)continue;
-
-   if(u.mode==='stairs'&&!u.climbTarget){
-    const higher=cachedStairSpots.filter(s=>s.y>w.position.y+H*0.1);
-    if(higher.length){
-     higher.sort((a,b)=>Math.hypot(a.x-w.position.x,a.z-w.position.z)-Math.hypot(b.x-w.position.x,b.z-w.position.z));
-     u.targetPos=new THREE.Vector3(higher[0].x,higher[0].y,higher[0].z);
-    }else{
-     const ang=Math.random()*6.28;
-     u.targetPos=new THREE.Vector3(w.position.x+Math.cos(ang)*H*2.5,w.position.y,w.position.z+Math.sin(ang)*H*2.5);
-    }
-   }
 
    if(u.targetPos){
     const dx=u.targetPos.x-w.position.x;
@@ -654,8 +609,7 @@ function updateAvatarPhysics(dt){
      }
     }else{
      u.targetPos=null;
-     if(u.mode==='stairs'){u.mode='sit';if(u.isMe)toast('Reached top & resting.');}
-     else if(u.isMe){u.mode='idle';}
+     if(u.isMe)u.mode='idle';
     }
    }else if(u.isMe&&keys.w===0&&keys.s===0&&keys.a===0&&keys.d===0){
     inner.position.y+=(u.baseInnerY-inner.position.y)*0.1;
