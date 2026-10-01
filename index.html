@@ -230,12 +230,17 @@ input:focus{border-color:#6f9bff;box-shadow:0 0 0 4px rgba(111,155,255,.18)}inpu
   </div>
 </section>
 
-<!-- 1 · LOGIN -->
+<!-- 1 · LOGIN / SIGN UP -->
 <section class="scr" id="s1">
   <div class="card">
-    <h2>Join the universe</h2><p class="sub">Sign in with your email and pick a username.</p>
+    <h2 id="h1t">Join the universe</h2>
+    <p class="sub" id="s1s">Create your account with an email, username and password.</p>
+    <div class="tabs" id="atabs" style="margin-top:6px"><button data-a="signup" class="on">Sign up</button><button data-a="login">Log in</button></div>
     <label for="em">Email</label><input id="em" type="email" autocomplete="email" placeholder="you@example.com">
-    <label for="un">Username</label><input id="un" type="text" autocomplete="username" placeholder="e.g. moon.walker" maxlength="20">
+    <div id="unw"><label for="un">Username</label><input id="un" type="text" autocomplete="username" placeholder="e.g. moon.walker" maxlength="20"></div>
+    <label for="pw">Password</label>
+    <div class="mine" style="margin:0"><input id="pw" type="password" autocomplete="new-password" placeholder="At least 8 characters" maxlength="72"><button class="btn g" id="pwt" type="button" style="padding:12px 16px">Show</button></div>
+    <div id="pcw"><label for="pc">Confirm password</label><input id="pc" type="password" autocomplete="new-password" placeholder="Repeat your password" maxlength="72"></div>
     <div class="err" id="err"></div>
     <button class="btn" id="b1">Continue</button>
   </div>
@@ -390,13 +395,45 @@ function face(l){let back='',top='';const h=l.hair;
 
 function drawAvatars(){$('#cr').innerHTML=AVATARS[state.gender].map(a=>`${a.label}: “${a.title}” by <a href="${a.src}" target="_blank" rel="noopener">${a.author}</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>`).join('<br>');$('#grid').innerHTML=AVATARS[state.gender].map((a,i)=>`<button class="av${state.avatar===a.id?' sel':''}" style="--i:${i}" data-id="${a.id}">${pvw(a)}<b>${a.label}</b></button>`).join('');
  $$('.av').forEach(b=>b.onclick=()=>{state.avatar=b.dataset.id;$$('.av').forEach(x=>x.classList.toggle('sel',x===b));$('#b2').disabled=false})}
-$$('.tabs button').forEach(b=>b.onclick=()=>{state.gender=b.dataset.g;state.avatar=null;ensure(state.gender);$('#b2').disabled=true;$$('.tabs button').forEach(x=>x.classList.toggle('on',x===b));drawAvatars()});
+$$('#s2 .tabs button').forEach(b=>b.onclick=()=>{state.gender=b.dataset.g;state.avatar=null;ensure(state.gender);$('#b2').disabled=true;$$('#s2 .tabs button').forEach(x=>x.classList.toggle('on',x===b));drawAvatars()});
 
 $$('[data-go]').forEach(b=>b.onclick=()=>go(+b.dataset.go));
-$('#b1').onclick=()=>{const e=$('#em').value.trim(),u=$('#un').value.trim(),er=$('#err');
+/* ===== Step 1: sign up / log in with password ===== */
+let authMode='signup';
+function setAuth(m){authMode=m;const su=m==='signup';
+ $$('#atabs button').forEach(b=>b.classList.toggle('on',b.dataset.a===m));
+ $('#unw').style.display=$('#pcw').style.display=su?'':'none';
+ $('#h1t').textContent=su?'Join the universe':'Welcome back';
+ $('#s1s').textContent=su?'Create your account with an email, username and password.':'Log in with your email and password.';
+ $('#pw').autocomplete=su?'new-password':'current-password';$('#pw').placeholder=su?'At least 8 characters':'Your password';
+ $('#err').textContent='';$('#pw').value=$('#pc').value=''}
+$$('#atabs button').forEach(b=>b.onclick=()=>setAuth(b.dataset.a));
+$('#pwt').onclick=()=>{const h=$('#pw').type==='password';$('#pw').type=$('#pc').type=h?'text':'password';$('#pwt').textContent=h?'Hide':'Show'};
+['em','un','pw','pc'].forEach(i=>$('#'+i).onkeydown=e=>{if(e.key==='Enter')$('#b1').click()});
+setAuth('signup');
+
+// Hook: your backend does the real auth. Hash passwords SERVER-SIDE (bcrypt/argon2); with Supabase use
+//   signup: supabase.auth.signUp({email,password,options:{data:{username}}})
+//   login:  supabase.auth.signInWithPassword({email,password})
+// Return {ok:true,username} or {ok:false,error:'message'}.
+async function authRequest(p){
+ if(CONFIG.DEMO_MODE)return{ok:true,username:p.username||(p.email.split('@')[0].replace(/[^a-zA-Z0-9_.]/g,'').slice(0,20)||'guest')};
+ try{const r=await fetch('/api/auth/'+p.mode,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)});return await r.json()}
+ catch(e){return{ok:false,error:'Network error. Please try again.'}}}
+
+$('#b1').onclick=async()=>{const e=$('#em').value.trim(),u=$('#un').value.trim(),pw=$('#pw').value,er=$('#err'),su=authMode==='signup';
  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e))return er.textContent='Please enter a valid email address.';
- if(!/^[a-zA-Z0-9_.]{3,20}$/.test(u))return er.textContent='Username: 3–20 letters, numbers, dots or underscores.';
- er.textContent='';state.email=e;state.username=u;go(2)};
+ if(su&&!/^[a-zA-Z0-9_.]{3,20}$/.test(u))return er.textContent='Username: 3–20 letters, numbers, dots or underscores.';
+ if(su){if(pw.length<8)return er.textContent='Password must be at least 8 characters.';
+  if(!/[A-Za-z]/.test(pw)||!/\d/.test(pw))return er.textContent='Password needs at least one letter and one number.';
+  if(pw!==$('#pc').value)return er.textContent='Passwords do not match.'}
+ else if(!pw)return er.textContent='Please enter your password.';
+ er.textContent='';const b=$('#b1');b.disabled=true;b.textContent='Please wait…';
+ const r=await authRequest({mode:authMode,email:e,username:su?u:undefined,password:pw});
+ b.disabled=false;b.textContent='Continue';
+ if(!r||!r.ok)return er.textContent=(r&&r.error)||'Something went wrong. Please try again.';
+ $('#pw').value=$('#pc').value='';
+ state.email=e;state.username=r.username||u;go(2)};
 $('#b2').onclick=()=>go(3);
 
 /* ===== Step 3: link a music service (mandatory) — Spotify / YouTube Music / Gaana ===== */
