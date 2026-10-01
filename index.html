@@ -68,6 +68,7 @@ input:focus{border-color:var(--cream)}
 .sg{display:grid;grid-template-columns:1fr auto;column-gap:12px;padding:10px 0;border-top:1px solid rgba(184,191,202,.2);color:inherit;text-decoration:none}
 .sg b{font:500 19px 'Playfair Display',serif}.sg span{grid-column:1;color:var(--silver);font-size:17px}
 .sg em{grid-row:1/3;grid-column:2;align-self:center;font:11px ui-monospace,monospace;font-style:normal;letter-spacing:.14em;text-transform:uppercase}
+body.in5 #c,body.in5 .vig{display:none}
 </style></head><body>
 <canvas id="c"></canvas><div class="vig"></div><canvas id="pl"></canvas>
 
@@ -199,6 +200,7 @@ function go(n){
  if(n>=4&&!state.music){toast('Link a music service to continue.');n=3}   // music linking is mandatory
  step=n;$$('.scr').forEach((s,i)=>s.classList.toggle('on',i===n));$$('#dots i').forEach((d,i)=>d.classList.toggle('on',i===Math.min(n,4)));$('#dots').style.display=n===5?'none':'';
  $('#pl').classList.toggle('on',n===5);
+ document.body.classList.toggle('in5',n===5);
  if(n===1)ensure('male');if(n===2){drawAvatars();ensure(state.gender)}
  if(n===3)warmPlaces();   // start downloading the place models in the background
  if(n===3||n===4){const h=pvw(findAv());$('#me3').innerHTML=$('#me4').innerHTML=h;$('#hi').textContent='Hi, '+state.username+'!';$('#done').textContent='Where shall we meet, '+state.username+'?'}
@@ -255,6 +257,18 @@ function drawPlaces(){$('#places').innerHTML=Object.entries(PLACES).map(([k,p],i
 
 /* ===== Step 5: the place — scenes are loaded once, cached, and warmed in the background ===== */
 let R5=null,ctl=null,cur=null,run=false,seq=0;const sc5=new THREE.Scene(),cam5=new THREE.PerspectiveCamera(50,1,.1,1000);
+/* ===== Backdrop: opaque sky "wall" + ground disc so the app UI never shows behind a place ===== */
+const SKY={park:['#5f9bd6','#e3edf7'],city:['#0b1226','#3a4f7a'],cafe:['#2a1c14','#7a5a40'],gallery:['#16294a','#9db3d3']};
+const skyTex={};let floor=null;
+function skyFor(k){if(skyTex[k])return skyTex[k];
+ const c=document.createElement('canvas');c.width=2;c.height=512;const g=c.getContext('2d'),gr=g.createLinearGradient(0,0,0,512),s=SKY[k]||SKY.gallery;
+ gr.addColorStop(0,s[0]);gr.addColorStop(1,s[1]);g.fillStyle=gr;g.fillRect(0,0,2,512);
+ const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;return skyTex[k]=t}
+function setBackdrop(k,b,r){   // b = place bounding box AFTER it was centered, r = its largest dimension
+ sc5.background=skyFor(k);
+ if(floor){sc5.remove(floor);floor.geometry.dispose();floor.material.dispose()}
+ floor=new THREE.Mesh(new THREE.CircleGeometry(r*12,64),new THREE.MeshBasicMaterial({color:(SKY[k]||SKY.gallery)[1]}));
+ floor.rotation.x=-Math.PI/2;floor.position.y=b.min.y-r*.004;sc5.add(floor)}   // just under the model so it never z-fights
 function init5(){if(R5)return;
  R5=new THREE.WebGLRenderer({canvas:$('#pl'),alpha:true,antialias:true});R5.setPixelRatio(Math.min(devicePixelRatio||1,2));R5.outputEncoding=THREE.sRGBEncoding;
  const d=new THREE.DirectionalLight(0xfff1d6,1.4);d.position.set(5,10,6);sc5.add(new THREE.HemisphereLight(0xffffff,0x445577,1.1),d);
@@ -275,7 +289,7 @@ let warmed=0;
 async function warmPlaces(){if(warmed)return;warmed=1;
  for(const k in PLACES){try{await getPlace(k)}catch(e){delete placeCache[k]}}}   // one at a time so bandwidth isn't split
 // Detach only — the cached scene keeps its GPU data so re-entering a place is instant.
-function drop(){run=false;if(cur){sc5.remove(cur);cur=null}
+function drop(){run=false;if(cur){sc5.remove(cur);cur=null}if(floor){sc5.remove(floor);floor=null}
  if(crowd){sc5.remove(crowd);crowd.traverse(o=>{if(o.isSprite){o.material.map.dispose();o.material.dispose()}});crowd=null}}   // avatar geometry is shared with the previews, so it is not disposed
 /* ===== People physically in the place: your avatar + everyone from the feed, standing on the floor ===== */
 let crowd=null;
@@ -330,6 +344,7 @@ async function enterPlace(k){
   $('#lt').textContent='Building the scene…';
   const b=new THREE.Box3().setFromObject(root),c=b.getCenter(new THREE.Vector3()),s=b.getSize(new THREE.Vector3()),r=Math.max(s.x,s.y,s.z)||1;
   root.position.sub(c);sc5.add(root);cur=root;
+  setBackdrop(k,new THREE.Box3().setFromObject(root),r);
   cam5.near=r/1000;cam5.far=r*30;cam5.updateProjectionMatrix();cam5.position.set(r*.7,r*.5,r*.7);
   ctl.target.set(0,0,0);ctl.minDistance=r*.05;ctl.maxDistance=r*2.5;ctl.maxPolarAngle=Math.PI*.495;ctl.update();
   await spawnCrowd(root,fp,tok);if(tok!==seq)return;
@@ -372,7 +387,7 @@ addEventListener('resize',size);size();
 const N=W<700?34:60;
 for(let i=0;i<N;i++)notes.push({g:G[i%4],c:COL[i%4],tx:Math.random()*W,ty:Math.random()*H,sz:22+Math.random()*46,delay:Math.random()*2.4,dur:.55+Math.random()*.35,sp:14+Math.random()*30,ph:Math.random()*6.28,hit:false});
 let t0=performance.now();
-function loop(now){requestAnimationFrame(loop);const t=(now-t0)/1000;x.clearRect(0,0,W,H);x.textAlign='center';x.textBaseline='middle';
+function loop(now){requestAnimationFrame(loop);if(step===5)return;const t=(now-t0)/1000;x.clearRect(0,0,W,H);x.textAlign='center';x.textBaseline='middle';
  rip=rip.filter(r=>r.u<1);rip.forEach(r=>{r.u+=.022;x.strokeStyle=`rgba(239,229,207,${(1-r.u)*.55})`;x.lineWidth=2;x.beginPath();x.arc(r.x,r.y,8+r.u*r.r,0,6.283);x.stroke()});
  notes.forEach(n=>{const u=(t-n.delay)/n.dur;if(u<0)return;let px,py,s,a;
   if(u<1){const e=u*u*u;px=W/2+(n.tx-W/2)*e;py=H/2+(n.ty-H/2)*e;s=.05+e*1.35;a=Math.min(1,u*2.5)}   // flying toward the viewer
