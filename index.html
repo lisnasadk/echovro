@@ -69,6 +69,10 @@ input:focus{border-color:var(--cream)}
 .sg b{font:500 19px 'Playfair Display',serif}.sg span{grid-column:1;color:var(--silver);font-size:17px}
 .sg em{grid-row:1/3;grid-column:2;align-self:center;font:11px ui-monospace,monospace;font-style:normal;letter-spacing:.14em;text-transform:uppercase}
 body.in5 #c,body.in5 .vig{display:none}
+#pad{display:none;position:fixed;right:16px;bottom:calc(42vh + 24px);grid-template-columns:repeat(3,52px);gap:6px;z-index:5}
+#s5.on #pad.rdy{display:grid;pointer-events:auto}
+#pad button{all:unset;cursor:pointer;text-align:center;padding:12px 0;background:rgba(15,27,51,.8);border:1px solid rgba(184,191,202,.4);color:var(--cream);font:12px ui-monospace,monospace;letter-spacing:.08em;touch-action:none;user-select:none}
+#pad button:active,#pad button.on{background:var(--cream);color:var(--navy)}
 </style></head><body>
 <canvas id="c"></canvas><div class="vig"></div><canvas id="pl"></canvas>
 
@@ -121,6 +125,7 @@ body.in5 #c,body.in5 .vig{display:none}
   <div class="top"><button class="btn g" id="bk">Back</button><div><h2 id="pn"></h2><p class="sub" id="pb"></p></div></div>
   <div id="ld"><div class="barw"><div id="bar"></div></div><p id="lt"></p></div>
   <div id="sheet"></div>
+  <div id="pad"><button data-k="f" style="grid-column:2">▲</button><button data-k="l">◀</button><button data-k="b">▼</button><button data-k="r">▶</button><button id="bc" style="grid-column:1/3">CLIMB</button><button id="bs">SIT</button></div>
 </section>
 
 <div class="dots" id="dots"><i class="on"></i><i></i><i></i><i></i><i></i></div>
@@ -289,10 +294,10 @@ let warmed=0;
 async function warmPlaces(){if(warmed)return;warmed=1;
  for(const k in PLACES){try{await getPlace(k)}catch(e){delete placeCache[k]}}}   // one at a time so bandwidth isn't split
 // Detach only — the cached scene keeps its GPU data so re-entering a place is instant.
-function drop(){run=false;if(cur){sc5.remove(cur);cur=null}if(floor){sc5.remove(floor);floor=null}
+function drop(){run=false;me=null;$('#pad').classList.remove('rdy');if(cur){sc5.remove(cur);cur=null}if(floor){sc5.remove(floor);floor=null}
  if(crowd){sc5.remove(crowd);crowd.traverse(o=>{if(o.isSprite){o.material.map.dispose();o.material.dispose()}});crowd=null}}   // avatar geometry is shared with the previews, so it is not disposed
 /* ===== People physically in the place: your avatar + everyone from the feed, standing on the floor ===== */
-let crowd=null;
+let crowd=null,me=null,climb=false;const keys={},mray=new THREE.Raycaster(),DOWN=new THREE.Vector3(0,-1,0),LEG=-1;   // LEG: flip to 1 if legs swing backwards
 const avReady=id=>new Promise(ok=>{let n=0;(function w(){if(models[id]||++n>80)return ok(models[id]);setTimeout(w,100)})()});   // wait (≤8s) for the avatar file
 function nameTag(txt,me,H){const c=document.createElement('canvas');c.width=256;c.height=64;const g=c.getContext('2d');
  g.fillStyle=me?'rgba(239,229,207,.95)':'rgba(15,27,51,.82)';g.fillRect(0,8,256,48);g.fillStyle=me?'#0f1b33':'#efe5cf';g.font='26px ui-monospace,monospace';g.textAlign='center';g.textBaseline='middle';g.fillText(txt,128,32);
@@ -325,12 +330,53 @@ async function spawnCrowd(root,fp,tok){
   let bb=new THREE.Box3().setFromObject(inner);inner.scale.setScalar(H/((bb.max.y-bb.min.y)||1));inner.updateMatrixWorld(true);
   bb=new THREE.Box3().setFromObject(inner);const cc=bb.getCenter(new THREE.Vector3());inner.position.set(-cc.x,-bb.min.y,-cc.z);
   const w=new THREE.Group();w.add(inner,nameTag(P.u,P.me,H));w.position.set(px,gy,pz);
-  w.userData.ry=w.rotation.y=Math.atan2(camX-px,camZ-pz)+(pv.userData.rot||0);grp.add(w)}
+  w.userData.me=P.me;w.userData.ry=w.rotation.y=Math.atan2(camX-px,camZ-pz)+(pv.userData.rot||0);grp.add(w)}
  if(tok!==seq)return;if(!grp.children.length)return;
- sc5.add(grp);crowd=grp;
+ sc5.add(grp);crowd=grp;setupMe(grp.children.find(c=>c.userData.me),H);
  cam5.near=Math.min(r/1000,H/50);cam5.updateProjectionMatrix();
  ctl.target.set(cx,gy0+H*.55,cz);cam5.position.set(camX,gy0+H*1.7,camZ);ctl.minDistance=H*1.2;ctl.update()}
-(function loop5(){requestAnimationFrame(loop5);if(run){if(crowd){const t=performance.now()/1000;crowd.children.forEach((w,i)=>{w.rotation.y=w.userData.ry+Math.sin(t*.8+i*1.7)*.18})}ctl.update();R5.render(sc5,cam5)}})();
+(function loop5(){requestAnimationFrame(loop5);const n=performance.now(),dt=Math.min(.05,(n-(loop5.t||n))/1000);loop5.t=n;
+ if(run){if(crowd){const t=n/1000;crowd.children.forEach((w,i)=>{if(me&&w===me.w)return;w.rotation.y=w.userData.ry+Math.sin(t*.8+i*1.7)*.18})}
+  tickMe(dt);ctl.update();R5.render(sc5,cam5)}})();
+/* ===== Controls for your avatar: walk, climb stairs, sit ===== */
+function setupMe(w,H){if(!w)return;const inner=w.children[0],rot=((models[state.avatar]||{}).userData||{}).rot||0;
+ const bn=(p,s)=>{let r=null;inner.traverse(o=>{if(!r&&o.isBone&&p.test(o.name)&&s.test(o.name))r=o});return r},
+  L=/left|[._]l(_|$)/i,R=/right|[._]r(_|$)/i,TH=/up.?leg|thigh/i,KN=/^(?!.*up)(?!.*foot)(?!.*toe).*(leg|calf|shin)$/i;
+ const j=[bn(TH,L),bn(TH,R),bn(KN,L),bn(KN,R)].map(b=>b&&{b,r:b.rotation.x});
+ me={w,inner,H,j,rot,h:w.userData.ry-rot,ty:w.position.y,iy:inner.position.y,ph:0,a:0,s:0,sit:0,seat:0}}
+const shift=(x,y,z)=>{const v=new THREE.Vector3(x,y,z);cam5.position.add(v);ctl.target.add(v)};
+function findSeat(){const m=me,o=m.w.position,H=m.H;
+ for(let i=0;i<12;i++){const a=i/12*6.283,x=o.x+Math.sin(a)*H*.7,z=o.z+Math.cos(a)*H*.7;
+  mray.set(new THREE.Vector3(x,o.y+H*.6,z),DOWN);const h=mray.intersectObject(cur,true)[0];
+  if(h&&h.face){const d=h.point.y-o.y;if(d>H*.15&&d<H*.4&&h.face.normal.clone().transformDirection(h.object.matrixWorld).y>.8)return{x,z,a}}}
+ return null}
+function toggleSit(){if(!me)return;const m=me;
+ if(m.sit){m.sit=0;m.seat=0}
+ else{const s=findSeat();if(s){shift(s.x-m.w.position.x,0,s.z-m.w.position.z);m.w.position.x=s.x;m.w.position.z=s.z;m.h=s.a}m.seat=s?1:0;m.sit=1;ctl.autoRotate=false}
+ $('#bs').textContent=m.sit?'STAND':'SIT'}
+function tickMe(dt){const m=me;if(!m||!cur)return;const w=m.w,H=m.H,k=keys,dx=(k.r?1:0)-(k.l?1:0),dz=(k.f?1:0)-(k.b?1:0);let go=0;
+ if((dx||dz)&&m.sit){m.sit=0;m.seat=0;$('#bs').textContent='SIT'}
+ if((dx||dz)&&!m.sit){const t=ctl.target,c=cam5.position;let fx=t.x-c.x,fz=t.z-c.z;const fl=Math.hypot(fx,fz)||1;fx/=fl;fz/=fl;
+  let vx=fx*dz-fz*dx,vz=fz*dz+fx*dx;const vl=Math.hypot(vx,vz)||1;vx/=vl;vz/=vl;
+  const sp=H*(climb?.7:1.4)*dt,nx=w.position.x+vx*sp,nz=w.position.z+vz*sp,st=H*(climb?.45:.12),ta=Math.atan2(vx,vz);
+  m.h+=Math.atan2(Math.sin(ta-m.h),Math.cos(ta-m.h))*Math.min(1,dt*10);
+  mray.set(new THREE.Vector3(nx,w.position.y+st+H*.3,nz),DOWN);const h=mray.intersectObject(cur,true)[0];
+  if(h&&h.point.y-w.position.y<=st&&w.position.y-h.point.y<H*.6){const ox=w.position.x,oz=w.position.z;w.position.x=nx;w.position.z=nz;m.ty=h.point.y;shift(nx-ox,0,nz-oz);go=1}}
+ const oy=w.position.y;w.position.y+=(m.ty-oy)*Math.min(1,dt*12);shift(0,w.position.y-oy,0);
+ m.a+=((go?(climb?.9:.6):0)-m.a)*Math.min(1,dt*8);m.ph+=dt*(climb?7:9);m.s+=(m.sit-m.s)*Math.min(1,dt*6);
+ const s=m.s,sw=Math.sin(m.ph)*m.a*(1-s),A=1.5*s,[tl,tr,kl,kr]=m.j,kn=(m.seat?1.5:.2)*s;
+ if(tl)tl.b.rotation.x=tl.r+LEG*(sw+A);if(tr)tr.b.rotation.x=tr.r+LEG*(-sw+A);
+ if(kl)kl.b.rotation.x=kl.r-LEG*(Math.max(0,-sw)*1.2+kn);if(kr)kr.b.rotation.x=kr.r-LEG*(Math.max(0,sw)*1.2+kn);
+ m.inner.position.y=m.iy-(m.seat?.23:.46)*H*s+Math.abs(Math.sin(m.ph))*H*.015*m.a;
+ w.rotation.y=m.h+m.rot}
+$$('#pad [data-k]').forEach(b=>{const k=b.dataset.k,f=v=>e=>{e.preventDefault();keys[k]=v;if(v&&ctl)ctl.autoRotate=false};
+ b.onpointerdown=f(1);['onpointerup','onpointerleave','onpointercancel'].forEach(ev=>b[ev]=f(0))});
+$('#bc').onclick=()=>{climb=!climb;$('#bc').classList.toggle('on',climb)};
+$('#bs').onclick=toggleSit;
+const KM={KeyW:'f',ArrowUp:'f',KeyS:'b',ArrowDown:'b',KeyA:'l',ArrowLeft:'l',KeyD:'r',ArrowRight:'r'};
+addEventListener('keydown',e=>{if(step!==5||e.target.tagName==='INPUT')return;if(KM[e.code]){keys[KM[e.code]]=1;e.preventDefault()}
+ if(e.code==='KeyE')toggleSit();if(e.code==='KeyC')$('#bc').click()});
+addEventListener('keyup',e=>{if(KM[e.code])keys[KM[e.code]]=0});
 const songLink=(m,s)=>SVC[m].q+encodeURIComponent(s[0]+' '+s[1]);
 async function enterPlace(k){
  const P=PLACES[k],tok=++seq;state.place=k;drop();go(5);
@@ -348,7 +394,7 @@ async function enterPlace(k){
   cam5.near=r/1000;cam5.far=r*30;cam5.updateProjectionMatrix();cam5.position.set(r*.7,r*.5,r*.7);
   ctl.target.set(0,0,0);ctl.minDistance=r*.05;ctl.maxDistance=r*2.5;ctl.maxPolarAngle=Math.PI*.495;ctl.update();
   await spawnCrowd(root,fp,tok);if(tok!==seq)return;
-  $('#ld').style.display='none';run=true;
+  $('#ld').style.display='none';run=true;$('#pad').classList.add('rdy');
  }catch(e){delete placeCache[k];console.error('Place load failed',P.url,e);if(tok===seq)$('#lt').textContent='Could not load '+P.url+' — '+((e&&e.message)||(e&&e.target&&('HTTP '+(e.target.status||'error')))||String(e))}}
 $('#bk').onclick=()=>{seq++;drop();go(4)};
 
