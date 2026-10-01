@@ -69,6 +69,7 @@ input:focus{border-color:var(--cream)}
 .sg b{font:500 19px 'Playfair Display',serif}.sg span{grid-column:1;color:var(--silver);font-size:17px}
 .sg em{grid-row:1/3;grid-column:2;align-self:center;font:11px ui-monospace,monospace;font-style:normal;letter-spacing:.14em;text-transform:uppercase}
 body.in5 #c,body.in5 .vig{display:none}
+.mine{display:flex;gap:10px;margin-bottom:12px}.mine input{flex:1;min-width:0}.mine .btn{padding:12px 22px}
 #pad{display:none;position:fixed;right:16px;bottom:calc(42vh + 24px);grid-template-columns:repeat(3,52px);gap:6px;z-index:5}
 #s5.on #pad.rdy{display:grid;pointer-events:auto}
 #pad button{all:unset;cursor:pointer;text-align:center;padding:12px 0;background:rgba(15,27,51,.8);border:1px solid rgba(184,191,202,.4);color:var(--cream);font:12px ui-monospace,monospace;letter-spacing:.08em;touch-action:none;user-select:none}
@@ -302,6 +303,20 @@ const avReady=id=>new Promise(ok=>{let n=0;(function w(){if(models[id]||++n>80)r
 function nameTag(txt,me,H){const c=document.createElement('canvas');c.width=256;c.height=64;const g=c.getContext('2d');
  g.fillStyle=me?'rgba(239,229,207,.95)':'rgba(15,27,51,.82)';g.fillRect(0,8,256,48);g.fillStyle=me?'#0f1b33':'#efe5cf';g.font='26px ui-monospace,monospace';g.textAlign='center';g.textBaseline='middle';g.fillText(txt,128,32);
  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthTest:false}));sp.scale.set(H*.9,H*.225,1);sp.position.y=H*1.15;sp.renderOrder=9;return sp}
+function songTag(txt,H){const c=document.createElement('canvas');c.width=512;c.height=64;const g=c.getContext('2d');
+ g.fillStyle='rgba(111,139,176,.92)';g.fillRect(0,8,512,48);g.fillStyle='#fff';g.font='26px ui-monospace,monospace';g.textAlign='center';g.textBaseline='middle';g.fillText('♪ '+(txt.length>34?txt.slice(0,33)+'…':txt),256,32);
+ const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthTest:false}));sp.scale.set(H*1.8,H*.225,1);sp.position.y=H*1.4;sp.renderOrder=9;return sp}
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let feed=null;
+// Hook: tell your backend what this user is playing at this place so others see it.
+async function onSongSet(p){console.log('EchoVro song',p);/* await fetch('/api/places/'+p.place+'/song',{method:'POST',body:JSON.stringify(p)}); */}
+function setMyTag(){if(!me)return;const w=me.w,o=w.userData.st;
+ if(o){w.remove(o);o.material.map.dispose();o.material.dispose();w.userData.st=null}
+ if(state.song){w.userData.st=songTag(state.song,me.H);w.add(w.userData.st)}}
+function setSong(){const v=$('#sgi').value.trim().slice(0,60);state.song=v;onSongSet({place:state.place,username:state.username,song:v});setMyTag();renderSheet();toast(v?'Now playing: '+v:'Song cleared.')}
+function renderSheet(){const f=feed;if(!f||!state.place||!state.music)return;const m=state.music.service,P=PLACES[state.place],mine={u:state.username,av:state.avatar,s:state.song||'—'};
+ $('#sheet').innerHTML=`<h3>Your song here</h3><div class="mine"><input id="sgi" list="sgl" maxlength="60" placeholder="Song – artist" value="${esc(state.song||'')}"><button class="btn" id="sgb">Set</button></div><datalist id="sgl">${f.songs.map(x=>`<option value="${esc(x[0]+' – '+x[1])}">`).join('')}</datalist><h3>Here now</h3><div class="pr">${[mine,...f.people].map(p=>`<div class="pp">${pvw(avOf(p.av))}<b>${p.u}</b><i>♪ ${esc(p.s)}</i></div>`).join('')}</div><h3>Songs for this place</h3>${f.songs.map(x=>`<a class="sg" href="${songLink(m,x)}" target="_blank" rel="noopener"><b>${x[0]}</b><span>${x[1]}</span><em>Open in ${SVC[m].n}</em></a>`).join('')}<p class="cr">${P.credit}</p>`;
+ $('#sgb').onclick=setSong;$('#sgi').onkeydown=e=>{if(e.key==='Enter')setSong()}}
 // Outdoor scenes (ground:true): find the real street level, then keep only flat spots at that level (no rooftops, no raised ledges).
 function groundSpots(root,ray,b,H,n){
  const down=new THREE.Vector3(0,-1,0),pts=[];
@@ -316,7 +331,7 @@ async function spawnCrowd(root,fp,tok){
  const f=await fp;if(tok!==seq)return;
  root.updateMatrixWorld(true);
  const b=new THREE.Box3().setFromObject(root),sz=b.getSize(new THREE.Vector3()),r=Math.max(sz.x,sz.y,sz.z)||1,H=r*.05;   // avatar height = 5% of the place
- const list=[{u:state.username,av:state.avatar,me:1},...((f&&f.people)||[]).map(p=>({u:p.u,av:p.av}))];
+ const list=[{u:state.username,av:state.avatar,me:1,s:state.song},...((f&&f.people)||[]).map(p=>({u:p.u,av:p.av,s:p.s}))];
  const grp=new THREE.Group(),ray=new THREE.Raycaster(),n=list.length,R=H*1.5;
  const g0=PLACES[state.place].ground?groundSpots(root,ray,b,H,n):null,spots=[];
  for(let i=0;i<n;i++){if(g0){spots.push(g0[i]);continue}
@@ -329,7 +344,7 @@ async function spawnCrowd(root,fp,tok){
   const inner=new THREE.Group();inner.add(THREE.SkeletonUtils.clone(pv.children[0]));inner.updateMatrixWorld(true);
   let bb=new THREE.Box3().setFromObject(inner);inner.scale.setScalar(H/((bb.max.y-bb.min.y)||1));inner.updateMatrixWorld(true);
   bb=new THREE.Box3().setFromObject(inner);const cc=bb.getCenter(new THREE.Vector3());inner.position.set(-cc.x,-bb.min.y,-cc.z);
-  const w=new THREE.Group();w.add(inner,nameTag(P.u,P.me,H));w.position.set(px,gy,pz);
+  const w=new THREE.Group();w.add(inner,nameTag(P.u,P.me,H));if(P.s){w.userData.st=songTag(P.s,H);w.add(w.userData.st)}w.position.set(px,gy,pz);
   w.userData.me=P.me;w.userData.ry=w.rotation.y=Math.atan2(camX-px,camZ-pz)+(pv.userData.rot||0);grp.add(w)}
  if(tok!==seq)return;if(!grp.children.length)return;
  sc5.add(grp);crowd=grp;setupMe(grp.children.find(c=>c.userData.me),H);
@@ -380,10 +395,9 @@ addEventListener('keydown',e=>{if(step!==5||e.target.tagName==='INPUT')return;if
 addEventListener('keyup',e=>{if(KM[e.code])keys[KM[e.code]]=0});
 const songLink=(m,s)=>SVC[m].q+encodeURIComponent(s[0]+' '+s[1]);
 async function enterPlace(k){
- const P=PLACES[k],tok=++seq;state.place=k;drop();go(5);
+ const P=PLACES[k],tok=++seq;state.place=k;state.song='';feed=null;drop();go(5);
  $('#pn').textContent=P.name;$('#pb').textContent=P.blurb;$('#sheet').innerHTML='';$('#ld').style.display='';$('#bar').style.width='0';$('#lt').textContent='Loading '+P.name+'…';
- const fp=fetchPlaceFeed(k,state);fp.then(f=>{if(tok!==seq||!f)return;const m=state.music.service;
-  $('#sheet').innerHTML=`<h3>Here now</h3><div class="pr">${f.people.map(p=>`<div class="pp">${pvw(avOf(p.av))}<b>${p.u}</b><i>♪ ${p.s}</i></div>`).join('')}</div><h3>Songs for this place</h3>${f.songs.map(s=>`<a class="sg" href="${songLink(m,s)}" target="_blank" rel="noopener"><b>${s[0]}</b><span>${s[1]}</span><em>Open in ${SVC[m].n}</em></a>`).join('')}<p class="cr">${P.credit}</p>`});
+ const fp=fetchPlaceFeed(k,state);fp.then(f=>{if(tok!==seq||!f)return;feed=f;renderSheet()});
  try{init5();
   prog[k]=p=>{$('#bar').style.width=Math.round(p*100)+'%'};
   const root=await getPlace(k);
