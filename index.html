@@ -101,12 +101,14 @@ body.in5 #c,body.in5 .vig{display:none}
 #s6{justify-content:flex-start;align-items:center;text-align:left;gap:16px}#s6 .top{width:min(720px,100%)}#s6 .card{width:min(720px,100%)}#s6 .row{justify-content:flex-start;margin-bottom:6px}
 #rch{max-height:24vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin:14px 0}
 #rpl iframe{display:block;margin-top:14px}
+.cdc{display:flex;gap:12px;margin:2px 0 12px}.cdc button{all:unset;cursor:pointer;width:28px;height:28px;border-radius:50%;transition:box-shadow .2s}
+.cdc button.on{box-shadow:0 0 0 2px var(--navy),0 0 0 4px var(--cream)}.cdc button:focus-visible{outline:2px solid var(--cream);outline-offset:3px}
 #rcd{display:flex;gap:18px;overflow-x:auto;padding:12px 4px 8px;min-height:150px}
 .cdw{all:unset;cursor:pointer;flex:none;width:112px;text-align:center}
 .cdw em{display:block;margin-top:8px;font:11px ui-monospace,monospace;font-style:normal;letter-spacing:.12em;color:var(--silver)}
 .cd{display:block;position:relative;width:112px;aspect-ratio:1;border-radius:50%;box-shadow:0 14px 30px rgba(0,0,0,.5);transition:transform .3s}
 .cdw:hover .cd{transform:scale(1.07) rotate(-6deg)}
-.disc{position:absolute;inset:0;border-radius:50%;background:conic-gradient(#e9eefb,#9fb6dc,#f3e7cf,#c0a8e0,#8fd6e4,#f6f0e0,#9fb6dc,#e9eefb);animation:cdspin 7s linear infinite;animation-play-state:paused}
+.disc{position:absolute;inset:0;border-radius:50%;background:conic-gradient(var(--g,#e9eefb,#9fb6dc,#f3e7cf,#c0a8e0,#8fd6e4,#f6f0e0,#9fb6dc,#e9eefb));animation:cdspin 7s linear infinite;animation-play-state:paused}
 .cdw:hover .disc,.cdw.fresh .disc{animation-play-state:running}
 .disc::before{content:"";position:absolute;inset:0;border-radius:50%;background:repeating-radial-gradient(circle,transparent 0 3px,rgba(15,27,51,.07) 3px 4px)}
 .disc::after{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 40deg,transparent 0 20%,rgba(255,255,255,.6) 25%,transparent 32% 70%,rgba(255,255,255,.4) 76%,transparent 83%)}
@@ -182,6 +184,7 @@ body.in5 #c,body.in5 .vig{display:none}
     <div class="mine"><input id="rlk" placeholder="Paste a song link"><button class="btn" id="rgo">Load</button></div>
     <div id="rpl"></div>
     <label>Send a song as a CD</label>
+    <div class="cdc" id="rcc"></div>
     <div class="mine"><input id="rcdi" placeholder="Song – artist, or paste a link"><button class="btn" id="rcdb">Send CD</button></div>
     <div id="rcd"></div>
     <div class="row" style="margin:14px 0 0"><button class="btn" id="rsync">Play together</button></div>
@@ -610,7 +613,7 @@ $('#srsend').onclick=()=>{const t=$('#sri').value.trim(),l=$('#srk').value.trim(
  $('#sr').classList.remove('on');request(srP,{t:t||l,svc:srS,link:l})};
 
 /* ===== Listening room: same song, same moment, with text chat ===== */
-let room={with:null,link:'',msgs:[],cds:[]};
+let room={with:null,link:'',msgs:[],cds:[],col:'aurora'};
 async function onRoomSend(p){console.log('EchoVro room',p)}   // hook: deliver to p.to. types: link, play {at}, chat {text}
 function parseLink(u){let m;
  if(m=u.match(/open\.spotify\.com\/(?:intl-[a-z]+\/)?track\/(\w+)/))return{svc:'spotify',src:'https://open.spotify.com/embed/track/'+m[1]};
@@ -637,22 +640,26 @@ function sendRoom(){const v=$('#rci').value.trim();if(!v||!room.with)return;room
 $('#rcs').onclick=sendRoom;$('#rci').onkeydown=e=>{if(e.key==='Enter')sendRoom()};$('#rbk').onclick=()=>go(4);
 // Call from your backend: EchoVroReceive.room({from,type:'link'|'play'|'chat',link,at,text})
 EchoVroReceive.room=m=>{if(m.type==='link'){room.link=m.link;toast(m.from+' shared a song')}
- if(m.type==='cd'){room.cds.push({t:m.t,svc:m.svc,link:m.link,from:m.from,fresh:1});toast(m.from+' sent you a CD')}
+ if(m.type==='cd'){room.cds.push({t:m.t,svc:m.svc,link:m.link,from:m.from,col:m.col,fresh:1});toast(m.from+' sent you a CD')}
  if(m.type==='chat')room.msgs.push({t:m.text});if(m.type==='play')countdown(m.at);renderRoom()};
 
 /* ===== Songs as CDs: send a song, it lands in the room as a disc. Tap a CD to play it. ===== */
 function cdHTML(c,i){const q=c.t.split(/\s+[–-]\s+/);
- return `<button class="cdw${c.me?' sent':''}${c.fresh?' fresh':''}" data-i="${i}" aria-label="Play ${esc(c.t)}"><span class="cd"><span class="disc"></span><span class="cdl"><b>${esc(q[0])}</b><i>${esc(q[1]||'')}</i></span></span><em>${c.me?'You':esc(c.from||room.with||'')}</em></button>`}
-function renderCDs(){const el=$('#rcd');if(!el)return;
+ return `<button class="cdw${c.me?' sent':''}${c.fresh?' fresh':''}" style="--g:${CDC[c.col]||CDC.aurora}" data-i="${i}" aria-label="Play ${esc(c.t)}"><span class="cd"><span class="disc"></span><span class="cdl"><b>${esc(q[0])}</b><i>${esc(q[1]||'')}</i></span></span><em>${c.me?'You':esc(c.from||room.with||'')}</em></button>`}
+const CDC={aurora:'#e9eefb,#9fb6dc,#f3e7cf,#c0a8e0,#8fd6e4,#f6f0e0,#9fb6dc,#e9eefb',gold:'#fff3c4,#e0b04a,#fff8dc,#c98f2b,#f7e3a0,#e0b04a,#fff3c4',rose:'#ffe3ea,#e88aa4,#fff0f3,#c25b7c,#f6b8c8,#e88aa4,#ffe3ea',mint:'#e2fff3,#5fcfa0,#f2fff9,#3a9c7a,#a8ecd0,#5fcfa0,#e2fff3',violet:'#efe3ff,#9a73e0,#f8f2ff,#6b45b8,#c9b0f2,#9a73e0,#efe3ff',midnight:'#5a74a0,#16294a,#9db3d3,#0a1426,#6f8bb0,#16294a,#5a74a0'};
+function drawCC(){const el=$('#rcc');if(!el)return;
+ el.innerHTML=Object.keys(CDC).map(k=>`<button class="${k===room.col?'on':''}" data-c="${k}" aria-label="${k} CD" style="background:conic-gradient(${CDC[k]})"></button>`).join('');
+ $$('#rcc [data-c]').forEach(b=>b.onclick=()=>{room.col=b.dataset.c;drawCC()})}
+function renderCDs(){const el=$('#rcd');if(!el)return;drawCC();
  el.innerHTML=room.cds.map(cdHTML).join('')||'<p class="emp">No CDs yet. Send one and it lands here.</p>';
  $$('#rcd .cdw').forEach(b=>b.onclick=()=>playCD(room.cds[+b.dataset.i]));room.cds.forEach(c=>c.fresh=0)}
 function playCD(c){if(c.link&&parseLink(c.link)){room.link=c.link;if(room.with)onRoomSend({to:room.with,type:'link',link:c.link});renderRoom();toast('Playing '+c.t)}
  else window.open(SVC[c.svc||state.music.service].q+encodeURIComponent(c.t),'_blank','noopener')}
 function sendCD(){const v=$('#rcdi').value.trim();if(!room.with)return toast('Connect with someone first.');if(!v)return toast('Type a song first.');
- const isL=/^https?:\/\//i.test(v),pl=isL?parseLink(v):null,c={me:1,t:isL?'Song link':v.slice(0,60),svc:pl?pl.svc:state.music.service,link:isL?v:'',fresh:1};
- room.cds.push(c);$('#rcdi').value='';onRoomSend({to:room.with,type:'cd',t:c.t,svc:c.svc,link:c.link});renderCDs();toast('CD sent to '+room.with);
+ const isL=/^https?:\/\//i.test(v),pl=isL?parseLink(v):null,c={me:1,t:isL?'Song link':v.slice(0,60),svc:pl?pl.svc:state.music.service,link:isL?v:'',col:room.col,fresh:1};
+ room.cds.push(c);$('#rcdi').value='';onRoomSend({to:room.with,type:'cd',t:c.t,svc:c.svc,link:c.link,col:c.col});renderCDs();toast('CD sent to '+room.with);
  if(CONFIG.DEMO_MODE)setTimeout(()=>{const d=[['Blinding Lights – The Weeknd','spotify'],['Kun Faya Kun – A.R. Rahman','ytm'],['Clair de Lune – Claude Debussy','gaana']][Math.floor(Math.random()*3)];
-  room.cds.push({t:d[0],svc:d[1],from:room.with,fresh:1});renderCDs();toast(room.with+' sent you a CD')},2500)}
+  room.cds.push({t:d[0],svc:d[1],from:room.with,col:Object.keys(CDC)[Math.floor(Math.random()*6)],fresh:1});renderCDs();toast(room.with+' sent you a CD')},2500)}
 $('#rcdb').onclick=sendCD;$('#rcdi').onkeydown=e=>{if(e.key==='Enter')sendCD()};
 
 /* ===== 3D avatar previews: one shared WebGL renderer drawn into each card's canvas ===== */
