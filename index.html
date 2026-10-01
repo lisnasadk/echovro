@@ -129,6 +129,7 @@ input:focus{border-color:var(--cream)}
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/SkeletonUtils.js"></script>
 <script>
 /* ============ CONFIG — the programmer fills these ============ */
 const CONFIG={
@@ -274,13 +275,39 @@ let warmed=0;
 async function warmPlaces(){if(warmed)return;warmed=1;
  for(const k in PLACES){try{await getPlace(k)}catch(e){delete placeCache[k]}}}   // one at a time so bandwidth isn't split
 // Detach only — the cached scene keeps its GPU data so re-entering a place is instant.
-function drop(){run=false;if(cur){sc5.remove(cur);cur=null}}
-(function loop5(){requestAnimationFrame(loop5);if(run){ctl.update();R5.render(sc5,cam5)}})();
+function drop(){run=false;if(cur){sc5.remove(cur);cur=null}
+ if(crowd){sc5.remove(crowd);crowd.traverse(o=>{if(o.isSprite){o.material.map.dispose();o.material.dispose()}});crowd=null}}   // avatar geometry is shared with the previews, so it is not disposed
+/* ===== People physically in the place: your avatar + everyone from the feed, standing on the floor ===== */
+let crowd=null;
+const avReady=id=>new Promise(ok=>{let n=0;(function w(){if(models[id]||++n>80)return ok(models[id]);setTimeout(w,100)})()});   // wait (≤8s) for the avatar file
+function nameTag(txt,me,H){const c=document.createElement('canvas');c.width=256;c.height=64;const g=c.getContext('2d');
+ g.fillStyle=me?'rgba(239,229,207,.95)':'rgba(15,27,51,.82)';g.fillRect(0,8,256,48);g.fillStyle=me?'#0f1b33':'#efe5cf';g.font='26px ui-monospace,monospace';g.textAlign='center';g.textBaseline='middle';g.fillText(txt,128,32);
+ const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthTest:false}));sp.scale.set(H*.9,H*.225,1);sp.position.y=H*1.15;sp.renderOrder=9;return sp}
+async function spawnCrowd(root,fp,tok){
+ const f=await fp;if(tok!==seq)return;
+ root.updateMatrixWorld(true);
+ const b=new THREE.Box3().setFromObject(root),sz=b.getSize(new THREE.Vector3()),r=Math.max(sz.x,sz.y,sz.z)||1,H=r*.05;   // avatar height = 5% of the place
+ const list=[{u:state.username,av:state.avatar,me:1},...((f&&f.people)||[]).map(p=>({u:p.u,av:p.av}))];
+ const grp=new THREE.Group(),ray=new THREE.Raycaster(),n=list.length,R=H*1.5;let gy0=null;
+ for(let i=0;i<n;i++){const P=list[i],pv=await avReady(P.av);if(tok!==seq)return;if(!pv)continue;
+  const ang=n===1?0:(i/(n-1)-.5)*Math.PI*.9+Math.PI/4,px=Math.sin(ang)*R,pz=Math.cos(ang)*R;   // fan of people in front of the camera
+  ray.set(new THREE.Vector3(px,b.min.y+sz.y*.4,pz),new THREE.Vector3(0,-1,0));
+  const hit=ray.intersectObject(root,true)[0],gy=hit?hit.point.y:b.min.y;if(gy0===null)gy0=gy;
+  const inner=new THREE.Group();inner.add(THREE.SkeletonUtils.clone(pv.children[0]));inner.updateMatrixWorld(true);
+  let bb=new THREE.Box3().setFromObject(inner);inner.scale.setScalar(H/((bb.max.y-bb.min.y)||1));inner.updateMatrixWorld(true);
+  bb=new THREE.Box3().setFromObject(inner);const cc=bb.getCenter(new THREE.Vector3());inner.position.set(-cc.x,-bb.min.y,-cc.z);
+  const w=new THREE.Group();w.add(inner,nameTag(P.u,P.me,H));w.position.set(px,gy,pz);
+  w.userData.ry=w.rotation.y=Math.atan2(r*.25-px,r*.25-pz)+(pv.userData.rot||0);grp.add(w)}
+ if(tok!==seq)return;if(!grp.children.length)return;
+ sc5.add(grp);crowd=grp;
+ cam5.near=Math.min(r/1000,H/50);cam5.updateProjectionMatrix();
+ ctl.target.set(0,gy0+H*.55,0);cam5.position.set(H*3.4,gy0+H*1.7,H*3.4);ctl.minDistance=H*1.2;ctl.update()}
+(function loop5(){requestAnimationFrame(loop5);if(run){if(crowd){const t=performance.now()/1000;crowd.children.forEach((w,i)=>{w.rotation.y=w.userData.ry+Math.sin(t*.8+i*1.7)*.18})}ctl.update();R5.render(sc5,cam5)}})();
 const songLink=(m,s)=>SVC[m].q+encodeURIComponent(s[0]+' '+s[1]);
 async function enterPlace(k){
  const P=PLACES[k],tok=++seq;state.place=k;drop();go(5);
  $('#pn').textContent=P.name;$('#pb').textContent=P.blurb;$('#sheet').innerHTML='';$('#ld').style.display='';$('#bar').style.width='0';$('#lt').textContent='Loading '+P.name+'…';
- fetchPlaceFeed(k,state).then(f=>{if(tok!==seq||!f)return;const m=state.music.service;
+ const fp=fetchPlaceFeed(k,state);fp.then(f=>{if(tok!==seq||!f)return;const m=state.music.service;
   $('#sheet').innerHTML=`<h3>Here now</h3><div class="pr">${f.people.map(p=>`<div class="pp">${pvw(avOf(p.av))}<b>${p.u}</b><i>♪ ${p.s}</i></div>`).join('')}</div><h3>Songs for this place</h3>${f.songs.map(s=>`<a class="sg" href="${songLink(m,s)}" target="_blank" rel="noopener"><b>${s[0]}</b><span>${s[1]}</span><em>Open in ${SVC[m].n}</em></a>`).join('')}<p class="cr">${P.credit}</p>`});
  try{init5();
   prog[k]=p=>{$('#bar').style.width=Math.round(p*100)+'%'};
@@ -291,6 +318,7 @@ async function enterPlace(k){
   root.position.sub(c);sc5.add(root);cur=root;
   cam5.near=r/1000;cam5.far=r*30;cam5.updateProjectionMatrix();cam5.position.set(r*.7,r*.5,r*.7);
   ctl.target.set(0,0,0);ctl.minDistance=r*.05;ctl.maxDistance=r*2.5;ctl.maxPolarAngle=Math.PI*.495;ctl.update();
+  await spawnCrowd(root,fp,tok);if(tok!==seq)return;
   $('#ld').style.display='none';run=true;
  }catch(e){delete placeCache[k];console.error('Place load failed',P.url,e);if(tok===seq)$('#lt').textContent='Could not load '+P.url+' — '+((e&&e.message)||(e&&e.target&&('HTTP '+(e.target.status||'error')))||String(e))}}
 $('#bk').onclick=()=>{seq++;drop();go(4)};
