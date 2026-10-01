@@ -360,8 +360,9 @@ function tickMe(dt){const m=me;if(!m||!cur)return;const w=m.w,H=m.H,k=keys,dx=(k
   let vx=fx*dz-fz*dx,vz=fz*dz+fx*dx;const vl=Math.hypot(vx,vz)||1;vx/=vl;vz/=vl;
   const sp=H*(climb?.7:1.4)*dt,nx=w.position.x+vx*sp,nz=w.position.z+vz*sp,st=H*(climb?.45:.12),ta=Math.atan2(vx,vz);
   m.h+=Math.atan2(Math.sin(ta-m.h),Math.cos(ta-m.h))*Math.min(1,dt*10);
-  mray.set(new THREE.Vector3(nx,w.position.y+st+H*.3,nz),DOWN);const h=mray.intersectObject(cur,true)[0];
-  if(h&&h.point.y-w.position.y<=st&&w.position.y-h.point.y<H*.6){const ox=w.position.x,oz=w.position.z;w.position.x=nx;w.position.z=nz;m.ty=h.point.y;shift(nx-ox,0,nz-oz);go=1}}
+  mray.far=H*.4;mray.set(new THREE.Vector3(w.position.x,w.position.y+st+H*.1,w.position.z),new THREE.Vector3(vx,0,vz));const wall=mray.intersectObject(cur,true).length>0;mray.far=Infinity;   // solid obstacle above step height
+  mray.set(new THREE.Vector3(nx,w.position.y+st+H*.3,nz),DOWN);const h=wall?null:mray.intersectObject(cur,true).find(q=>q.point.y-w.position.y<=st&&w.position.y-q.point.y<H*.6);   // highest surface we can step onto (skips rails/slabs above reach)
+  if(h){const ox=w.position.x,oz=w.position.z;w.position.x=nx;w.position.z=nz;m.ty=h.point.y;shift(nx-ox,0,nz-oz);go=1}}
  const oy=w.position.y;w.position.y+=(m.ty-oy)*Math.min(1,dt*12);shift(0,w.position.y-oy,0);
  m.a+=((go?(climb?.9:.6):0)-m.a)*Math.min(1,dt*8);m.ph+=dt*(climb?7:9);m.s+=(m.sit-m.s)*Math.min(1,dt*6);
  const s=m.s,sw=Math.sin(m.ph)*m.a*(1-s),A=1.5*s,[tl,tr,kl,kr]=m.j,kn=(m.seat?1.5:.2)*s;
