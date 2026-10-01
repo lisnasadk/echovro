@@ -282,7 +282,7 @@ async function enterPlace(k){
   cam5.near=r/1000;cam5.far=r*30;cam5.updateProjectionMatrix();cam5.position.set(r*.7,r*.5,r*.7);
   ctl.target.set(0,0,0);ctl.minDistance=r*.05;ctl.maxDistance=r*2.5;ctl.maxPolarAngle=Math.PI*.495;ctl.update();
   $('#ld').style.display='none';run=true;
- }catch(e){console.warn(e);if(tok===seq)$('#lt').textContent='Could not load this place. Check that '+P.url+' is uploaded to the repo and the site is served over http(s).'}}
+ }catch(e){console.error('Place load failed',P.url,e);if(tok===seq)$('#lt').textContent='Could not load '+P.url+' — '+((e&&e.message)||(e&&e.target&&('HTTP '+(e.target.status||'error')))||String(e))}}
 $('#bk').onclick=()=>{seq++;drop();go(4)};
 
 /* ===== 3D avatar previews: one shared WebGL renderer drawn into each card's canvas ===== */
