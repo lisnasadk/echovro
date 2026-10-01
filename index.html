@@ -151,7 +151,7 @@ const CONFIG={
 const PLACES={
  park:{icon:'🌳',name:'The Park',blurb:'Open air and slow walks.',url:'places/park.glb',
   credit:'“Albert Park Circuit Melbourne 2018 layout” by <a href="https://sketchfab.com/Tyler_Dave" target="_blank" rel="noopener">Dave Love SketchFab</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>'},
- city:{icon:'🏙️',name:'The City',blurb:'Lights, traffic, late nights.',url:'places/city.glb',
+ city:{icon:'🏙️',name:'The City',blurb:'Lights, traffic, late nights.',url:'places/city.glb',ground:true,
   credit:'“City Scene” by <a href="https://sketchfab.com/mortalityrexotable" target="_blank" rel="noopener">golukumar</a> · Sketchfab Standard license'},
  cafe:{icon:'☕',name:'The Café',blurb:'Warm corners, quiet talk.',url:'places/cafe.glb',
   credit:'“Cafe-Misti” by <a href="https://sketchfab.com/asimitree" target="_blank" rel="noopener">Simit Rajwadi</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>'},
@@ -283,25 +283,39 @@ const avReady=id=>new Promise(ok=>{let n=0;(function w(){if(models[id]||++n>80)r
 function nameTag(txt,me,H){const c=document.createElement('canvas');c.width=256;c.height=64;const g=c.getContext('2d');
  g.fillStyle=me?'rgba(239,229,207,.95)':'rgba(15,27,51,.82)';g.fillRect(0,8,256,48);g.fillStyle=me?'#0f1b33':'#efe5cf';g.font='26px ui-monospace,monospace';g.textAlign='center';g.textBaseline='middle';g.fillText(txt,128,32);
  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthTest:false}));sp.scale.set(H*.9,H*.225,1);sp.position.y=H*1.15;sp.renderOrder=9;return sp}
+// Outdoor scenes (ground:true): find the real street level, then keep only flat spots at that level (no rooftops, no raised ledges).
+function groundSpots(root,ray,b,H,n){
+ const down=new THREE.Vector3(0,-1,0),pts=[];
+ for(let rr=0;rr<=H*10;rr+=H*1.4)for(let k=0;k<(rr?14:1);k++){const a=k/14*6.283,x=Math.cos(a)*rr,z=Math.sin(a)*rr;
+  ray.set(new THREE.Vector3(x,b.max.y+1,z),down);const h=ray.intersectObject(root,true)[0];   // first surface seen from above
+  if(h&&h.face&&h.face.normal.clone().transformDirection(h.object.matrixWorld).y>.85)pts.push({x,z,y:h.point.y})}
+ if(pts.length<n)return null;
+ const ys=pts.map(q=>q.y).sort((a,c)=>a-c),g=ys[Math.floor(ys.length*.2)],out=[];   // street level = low percentile
+ for(const q of pts){if(Math.abs(q.y-g)>H*.15)continue;if(out.every(o=>Math.hypot(o.x-q.x,o.z-q.z)>H*1.1))out.push(q);if(out.length===n)break}
+ return out.length===n?out:null}
 async function spawnCrowd(root,fp,tok){
  const f=await fp;if(tok!==seq)return;
  root.updateMatrixWorld(true);
  const b=new THREE.Box3().setFromObject(root),sz=b.getSize(new THREE.Vector3()),r=Math.max(sz.x,sz.y,sz.z)||1,H=r*.05;   // avatar height = 5% of the place
  const list=[{u:state.username,av:state.avatar,me:1},...((f&&f.people)||[]).map(p=>({u:p.u,av:p.av}))];
- const grp=new THREE.Group(),ray=new THREE.Raycaster(),n=list.length,R=H*1.5;let gy0=null;
- for(let i=0;i<n;i++){const P=list[i],pv=await avReady(P.av);if(tok!==seq)return;if(!pv)continue;
+ const grp=new THREE.Group(),ray=new THREE.Raycaster(),n=list.length,R=H*1.5;
+ const g0=PLACES[state.place].ground?groundSpots(root,ray,b,H,n):null,spots=[];
+ for(let i=0;i<n;i++){if(g0){spots.push(g0[i]);continue}
   const ang=n===1?0:(i/(n-1)-.5)*Math.PI*.9+Math.PI/4,px=Math.sin(ang)*R,pz=Math.cos(ang)*R;   // fan of people in front of the camera
   ray.set(new THREE.Vector3(px,b.min.y+sz.y*.4,pz),new THREE.Vector3(0,-1,0));
-  const hit=ray.intersectObject(root,true)[0],gy=hit?hit.point.y:b.min.y;if(gy0===null)gy0=gy;
+  const hit=ray.intersectObject(root,true)[0];spots.push({x:px,z:pz,y:hit?hit.point.y:b.min.y})}
+ const cx=spots.reduce((a,q)=>a+q.x,0)/n,cz=spots.reduce((a,q)=>a+q.z,0)/n,gy0=spots[0].y,camX=cx+H*3.4,camZ=cz+H*3.4;
+ for(let i=0;i<n;i++){const P=list[i],pv=await avReady(P.av);if(tok!==seq)return;if(!pv)continue;
+  const {x:px,z:pz,y:gy}=spots[i];
   const inner=new THREE.Group();inner.add(THREE.SkeletonUtils.clone(pv.children[0]));inner.updateMatrixWorld(true);
   let bb=new THREE.Box3().setFromObject(inner);inner.scale.setScalar(H/((bb.max.y-bb.min.y)||1));inner.updateMatrixWorld(true);
   bb=new THREE.Box3().setFromObject(inner);const cc=bb.getCenter(new THREE.Vector3());inner.position.set(-cc.x,-bb.min.y,-cc.z);
   const w=new THREE.Group();w.add(inner,nameTag(P.u,P.me,H));w.position.set(px,gy,pz);
-  w.userData.ry=w.rotation.y=Math.atan2(r*.25-px,r*.25-pz)+(pv.userData.rot||0);grp.add(w)}
+  w.userData.ry=w.rotation.y=Math.atan2(camX-px,camZ-pz)+(pv.userData.rot||0);grp.add(w)}
  if(tok!==seq)return;if(!grp.children.length)return;
  sc5.add(grp);crowd=grp;
  cam5.near=Math.min(r/1000,H/50);cam5.updateProjectionMatrix();
- ctl.target.set(0,gy0+H*.55,0);cam5.position.set(H*3.4,gy0+H*1.7,H*3.4);ctl.minDistance=H*1.2;ctl.update()}
+ ctl.target.set(cx,gy0+H*.55,cz);cam5.position.set(camX,gy0+H*1.7,camZ);ctl.minDistance=H*1.2;ctl.update()}
 (function loop5(){requestAnimationFrame(loop5);if(run){if(crowd){const t=performance.now()/1000;crowd.children.forEach((w,i)=>{w.rotation.y=w.userData.ry+Math.sin(t*.8+i*1.7)*.18})}ctl.update();R5.render(sc5,cam5)}})();
 const songLink=(m,s)=>SVC[m].q+encodeURIComponent(s[0]+' '+s[1]);
 async function enterPlace(k){
