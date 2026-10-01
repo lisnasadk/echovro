@@ -65,13 +65,13 @@ input:focus{border-color:var(--cream)}
 
 /* Interactive Action & Movement Bar */
 #act-bar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:8px auto;width:100%;max-width:760px;z-index:5}
-.act-btn{all:unset;cursor:pointer;padding:8px 14px;background:rgba(15,27,51,.85);border:1px solid rgba(184,191,202,.45);color:var(--cream);font:11px ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;backdrop-filter:blur(6px);transition:all .2s;display:flex;align-items:center;gap:6px;border-radius:4px}
-.act-btn:hover{background:var(--cream);color:var(--navy);transform:translateY(-2px)}
-.act-btn.active{background:var(--cream);color:var(--navy);box-shadow:0 0 15px rgba(239,229,207,.4)}
+.act-btn{all:unset;cursor:pointer;padding:9px 16px;background:rgba(15,27,51,.85);border:1px solid rgba(184,191,202,.45);color:var(--cream);font:11px ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;backdrop-filter:blur(6px);transition:transform .15s, background .15s, box-shadow .15s;display:flex;align-items:center;gap:6px;border-radius:4px;-webkit-user-select:none;user-select:none;touch-action:none}
+.act-btn:hover{background:rgba(239,229,207,.15);border-color:var(--cream);transform:translateY(-2px)}
+.act-btn:active, .act-btn.holding, .act-btn.active{background:var(--cream);color:var(--navy);box-shadow:0 0 20px rgba(239,229,207,.6);transform:translateY(1px) scale(0.97)}
 
-#hint-box{position:fixed;top:calc(74px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);background:rgba(15,27,51,.7);border:1px solid rgba(184,191,202,.25);padding:6px 14px;font:11px ui-monospace,monospace;color:var(--silver);border-radius:20px;pointer-events:none;z-index:4}
+#hint-box{position:fixed;top:calc(74px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);background:rgba(15,27,51,.75);border:1px solid rgba(184,191,202,.25);padding:6px 14px;font:11px ui-monospace,monospace;color:var(--silver);border-radius:20px;pointer-events:none;z-index:4}
 
-#sheet{width:min(720px,100%);align-self:center;max-height:30vh;overflow-y:auto;padding:14px 18px;background:rgba(15,27,51,.84);border:1px solid rgba(184,191,202,.3);backdrop-filter:blur(10px);z-index:5}
+#sheet{width:min(720px,100%);align-self:center;max-height:28vh;overflow-y:auto;padding:14px 18px;background:rgba(15,27,51,.84);border:1px solid rgba(184,191,202,.3);backdrop-filter:blur(10px);z-index:5}
 #sheet h3{font:500 18px 'Playfair Display',serif;margin:4px 0 8px}
 .pr{display:flex;gap:14px;overflow-x:auto;padding-bottom:4px}.pp{width:80px;flex:none;text-align:center}.pp .pvw{width:50px;margin:0 auto 4px;border:1px solid var(--cream)}
 .pp b{display:block;font-size:15px;font-weight:500}.pp i{display:block;font-size:13px;color:var(--silver);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -80,8 +80,8 @@ input:focus{border-color:var(--cream)}
 .sg em{grid-row:1/3;grid-column:2;align-self:center;font:11px ui-monospace,monospace;font-style:normal;letter-spacing:.14em;text-transform:uppercase}
 
 /* On-screen touch D-pad for mobile */
-#dpad{position:fixed;right:20px;bottom:calc(36vh + 10px);display:grid;grid-template-columns:40px 40px 40px;grid-template-rows:40px 40px;gap:4px;z-index:6}
-.dp-btn{all:unset;cursor:pointer;background:rgba(22,41,74,.75);border:1px solid rgba(184,191,202,.3);color:var(--cream);font:16px monospace;display:flex;align-items:center;justify-content:center;border-radius:4px;-webkit-user-select:none;user-select:none}
+#dpad{position:fixed;right:20px;bottom:calc(34vh + 10px);display:grid;grid-template-columns:40px 40px 40px;grid-template-rows:40px 40px;gap:4px;z-index:6}
+.dp-btn{all:unset;cursor:pointer;background:rgba(22,41,74,.75);border:1px solid rgba(184,191,202,.3);color:var(--cream);font:16px monospace;display:flex;align-items:center;justify-content:center;border-radius:4px;-webkit-user-select:none;user-select:none;touch-action:none}
 .dp-btn:active{background:var(--cream);color:var(--navy)}
 
 body.in5 #c,body.in5 .vig{display:none}
@@ -132,17 +132,17 @@ body.in5 #c,body.in5 .vig{display:none}
   <div class="grid" id="places"></div>
 </section>
 
-<!-- 5 · PLACE (3D scene + people + interactive avatar controls) -->
+<!-- 5 · PLACE (3D scene + people + interactive hold/click avatar controls) -->
 <section class="scr" id="s5">
   <div class="top"><button class="btn g" id="bk">Back</button><div><h2 id="pn"></h2><p class="sub" id="pb"></p></div></div>
-  <div id="hint-box">💡 Click ground or use WASD to walk • Press buttons below to Walk, Sit & Climb Stairs</div>
+  <div id="hint-box">💡 Click or HOLD buttons below to Walk, Sit (90° posture), Climb Stairs & Jam</div>
   <div id="ld"><div class="barw"><div id="bar"></div></div><p id="lt"></p></div>
   
   <div id="act-bar">
-    <button class="act-btn" id="btn-walk">🚶 Walk / Roam</button>
-    <button class="act-btn" id="btn-sit">🪑 Sit Down</button>
-    <button class="act-btn" id="btn-stairs">🪜 Climb Stairs</button>
-    <button class="act-btn" id="btn-dance">🕺 Jam</button>
+    <button class="act-btn" id="btn-walk" data-act="walk">🚶 Walk / Roam</button>
+    <button class="act-btn" id="btn-sit" data-act="sit">🪑 Sit Down</button>
+    <button class="act-btn" id="btn-stairs" data-act="stairs">🪜 Climb Stairs</button>
+    <button class="act-btn" id="btn-dance" data-act="dance">🕺 Jam / Dance</button>
     <button class="act-btn" id="btn-cam">🎥 Follow Cam</button>
   </div>
 
@@ -278,6 +278,7 @@ const sc5=new THREE.Scene(),cam5=new THREE.PerspectiveCamera(50,1,.1,1000);
 const SKY={park:['#5f9bd6','#e3edf7'],city:['#0b1226','#3a4f7a'],cafe:['#2a1c14','#7a5a40'],gallery:['#16294a','#9db3d3']};
 const skyTex={};let floor=null,myAvatarWrapper=null,isFollowCam=true;
 const keys={w:0,a:0,s:0,d:0};
+let holdingAction=null;
 
 function skyFor(k){if(skyTex[k])return skyTex[k];
  const c=document.createElement('canvas');c.width=2;c.height=512;const g=c.getContext('2d'),gr=g.createLinearGradient(0,0,0,512),s=SKY[k]||SKY.gallery;
@@ -313,7 +314,7 @@ async function warmPlaces(){if(warmed)return;warmed=1;for(const k in PLACES){try
 function drop(){
  run=false;if(cur){sc5.remove(cur);cur=null}if(floor){sc5.remove(floor);floor=null}
  if(crowd){sc5.remove(crowd);crowd.traverse(o=>{if(o.isSprite){o.material.map.dispose();o.material.dispose()}});crowd=null}
- myAvatarWrapper=null}
+ myAvatarWrapper=null;holdingAction=null;}
 
 let crowd=null;
 const avReady=id=>new Promise(ok=>{let n=0;(function w(){if(models[id]||++n>80)return ok(models[id]);setTimeout(w,100)})()});
@@ -322,16 +323,13 @@ function nameTag(txt,me,H){const c=document.createElement('canvas');c.width=256;
  g.fillStyle=me?'rgba(239,229,207,.95)':'rgba(15,27,51,.82)';g.fillRect(0,8,256,48);g.fillStyle=me?'#0f1b33':'#efe5cf';g.font='26px ui-monospace,monospace';g.textAlign='center';g.textBaseline='middle';g.fillText(txt,128,32);
  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthTest:false}));sp.scale.set(H*.9,H*.225,1);sp.position.y=H*1.15;sp.renderOrder=9;return sp}
 
-/* Find ground/elevation spots & staircase points */
 function findElevationSpots(root,b,H){
  const ray=new THREE.Raycaster(),down=new THREE.Vector3(0,-1,0),spots=[];
  for(let x=b.min.x;x<=b.max.x;x+=H*1.2){
   for(let z=b.min.z;z<=b.max.z;z+=H*1.2){
    ray.set(new THREE.Vector3(x,b.max.y+5,z),down);
    const hit=ray.intersectObject(root,true)[0];
-   if(hit&&hit.point){
-    spots.push({x:hit.point.x,y:hit.point.y,z:hit.point.z});
-   }
+   if(hit&&hit.point)spots.push({x:hit.point.x,y:hit.point.y,z:hit.point.z});
   }
  }
  return spots;
@@ -347,19 +345,27 @@ function groundSpots(root,ray,b,H,n){
  for(const q of pts){if(Math.abs(q.y-g)>H*.15)continue;if(out.every(o=>Math.hypot(o.x-q.x,o.z-q.z)>H*1.1))out.push(q);if(out.length===n)break}
  return out.length===n?out:null}
 
-/* Extract avatar limb bones for procedural walking, sitting & stair climbing */
+/* Precise bone identification: Upper leg (hip joint) vs Lower leg (knee joint) */
 function mapAvatarBones(mesh){
- const bones={leftLeg:null,rightLeg:null,leftArm:null,rightArm:null,hips:null,spine:null};
+ const bones={leftUpLeg:null,rightUpLeg:null,leftLeg:null,rightLeg:null,leftArm:null,rightArm:null,hips:null,spine:null};
  mesh.traverse(o=>{
   if(!o.isBone)return;
   const n=o.name.toLowerCase();
   if(!bones.hips&&(n.includes('hip')||n.includes('pelvis')))bones.hips=o;
   if(!bones.spine&&(n.includes('spine')||n.includes('chest')))bones.spine=o;
-  if(!bones.leftLeg&&(n.includes('thigh')||n.includes('up_l')||n.includes('leg_l')||n.includes('leftupleg')))bones.leftLeg=o;
-  if(!bones.rightLeg&&(n.includes('thigh')||n.includes('up_r')||n.includes('leg_r')||n.includes('rightupleg')))bones.rightLeg=o;
-  if(!bones.leftArm&&(n.includes('arm_l')||n.includes('shoulder_l')||n.includes('leftarm')))bones.leftArm=o;
-  if(!bones.rightArm&&(n.includes('arm_r')||n.includes('shoulder_r')||n.includes('rightarm')))bones.rightArm=o;
+  // Upper Leg (Thigh / Hip joint)
+  if(!bones.leftUpLeg&&(n.includes('leftupleg')||n.includes('thigh_l')||n.includes('thigh.l')||n.includes('upperleg_l')||n.includes('up_l')))bones.leftUpLeg=o;
+  if(!bones.rightUpLeg&&(n.includes('rightupleg')||n.includes('thigh_r')||n.includes('thigh.r')||n.includes('upperleg_r')||n.includes('up_r')))bones.rightUpLeg=o;
+  // Lower Leg (Knee / Calf / Shin joint)
+  if(!bones.leftLeg&&(n.includes('leftleg')||n.includes('calf_l')||n.includes('calf.l')||n.includes('shin_l')||n.includes('knee_l')||n.includes('leg_l')||n.includes('lowerleg_l')))bones.leftLeg=o;
+  if(!bones.rightLeg&&(n.includes('rightleg')||n.includes('calf_r')||n.includes('calf.r')||n.includes('shin_r')||n.includes('knee_r')||n.includes('leg_r')||n.includes('lowerleg_r')))bones.rightLeg=o;
+  // Arms
+  if(!bones.leftArm&&(n.includes('arm_l')||n.includes('shoulder_l')||n.includes('leftarm')||n.includes('upperarm_l')))bones.leftArm=o;
+  if(!bones.rightArm&&(n.includes('arm_r')||n.includes('shoulder_r')||n.includes('rightarm')||n.includes('upperarm_r')))bones.rightArm=o;
  });
+ // Fallback if upleg not named specifically
+ if(!bones.leftUpLeg&&bones.leftLeg){bones.leftUpLeg=bones.leftLeg;bones.leftLeg=null;}
+ if(!bones.rightUpLeg&&bones.rightLeg){bones.rightUpLeg=bones.rightLeg;bones.rightLeg=null;}
  return bones;
 }
 
@@ -396,9 +402,9 @@ async function spawnCrowd(root,fp,tok){
   w.position.set(px,gy,pz);
   w.userData={
    ry:Math.atan2(camX-px,camZ-pz)+(pv.userData.rot||0),
-   mode:'idle', // 'idle' | 'walk' | 'sit' | 'stairs' | 'dance'
+   mode:'idle',
    targetPos:null,
-   walkSpeed:H*1.8,
+   walkSpeed:H*1.9,
    bones:mapAvatarBones(cloned),
    baseInnerY:inner.position.y,
    isMe:P.me,
@@ -416,7 +422,6 @@ async function spawnCrowd(root,fp,tok){
  ctl.target.set(cx,gy0+H*.55,cz);cam5.position.set(camX,gy0+H*1.7,camZ);ctl.minDistance=H*0.8;ctl.update();
 }
 
-/* Procedural Ground & Stair Elevation Probing via Raycasting */
 const rayDown=new THREE.Raycaster();
 const vDown=new THREE.Vector3(0,-1,0);
 function getElevationAt(x,z,currentY){
@@ -425,35 +430,48 @@ function getElevationAt(x,z,currentY){
  const hits=rayDown.intersectObject(cur,true);
  if(hits.length>0){
   for(let h of hits){
-   if(h.point.y<=currentY+avatarHeight*1.8){
-    return h.point.y;
-   }
+   if(h.point.y<=currentY+avatarHeight*1.8)return h.point.y;
   }
   return hits[0].point.y;
  }
  return currentY;
 }
 
-/* Update Avatars (Walk, Sit, Climb Stairs, Dance) */
+/* Update Avatars Physics & Humanoid Kinematics */
 let lastT=performance.now();
 function updateAvatarPhysics(dt){
  if(!crowd||!cur)return;
  const t=performance.now()/1000;
  
- // Process keyboard inputs for user avatar
+ // Process user inputs / button holding
  if(myAvatarWrapper){
   const me=myAvatarWrapper;
-  const moveZ=keys.w?-1:(keys.s?1:0);
-  const moveX=keys.a?-1:(keys.d?1:0);
-  if(moveZ!==0||moveX!==0){
-   me.userData.mode='walk';
-   me.userData.targetPos=null;
-   // Camera oriented direction
-   const forward=new THREE.Vector3();
-   cam5.getWorldDirection(forward);forward.y=0;forward.normalize();
-   const side=new THREE.Vector3().crossVectors(new THREE.Vector3(0,1,0),forward).normalize();
-   const moveDir=new THREE.Vector3().addScaledVector(forward,-moveZ).addScaledVector(side,-moveX).normalize();
+  const H=avatarHeight;
+  
+  if(holdingAction==='walk'||holdingAction==='stairs'){
+   me.userData.mode=holdingAction;
+   let moveDir=new THREE.Vector3();
    
+   if(holdingAction==='stairs'){
+    if(!me.userData.climbTarget||Math.hypot(me.userData.climbTarget.x-me.position.x,me.userData.climbTarget.z-me.position.z)<H*0.3){
+     const allSpots=findElevationSpots(cur,new THREE.Box3().setFromObject(cur),H);
+     const higher=allSpots.filter(s=>s.y>me.position.y+H*0.1);
+     if(higher.length){
+      higher.sort((a,b)=>Math.hypot(a.x-me.position.x,a.z-me.position.z)-Math.hypot(b.x-me.position.x,b.z-me.position.z));
+      me.userData.climbTarget=higher[0];
+     }
+    }
+    if(me.userData.climbTarget){
+     const dx=me.userData.climbTarget.x-me.position.x;
+     const dz=me.userData.climbTarget.z-me.position.z;
+     moveDir.set(dx,0,dz).normalize();
+    }else{
+     cam5.getWorldDirection(moveDir);moveDir.y=0;moveDir.normalize();
+    }
+   }else{
+    cam5.getWorldDirection(moveDir);moveDir.y=0;moveDir.normalize();
+   }
+
    const stepLen=me.userData.walkSpeed*dt;
    const nextX=me.position.x+moveDir.x*stepLen;
    const nextZ=me.position.z+moveDir.z*stepLen;
@@ -461,10 +479,58 @@ function updateAvatarPhysics(dt){
    
    me.position.x=nextX;
    me.position.z=nextZ;
-   me.position.y+=(nextY-me.position.y)*Math.min(1,dt*12);
+   const isClimbing=nextY>me.position.y+0.01;
+   me.position.y+=(nextY-me.position.y)*Math.min(1,dt*(isClimbing?14:8));
    
    const targetAngle=Math.atan2(moveDir.x,moveDir.z);
    me.rotation.y+=(targetAngle-me.rotation.y)*Math.min(1,dt*10);
+
+   // Gait & Stair Climbing Kinematics
+   const walkFreq=holdingAction==='stairs'?7.5:9.5;
+   const stepCycle=Math.sin(t*walkFreq);
+   const legLift=Math.abs(Math.cos(t*walkFreq))*(isClimbing?H*0.22:H*0.06);
+   me.children[0].position.y=me.userData.baseInnerY+legLift;
+   
+   const b=me.userData.bones;
+   if(b.leftUpLeg&&b.rightUpLeg){
+    // Forward stride / Knee bend (forward is negative X, knees bend positive X)
+    b.leftUpLeg.rotation.x=-stepCycle*0.55;
+    b.rightUpLeg.rotation.x=stepCycle*0.55;
+    if(b.leftLeg)b.leftLeg.rotation.x=Math.max(0,stepCycle*0.7);
+    if(b.rightLeg)b.rightLeg.rotation.x=Math.max(0,-stepCycle*0.7);
+    if(b.leftArm)b.leftArm.rotation.x=stepCycle*0.45;
+    if(b.rightArm)b.rightArm.rotation.x=-stepCycle*0.45;
+   }else{
+    me.children[0].rotation.z=stepCycle*0.05;
+   }
+  }else if(holdingAction==='sit'){
+   me.userData.mode='sit';
+  }else if(holdingAction==='dance'){
+   me.userData.mode='dance';
+  }else{
+   // WASD keyboard movement
+   const moveZ=keys.w?-1:(keys.s?1:0);
+   const moveX=keys.a?-1:(keys.d?1:0);
+   if(moveZ!==0||moveX!==0){
+    me.userData.mode='walk';
+    me.userData.targetPos=null;
+    const forward=new THREE.Vector3();
+    cam5.getWorldDirection(forward);forward.y=0;forward.normalize();
+    const side=new THREE.Vector3().crossVectors(new THREE.Vector3(0,1,0),forward).normalize();
+    const moveDir=new THREE.Vector3().addScaledVector(forward,-moveZ).addScaledVector(side,-moveX).normalize();
+    
+    const stepLen=me.userData.walkSpeed*dt;
+    const nextX=me.position.x+moveDir.x*stepLen;
+    const nextZ=me.position.z+moveDir.z*stepLen;
+    const nextY=getElevationAt(nextX,nextZ,me.position.y);
+    
+    me.position.x=nextX;
+    me.position.z=nextZ;
+    me.position.y+=(nextY-me.position.y)*Math.min(1,dt*12);
+    
+    const targetAngle=Math.atan2(moveDir.x,moveDir.z);
+    me.rotation.y+=(targetAngle-me.rotation.y)*Math.min(1,dt*10);
+   }
   }
  }
 
@@ -472,15 +538,15 @@ function updateAvatarPhysics(dt){
   const u=w.userData;
   const inner=w.children[0];
   const H=avatarHeight;
+  const b=u.bones;
 
-  // AI wanders or switches activities periodically for peers
+  // Background Peer AI roaming
   if(!u.isMe){
    u.timer-=dt;
    if(u.timer<=0){
     u.timer=4+Math.random()*6;
     const rnd=Math.random();
     if(rnd<0.45){
-     // Pick nearby point to walk
      const ang=Math.random()*Math.PI*2,dist=H*(1+Math.random()*4);
      u.targetPos=new THREE.Vector3(w.position.x+Math.cos(ang)*dist,w.position.y,w.position.z+Math.sin(ang)*dist);
      u.mode='walk';
@@ -497,8 +563,9 @@ function updateAvatarPhysics(dt){
 
   // Handle Modes
   if(u.mode==='walk'||u.mode==='stairs'){
+   if(u.isMe&&holdingAction)return;
+
    if(u.mode==='stairs'&&!u.climbTarget){
-    // Seek higher ground/stair spots in place
     const allSpots=findElevationSpots(cur,new THREE.Box3().setFromObject(cur),H);
     const higher=allSpots.filter(s=>s.y>w.position.y+H*0.2);
     if(higher.length){
@@ -532,66 +599,81 @@ function updateAvatarPhysics(dt){
      while(diff>Math.PI)diff-=Math.PI*2;
      w.rotation.y+=diff*Math.min(1,dt*8);
 
-     // Walking / Stair climbing gait animation
-     const walkFreq=u.mode==='stairs'?8:10;
+     const walkFreq=u.mode==='stairs'?7.5:9.5;
      const stepCycle=Math.sin(t*walkFreq+i*2);
-     const legLift=Math.abs(Math.cos(t*walkFreq+i*2))*(isClimbing?H*0.25:H*0.08);
+     const legLift=Math.abs(Math.cos(t*walkFreq+i*2))*(isClimbing?H*0.22:H*0.06);
      inner.position.y=u.baseInnerY+legLift;
      
-     // Procedural leg & arm swings if bones exist, else group sway
-     if(u.bones.leftLeg&&u.bones.rightLeg){
-      u.bones.leftLeg.rotation.x=stepCycle*0.65;
-      u.bones.rightLeg.rotation.x=-stepCycle*0.65;
-      if(u.bones.leftArm)u.bones.leftArm.rotation.x=-stepCycle*0.45;
-      if(u.bones.rightArm)u.bones.rightArm.rotation.x=stepCycle*0.45;
+     if(b.leftUpLeg&&b.rightUpLeg){
+      b.leftUpLeg.rotation.x=-stepCycle*0.55;
+      b.rightUpLeg.rotation.x=stepCycle*0.55;
+      if(b.leftLeg)b.leftLeg.rotation.x=Math.max(0,stepCycle*0.7);
+      if(b.rightLeg)b.rightLeg.rotation.x=Math.max(0,-stepCycle*0.7);
+      if(b.leftArm)b.leftArm.rotation.x=stepCycle*0.45;
+      if(b.rightArm)b.rightArm.rotation.x=-stepCycle*0.45;
      }else{
-      inner.rotation.z=stepCycle*0.06;
-      inner.rotation.x=Math.sin(t*walkFreq)*0.04;
+      inner.rotation.z=stepCycle*0.05;
      }
     }else{
      u.targetPos=null;
-     if(u.mode==='stairs'){u.mode='sit';toast(u.isMe?'Reached top of stairs & resting.':'');}
+     if(u.mode==='stairs'){u.mode='sit';if(u.isMe)toast('Reached top of stairs & resting.');}
      else if(u.isMe){u.mode='idle';}
     }
    }else if(u.isMe&&keys.w===0&&keys.s===0&&keys.a===0&&keys.d===0){
-    // Keep walk gait cycle smoothly resetting
     inner.position.y+=(u.baseInnerY-inner.position.y)*0.1;
-    if(u.bones.leftLeg)u.bones.leftLeg.rotation.x*=0.85;
-    if(u.bones.rightLeg)u.bones.rightLeg.rotation.x*=0.85;
+    if(b.leftUpLeg)b.leftUpLeg.rotation.x*=0.85;
+    if(b.rightUpLeg)b.rightUpLeg.rotation.x*=0.85;
+    if(b.leftLeg)b.leftLeg.rotation.x*=0.85;
+    if(b.rightLeg)b.rightLeg.rotation.x*=0.85;
    }
   }else if(u.mode==='sit'){
-   // Sitting posture: lower hips down and tilt legs
-   const sitY=u.baseInnerY-H*0.28;
+   // 🪑 PROPER 90-DEGREE SITTING POSTURE
+   // 1. Lower hips to bench height
+   const sitY=u.baseInnerY-H*0.38;
    inner.position.y+=(sitY-inner.position.y)*Math.min(1,dt*6);
-   if(u.bones.leftLeg&&u.bones.rightLeg){
-    u.bones.leftLeg.rotation.x+=(Math.PI/2.2-u.bones.leftLeg.rotation.x)*0.1;
-    u.bones.rightLeg.rotation.x+=(Math.PI/2.2-u.bones.rightLeg.rotation.x)*0.1;
-    if(u.bones.hips)u.bones.hips.rotation.x+=(0.1-u.bones.hips.rotation.x)*0.1;
+   
+   // 2. Thighs bend FORWARD 90° (-Math.PI / 2)
+   const targetThighAngle=-Math.PI*0.5; // -90 deg
+   // 3. Knees bend BACKWARD/DOWNWARD 90° (+Math.PI / 2)
+   const targetKneeAngle=Math.PI*0.5;   // +90 deg
+
+   if(b.leftUpLeg&&b.rightUpLeg){
+    b.leftUpLeg.rotation.x+=(targetThighAngle-b.leftUpLeg.rotation.x)*0.12;
+    b.rightUpLeg.rotation.x+=(targetThighAngle-b.rightUpLeg.rotation.x)*0.12;
+    if(b.leftLeg)b.leftLeg.rotation.x+=(targetKneeAngle-b.leftLeg.rotation.x)*0.12;
+    if(b.rightLeg)b.rightLeg.rotation.x+=(targetKneeAngle-b.rightLeg.rotation.x)*0.12;
+    if(b.leftArm)b.leftArm.rotation.x+=(-0.3-b.leftArm.rotation.x)*0.1;
+    if(b.rightArm)b.rightArm.rotation.x+=(-0.3-b.rightArm.rotation.x)*0.1;
    }else{
     inner.rotation.x+=(0.2-inner.rotation.x)*0.1;
    }
   }else if(u.mode==='dance'){
-   // Fun Jam / Dance animation
-   inner.position.y=u.baseInnerY+Math.abs(Math.sin(t*7+i))*H*0.12;
-   inner.rotation.y=Math.sin(t*6)*0.35;
-   inner.rotation.z=Math.cos(t*6)*0.12;
-   if(u.bones.leftArm)u.bones.leftArm.rotation.z=-0.8+Math.sin(t*7)*0.6;
-   if(u.bones.rightArm)u.bones.rightArm.rotation.z=0.8-Math.cos(t*7)*0.6;
+   // 🕺 JAM / GROOVE ANIMATION
+   inner.position.y=u.baseInnerY+Math.abs(Math.sin(t*7+i))*H*0.08;
+   inner.rotation.y=Math.sin(t*5)*0.25;
+   inner.rotation.z=Math.cos(t*5)*0.08;
+   if(b.leftUpLeg)b.leftUpLeg.rotation.x=Math.sin(t*7)*0.2;
+   if(b.rightUpLeg)b.rightUpLeg.rotation.x=-Math.sin(t*7)*0.2;
+   if(b.leftLeg)b.leftLeg.rotation.x=Math.abs(Math.sin(t*7))*0.3;
+   if(b.rightLeg)b.rightLeg.rotation.x=Math.abs(Math.cos(t*7))*0.3;
+   if(b.leftArm)b.leftArm.rotation.z=-0.9+Math.sin(t*7)*0.5;
+   if(b.rightArm)b.rightArm.rotation.z=0.9-Math.cos(t*7)*0.5;
   }else{
-   // Idle breathing / sway
+   // 🧍 IDLE NATURAL SWAY & RELAX
    inner.position.y+=(u.baseInnerY-inner.position.y)*0.1;
    inner.rotation.y+=(0-inner.rotation.y)*0.1;
    inner.rotation.z+=(0-inner.rotation.z)*0.1;
    inner.rotation.x+=(0-inner.rotation.x)*0.1;
-   if(u.bones.leftLeg)u.bones.leftLeg.rotation.x*=0.85;
-   if(u.bones.rightLeg)u.bones.rightLeg.rotation.x*=0.85;
-   if(u.bones.leftArm)u.bones.leftArm.rotation.x*=0.85;
-   if(u.bones.rightArm)u.bones.rightArm.rotation.x*=0.85;
+   if(b.leftUpLeg)b.leftUpLeg.rotation.x*=0.85;
+   if(b.rightUpLeg)b.rightUpLeg.rotation.x*=0.85;
+   if(b.leftLeg)b.leftLeg.rotation.x*=0.85;
+   if(b.rightLeg)b.rightLeg.rotation.x*=0.85;
+   if(b.leftArm){b.leftArm.rotation.x*=0.85;b.leftArm.rotation.z*=0.85;}
+   if(b.rightArm){b.rightArm.rotation.x*=0.85;b.rightArm.rotation.z*=0.85;}
    w.rotation.y=u.ry+Math.sin(t*.8+i*1.7)*.14;
   }
  });
 
- // Camera follow mode
  if(isFollowCam&&myAvatarWrapper&&ctl){
   const p=myAvatarWrapper.position;
   ctl.target.lerp(new THREE.Vector3(p.x,p.y+avatarHeight*0.6,p.z),0.08);
@@ -618,7 +700,6 @@ function setupPlaceInteractions(){
  const canvas=$('#pl');
  canvas.addEventListener('pointerdown',e=>{
   if(!run||!myAvatarWrapper||!cur)return;
-  // Ignore if clicking UI
   if(e.clientY<80||e.clientY>innerHeight-140)return;
   mouseVec.x=(e.clientX/innerWidth)*2-1;
   mouseVec.y=-(e.clientY/innerHeight)*2+1;
@@ -629,7 +710,6 @@ function setupPlaceInteractions(){
    myAvatarWrapper.userData.targetPos=new THREE.Vector3(pt.x,pt.y,pt.z);
    myAvatarWrapper.userData.mode='walk';
    toast('Walking to spot…');
-   highlightActiveBtn($('#btn-walk'));
   }
  });
 
@@ -642,54 +722,49 @@ function setupPlaceInteractions(){
   const k=e.key.toLowerCase();
   if(keys[k]!==undefined){
    keys[k]=0;
-   if(!keys.w&&!keys.a&&!keys.s&&!keys.d&&myAvatarWrapper&&!myAvatarWrapper.userData.targetPos){
+   if(!keys.w&&!keys.a&&!keys.s&&!keys.d&&myAvatarWrapper&&!myAvatarWrapper.userData.targetPos&&!holdingAction){
     myAvatarWrapper.userData.mode='idle';
    }
   }
  });
 
- // Action Buttons
- function highlightActiveBtn(btn){
-  $$('.act-btn').forEach(b=>b.classList.remove('active'));
-  if(btn)btn.classList.add('active');
- }
+ // HOLD / CLICK CONTINUOUS BUTTON SYSTEM
+ $$('.act-btn[data-act]').forEach(btn=>{
+  const act=btn.dataset.act;
 
- $('#btn-walk').onclick=()=>{
-  if(!myAvatarWrapper)return;
-  const u=myAvatarWrapper.userData;
-  if(u.mode==='walk'){u.mode='idle';u.targetPos=null;toast('Stopped walking.');highlightActiveBtn(null);}
-  else{
-   u.mode='walk';
-   // pick random spot in forward direction
-   const ang=myAvatarWrapper.rotation.y+Math.PI;
-   u.targetPos=new THREE.Vector3(myAvatarWrapper.position.x+Math.sin(ang)*avatarHeight*3.5,myAvatarWrapper.position.y,myAvatarWrapper.position.z+Math.cos(ang)*avatarHeight*3.5);
-   toast('Walking forward… Click any ground area to walk there.');
-   highlightActiveBtn($('#btn-walk'));
-  }
- };
+  const startAction=(e)=>{
+   e.preventDefault();
+   holdingAction=act;
+   btn.classList.add('holding');
+   if(!myAvatarWrapper)return;
+   myAvatarWrapper.userData.mode=act;
+   myAvatarWrapper.userData.targetPos=null;
 
- $('#btn-sit').onclick=()=>{
-  if(!myAvatarWrapper)return;
-  const u=myAvatarWrapper.userData;
-  if(u.mode==='sit'){u.mode='idle';toast('Standing up.');highlightActiveBtn(null);}
-  else{u.mode='sit';toast('Sitting down.');highlightActiveBtn($('#btn-sit'));}
- };
+   if(act==='walk')toast('🚶 Walking forward… (Hold to keep walking)');
+   else if(act==='sit')toast('🪑 Sitting down (90° posture)…');
+   else if(act==='stairs'){
+    myAvatarWrapper.userData.climbTarget=null;
+    toast('🪜 Climbing stairs & ascending… (Hold to keep climbing)');
+   }else if(act==='dance')toast('🕺 Jamming & dancing!');
+  };
 
- $('#btn-stairs').onclick=()=>{
-  if(!myAvatarWrapper)return;
-  const u=myAvatarWrapper.userData;
-  u.mode='stairs';
-  u.climbTarget=null;
-  toast('🪜 Climbing stairs & ascending higher level…');
-  highlightActiveBtn($('#btn-stairs'));
- };
+  const stopAction=(e)=>{
+   if(holdingAction===act){
+    holdingAction=null;
+    btn.classList.remove('holding');
+    if(myAvatarWrapper){
+     if(act==='walk'||act==='stairs'||act==='dance'){
+      myAvatarWrapper.userData.mode='idle';
+     }
+    }
+   }
+  };
 
- $('#btn-dance').onclick=()=>{
-  if(!myAvatarWrapper)return;
-  const u=myAvatarWrapper.userData;
-  if(u.mode==='dance'){u.mode='idle';toast('Dancing stopped.');highlightActiveBtn(null);}
-  else{u.mode='dance';toast('🕺 Jamming to the music!');highlightActiveBtn($('#btn-dance'));}
- };
+  btn.addEventListener('pointerdown',startAction);
+  btn.addEventListener('pointerup',stopAction);
+  btn.addEventListener('pointerleave',stopAction);
+  btn.addEventListener('pointercancel',stopAction);
+ });
 
  $('#btn-cam').onclick=()=>{
   isFollowCam=!isFollowCam;
@@ -702,7 +777,7 @@ function setupPlaceInteractions(){
  $$('.dp-btn').forEach(b=>{
   const k=b.dataset.k;
   b.addEventListener('pointerdown',e=>{e.preventDefault();keys[k]=1;if(myAvatarWrapper)myAvatarWrapper.userData.mode='walk';});
-  b.addEventListener('pointerup',e=>{e.preventDefault();keys[k]=0;if(!keys.w&&!keys.a&&!keys.s&&!keys.d&&myAvatarWrapper)myAvatarWrapper.userData.mode='idle';});
+  b.addEventListener('pointerup',e=>{e.preventDefault();keys[k]=0;if(!keys.w&&!keys.a&&!keys.s&&!keys.d&&myAvatarWrapper&&!holdingAction)myAvatarWrapper.userData.mode='idle';});
   b.addEventListener('pointerleave',e=>{keys[k]=0;});
  });
  if('ontouchstart' in window)$('#dpad').style.display='grid';
