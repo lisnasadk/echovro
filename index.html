@@ -319,6 +319,8 @@ input:focus{border-color:#6f9bff;box-shadow:0 0 0 4px rgba(111,155,255,.18)}inpu
 <script>
 /* ============ CONFIG — the programmer fills these ============ */
 const CONFIG={
+  USE_BACKEND:true,                             // ← true = sign up / log in call your Java Spring Boot backend
+  API_BASE:'http://localhost:8080',             // ← backend URL (change to your deployed backend URL later)
   DEMO_MODE:true,                               // ← true = "linking" is simulated so you can test the flow. Set to false in production.
   SPOTIFY_CLIENT_ID:'',                         // ← Spotify client id
   YT_CLIENT_ID:'',                              // ← Google OAuth client id (YouTube Music uses Google sign-in)
@@ -417,9 +419,15 @@ setAuth('signup');
 //   login:  supabase.auth.signInWithPassword({email,password})
 // Return {ok:true,username} or {ok:false,error:'message'}.
 async function authRequest(p){
- if(CONFIG.DEMO_MODE)return{ok:true,username:p.username||(p.email.split('@')[0].replace(/[^a-zA-Z0-9_.]/g,'').slice(0,20)||'guest')};
- try{const r=await fetch('/api/auth/'+p.mode,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)});return await r.json()}
- catch(e){return{ok:false,error:'Network error. Please try again.'}}}
+ if(!CONFIG.USE_BACKEND)return{ok:true,username:p.username||(p.email.split('@')[0].replace(/[^a-zA-Z0-9_.]/g,'').slice(0,20)||'guest')};
+ const su=p.mode==='signup';
+ const body=su?{name:p.username,email:p.email,password:p.password}:{email:p.email,password:p.password};
+ try{
+  const r=await fetch(CONFIG.API_BASE+(su?'/api/auth/register':'/api/auth/login'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok)return{ok:false,error:d.message||d.error||(r.status===401?'Wrong email or password.':'Something went wrong.')};
+  return{ok:true,username:d.name||d.username||p.username}}
+ catch(e){return{ok:false,error:'Cannot reach the server. Is the backend running?'}}}
 
 $('#b1').onclick=async()=>{const e=$('#em').value.trim(),u=$('#un').value.trim(),pw=$('#pw').value,er=$('#err'),su=authMode==='signup';
  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e))return er.textContent='Please enter a valid email address.';
