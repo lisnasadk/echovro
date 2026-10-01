@@ -124,6 +124,7 @@ input:focus{border-color:var(--cream)}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script>
 /* ============ CONFIG — the programmer fills these ============ */
@@ -137,22 +138,23 @@ const CONFIG={
   SPOTIFY_SCOPES:'user-read-email user-read-private user-top-read user-read-currently-playing user-read-playback-state playlist-read-private'
 };
 
-/* ============ 3D PLACES — upload the files here ============
-   Unzip each zip so the folder looks like this (scene.gltf + scene.bin + textures/ must stay together):
-     places/park/scene.gltf     ← park.zip
-     places/city/scene.gltf     ← city.zip
-     places/cafe/scene.gltf     ← cafe.zip
-     places/gallery/scene.gltf  ← 1790862185795_picture_gallery.zip
-   Each file is loaded ONLY when the person taps that place (loadGLTF in enterPlace), never up front —
-   they are large (up to ~100 MB). Serve the site over http/https; opening the file from disk will not work. */
+/* ============ 3D PLACES ============
+   All places live in the repo's /places folder as .glb files (names are case-sensitive):
+     places/park.glb
+     places/city.glb
+     places/cafe.glb
+     places/gallery.glb
+   Each file is loaded ONLY when the person taps that place (loadGLTF in enterPlace), never up front.
+   The files are Draco-compressed with WebP textures, so DRACOLoader is required (see loadGLTF below).
+   Serve the site over http/https (e.g. GitHub Pages); opening the file from disk will not work. */
 const PLACES={
- park:{icon:'🌳',name:'The Park',blurb:'Open air and slow walks.',url:'places/park/scene.gltf',
+ park:{icon:'🌳',name:'The Park',blurb:'Open air and slow walks.',url:'places/park.glb',
   credit:'“Albert Park Circuit Melbourne 2018 layout” by <a href="https://sketchfab.com/Tyler_Dave" target="_blank" rel="noopener">Dave Love SketchFab</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>'},
- city:{icon:'🏙️',name:'The City',blurb:'Lights, traffic, late nights.',url:'places/city/scene.gltf',
+ city:{icon:'🏙️',name:'The City',blurb:'Lights, traffic, late nights.',url:'places/city.glb',
   credit:'“City Scene” by <a href="https://sketchfab.com/mortalityrexotable" target="_blank" rel="noopener">golukumar</a> · Sketchfab Standard license'},
- cafe:{icon:'☕',name:'The Café',blurb:'Warm corners, quiet talk.',url:'places/cafe/scene.gltf',
+ cafe:{icon:'☕',name:'The Café',blurb:'Warm corners, quiet talk.',url:'places/cafe.glb',
   credit:'“Cafe-Misti” by <a href="https://sketchfab.com/asimitree" target="_blank" rel="noopener">Simit Rajwadi</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>'},
- gallery:{icon:'🖼️',name:'Picture Gallery',blurb:'Hushed rooms, long looks.',url:'places/gallery/scene.gltf',
+ gallery:{icon:'🖼️',name:'Picture Gallery',blurb:'Hushed rooms, long looks.',url:'places/gallery.glb',
   credit:'“The Picture Gallery [Low Poly] | VR” by <a href="https://sketchfab.com/abhayexe" target="_blank" rel="noopener">abhayexe</a> · Sketchfab Standard license'}
 };
 
@@ -249,7 +251,7 @@ $('#b3').onclick=()=>state.music?finish3():toast('Link a music service to contin
 function drawPlaces(){$('#places').innerHTML=Object.entries(PLACES).map(([k,p],i)=>`<button class="pc" style="--i:${i}" data-k="${k}"><em>${p.icon}</em><b>${p.name}</b><span>${p.blurb}</span></button>`).join('');
  $$('.pc').forEach(b=>b.onclick=()=>enterPlace(b.dataset.k))}
 
-/* ===== Step 5: the place — loads the uploaded 3D scene only now ===== */
+/* ===== Step 5: the place — loads the 3D scene (places/*.glb) only now ===== */
 let R5=null,ctl=null,cur=null,run=false,seq=0;const sc5=new THREE.Scene(),cam5=new THREE.PerspectiveCamera(50,1,.1,1000);
 function init5(){if(R5)return;
  R5=new THREE.WebGLRenderer({canvas:$('#pl'),alpha:true,antialias:true});R5.setPixelRatio(Math.min(devicePixelRatio||1,2));R5.outputEncoding=THREE.sRGBEncoding;
@@ -257,7 +259,12 @@ function init5(){if(R5)return;
  ctl=new THREE.OrbitControls(cam5,R5.domElement);ctl.enableDamping=true;ctl.autoRotate=true;ctl.autoRotateSpeed=.6;
  addEventListener('resize',fit5);fit5()}
 function fit5(){if(!R5)return;R5.setSize(innerWidth,innerHeight,false);cam5.aspect=innerWidth/innerHeight;cam5.updateProjectionMatrix()}
-const loadGLTF=(u,pr)=>new Promise((ok,no)=>new THREE.GLTFLoader().load(u,g=>ok(g.scene),e=>e.total&&pr(e.loaded/e.total),no));
+// The place files are Draco-compressed, so the loader needs a DRACOLoader with its decoder path.
+const draco=new THREE.DRACOLoader();
+draco.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/draco/gltf/');
+const loadGLTF=(u,pr)=>new Promise((ok,no)=>{
+ const l=new THREE.GLTFLoader();l.setDRACOLoader(draco);
+ l.load(u,g=>ok(g.scene),e=>e.total&&pr(e.loaded/e.total),no)});
 function drop(){run=false;if(!cur)return;sc5.remove(cur);cur.traverse(o=>{if(o.isMesh){o.geometry.dispose();[].concat(o.material).forEach(m=>{for(const k in m)if(m[k]&&m[k].isTexture)m[k].dispose();m.dispose()})}});cur=null}
 (function loop5(){requestAnimationFrame(loop5);if(run){ctl.update();R5.render(sc5,cam5)}})();
 const songLink=(m,s)=>SVC[m].q+encodeURIComponent(s[0]+' '+s[1]);
@@ -275,7 +282,7 @@ async function enterPlace(k){
   cam5.near=r/1000;cam5.far=r*30;cam5.updateProjectionMatrix();cam5.position.set(r*.7,r*.5,r*.7);
   ctl.target.set(0,0,0);ctl.minDistance=r*.05;ctl.maxDistance=r*2.5;ctl.maxPolarAngle=Math.PI*.495;ctl.update();
   $('#ld').style.display='none';run=true;
- }catch(e){console.warn(e);if(tok===seq)$('#lt').textContent='Could not load this place. Check that '+P.url+' (with scene.bin and textures/) is uploaded and the site is served over http(s).'}}
+ }catch(e){console.warn(e);if(tok===seq)$('#lt').textContent='Could not load this place. Check that '+P.url+' is uploaded to the repo and the site is served over http(s).'}}
 $('#bk').onclick=()=>{seq++;drop();go(4)};
 
 /* ===== 3D avatar previews: one shared WebGL renderer drawn into each card's canvas ===== */
