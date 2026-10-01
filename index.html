@@ -70,6 +70,13 @@ input:focus{border-color:var(--cream)}
 .sg em{grid-row:1/3;grid-column:2;align-self:center;font:11px ui-monospace,monospace;font-style:normal;letter-spacing:.14em;text-transform:uppercase}
 body.in5 #c,body.in5 .vig{display:none}
 .mine{display:flex;gap:10px;margin-bottom:12px}.mine input{flex:1;min-width:0}.mine .btn{padding:12px 22px}
+#cm{position:fixed;left:16px;bottom:calc(42vh + 24px);width:min(300px,56vw);padding:16px;background:rgba(15,27,51,.92);border:1px solid rgba(184,191,202,.4);backdrop-filter:blur(10px);z-index:5;opacity:0;transform:translateY(12px);pointer-events:none;transition:opacity .35s,transform .35s;text-align:left}
+#cm.on{opacity:1;transform:none}
+.cmh{display:flex;gap:12px;align-items:center;margin-bottom:12px}.cmh .pvw{width:52px;border:1px solid var(--cream)}.cmh b{display:block;font:500 20px 'Playfair Display',serif}.cmh i{display:block;font-size:14px;color:var(--silver)}
+.cmp{display:flex;align-items:baseline;gap:10px}.cmp strong{font:700 40px/1 'Playfair Display',serif}.cmp span{font-style:italic;color:var(--silver);font-size:17px}
+.cmbar{height:4px;background:rgba(184,191,202,.25);margin:10px 0}#cmfill{height:100%;width:0;background:var(--cream);transition:width .6s}
+.cmc{display:flex;gap:6px;flex-wrap:wrap}.cmc u{text-decoration:none;font:11px ui-monospace,monospace;letter-spacing:.08em;padding:4px 8px;border:1px solid rgba(184,191,202,.5)}
+#cm p{margin-top:10px;font-size:15px;color:var(--silver);line-height:1.35}
 #pad{display:none;position:fixed;right:16px;bottom:calc(42vh + 24px);grid-template-columns:repeat(3,52px);gap:6px;z-index:5}
 #s5.on #pad.rdy{display:grid;pointer-events:auto}
 #pad button{all:unset;cursor:pointer;text-align:center;padding:12px 0;background:rgba(15,27,51,.8);border:1px solid rgba(184,191,202,.4);color:var(--cream);font:12px ui-monospace,monospace;letter-spacing:.08em;touch-action:none;user-select:none}
@@ -126,6 +133,7 @@ body.in5 #c,body.in5 .vig{display:none}
   <div class="top"><button class="btn g" id="bk">Back</button><div><h2 id="pn"></h2><p class="sub" id="pb"></p></div></div>
   <div id="ld"><div class="barw"><div id="bar"></div></div><p id="lt"></p></div>
   <div id="sheet"></div>
+  <div id="cm"><div class="cmh"><div id="cmav"></div><div><b id="cmn"></b><i id="cmsv"></i></div></div><div class="cmp"><strong id="cmpct"></strong><span id="cmlb"></span></div><div class="cmbar"><div id="cmfill"></div></div><div class="cmc" id="cmc"></div><p id="cmt"></p></div>
   <div id="pad"><button data-k="f" style="grid-column:2">▲</button><button data-k="l">◀</button><button data-k="b">▼</button><button data-k="r">▶</button><button id="bc" style="grid-column:1/3">CLIMB</button><button id="bs">SIT</button></div>
 </section>
 
@@ -137,6 +145,7 @@ body.in5 #c,body.in5 .vig{display:none}
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/SkeletonUtils.js"></script>
+<script src="echovro-ml.js"></script>
 <script>
 /* ============ CONFIG — the programmer fills these ============ */
 const CONFIG={
@@ -171,16 +180,20 @@ const SVC={spotify:{n:'Spotify',q:'https://open.spotify.com/search/'},ytm:{n:'Yo
 
 // Hook: who is at a place + songs for it. Replace the body with your backend call, e.g. fetch('/api/places/'+key+'/feed?user='+profile.username)
 const MOCK={
- park:{people:[{u:'luna.v',av:'female_avatar_1',s:'Here Comes the Sun'},{u:'arjun.k',av:'male_avatar_1',s:'Kun Faya Kun'},{u:'kai_r',av:'male_avatar_3',s:'Three Little Birds'}],
+ park:{people:[{u:'luna.v',av:'female_avatar_1',s:'Here Comes the Sun',m:'spotify',t:[['Here Comes the Sun', 'The Beatles'], ['Perfect', 'Ed Sheeran'], ['Banana Pancakes', 'Jack Johnson'], ['Clair de Lune', 'Claude Debussy']]},{u:'arjun.k',av:'male_avatar_1',s:'Kun Faya Kun',m:'ytm',t:[['Kun Faya Kun', 'A.R. Rahman'], ['Ilahi', 'Arijit Singh'], ['Tum Se Hi', 'Mohit Chauhan'], ['Kabira', 'Tochi Raina']]},{u:'kai_r',av:'male_avatar_3',s:'Three Little Birds',m:'spotify',t:[['Three Little Birds', 'Bob Marley'], ['Banana Pancakes', 'Jack Johnson'], ['Here Comes the Sun', 'The Beatles']]}],
   songs:[['Here Comes the Sun','The Beatles'],['Kun Faya Kun','A.R. Rahman'],['Three Little Birds','Bob Marley'],['Ilahi','Arijit Singh']]},
- city:{people:[{u:'neo.m',av:'male_avatar_2',s:'Blinding Lights'},{u:'mira.s',av:'female_avatar_2',s:'Malare'},{u:'zed_9',av:'female_avatar_3',s:'Levitating'}],
+ city:{people:[{u:'neo.m',av:'male_avatar_2',s:'Blinding Lights',m:'spotify',t:[['Blinding Lights', 'The Weeknd'], ['Starboy', 'The Weeknd'], ['Levitating', 'Dua Lipa']]},{u:'mira.s',av:'female_avatar_2',s:'Malare',m:'gaana',t:[['Malare', 'Vijay Yesudas'], ['Tum Se Hi', 'Mohit Chauhan'], ['Agar Tum Saath Ho', 'Arijit Singh']]},{u:'zed_9',av:'female_avatar_3',s:'Levitating',m:'ytm',t:[['Levitating', 'Dua Lipa'], ['Blinding Lights', 'The Weeknd'], ['Perfect', 'Ed Sheeran']]}],
   songs:[['Blinding Lights','The Weeknd'],['Levitating','Dua Lipa'],['Malare','Vijay Yesudas'],['Starboy','The Weeknd']]},
- cafe:{people:[{u:'ana.b',av:'female_avatar_1',s:'Perfect'},{u:'ravi.t',av:'male_avatar_1',s:'Tum Se Hi'},{u:'sam_o',av:'male_avatar_3',s:'Banana Pancakes'}],
+ cafe:{people:[{u:'ana.b',av:'female_avatar_1',s:'Perfect',m:'spotify',t:[['Perfect', 'Ed Sheeran'], ['Banana Pancakes', 'Jack Johnson'], ['Here Comes the Sun', 'The Beatles']]},{u:'ravi.t',av:'male_avatar_1',s:'Tum Se Hi',m:'gaana',t:[['Tum Se Hi', 'Mohit Chauhan'], ['Kun Faya Kun', 'A.R. Rahman'], ['Agar Tum Saath Ho', 'Arijit Singh'], ['Kabira', 'Tochi Raina']]},{u:'sam_o',av:'male_avatar_3',s:'Banana Pancakes',m:'ytm',t:[['Banana Pancakes', 'Jack Johnson'], ['Three Little Birds', 'Bob Marley'], ['Weightless', 'Marconi Union']]}],
   songs:[['Perfect','Ed Sheeran'],['Tum Se Hi','Mohit Chauhan'],['Banana Pancakes','Jack Johnson'],['Agar Tum Saath Ho','Arijit Singh']]},
- gallery:{people:[{u:'iris.d',av:'female_avatar_2',s:'Clair de Lune'},{u:'omar.h',av:'male_avatar_2',s:'Weightless'},{u:'pia_l',av:'female_avatar_3',s:'Gymnopédie No. 1'}],
+ gallery:{people:[{u:'iris.d',av:'female_avatar_2',s:'Clair de Lune',m:'spotify',t:[['Clair de Lune', 'Claude Debussy'], ['Gymnopédie No. 1', 'Erik Satie'], ['Weightless', 'Marconi Union']]},{u:'omar.h',av:'male_avatar_2',s:'Weightless',m:'ytm',t:[['Weightless', 'Marconi Union'], ['Clair de Lune', 'Claude Debussy'], ['Blinding Lights', 'The Weeknd']]},{u:'pia_l',av:'female_avatar_3',s:'Gymnopédie No. 1',m:'gaana',t:[['Gymnopédie No. 1', 'Erik Satie'], ['Clair de Lune', 'Claude Debussy'], ['Kabira', 'Tochi Raina']]}],
   songs:[['Clair de Lune','Claude Debussy'],['Gymnopédie No. 1','Erik Satie'],['Weightless','Marconi Union'],['Kabira','Tochi Raina']]}
 };
 async function fetchPlaceFeed(key,profile){ return MOCK[key]; }
+// Hook: the user's own listening data from their linked service, as [[title,artist],...]. In production return it from your backend
+// (Spotify top tracks / YouTube Music liked videos / Gaana history). Demo mode uses a small sample so the matcher works out of the box.
+const DEMO_TRACKS=[['Blinding Lights','The Weeknd'],['Kun Faya Kun','A.R. Rahman'],['Here Comes the Sun','The Beatles'],['Perfect','Ed Sheeran']];
+async function fetchMyTracks(profile){ return CONFIG.DEMO_MODE?DEMO_TRACKS:[]; /* await fetch('/api/me/tracks?service='+profile.music.service) */ }
 
 // Avatars: 3D files live in /avatars. `rot` (radians) turns a model if it faces the wrong way; `look` is the fallback illustration.
 const SK='https://sketchfab.com/3d-models/';
@@ -199,7 +212,7 @@ async function onComplete(profile){ console.log('EchoVro profile',profile); /* a
 /* ============================================================= */
 
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
-const state={email:'',username:'',gender:'male',avatar:null,music:null,place:null};
+const state={email:'',username:'',gender:'male',avatar:null,music:null,place:null,tracks:null,history:[]};
 let step=0;
 const avOf=id=>[...AVATARS.male,...AVATARS.female].find(a=>a.id===id),findAv=()=>avOf(state.avatar);
 function go(n){
@@ -295,10 +308,10 @@ let warmed=0;
 async function warmPlaces(){if(warmed)return;warmed=1;
  for(const k in PLACES){try{await getPlace(k)}catch(e){delete placeCache[k]}}}   // one at a time so bandwidth isn't split
 // Detach only — the cached scene keeps its GPU data so re-entering a place is instant.
-function drop(){run=false;me=null;$('#pad').classList.remove('rdy');if(cur){sc5.remove(cur);cur=null}if(floor){sc5.remove(floor);floor=null}
+function drop(){run=false;me=null;nearU=null;$('#cm').classList.remove('on');$('#pad').classList.remove('rdy');if(cur){sc5.remove(cur);cur=null}if(floor){sc5.remove(floor);floor=null}
  if(crowd){sc5.remove(crowd);crowd.traverse(o=>{if(o.isSprite){o.material.map.dispose();o.material.dispose()}});crowd=null}}   // avatar geometry is shared with the previews, so it is not disposed
 /* ===== People physically in the place: your avatar + everyone from the feed, standing on the floor ===== */
-let crowd=null,me=null,climb=false;const keys={},mray=new THREE.Raycaster(),DOWN=new THREE.Vector3(0,-1,0),LEG=-1;   // LEG: flip to 1 if legs swing backwards
+let crowd=null,me=null,climb=false,nearU=null,nearT=0;const cc={};const keys={},mray=new THREE.Raycaster(),DOWN=new THREE.Vector3(0,-1,0),LEG=-1;   // LEG: flip to 1 if legs swing backwards
 const avReady=id=>new Promise(ok=>{let n=0;(function w(){if(models[id]||++n>80)return ok(models[id]);setTimeout(w,100)})()});   // wait (≤8s) for the avatar file
 function nameTag(txt,me,H){const c=document.createElement('canvas');c.width=256;c.height=64;const g=c.getContext('2d');
  g.fillStyle=me?'rgba(239,229,207,.95)':'rgba(15,27,51,.82)';g.fillRect(0,8,256,48);g.fillStyle=me?'#0f1b33':'#efe5cf';g.font='26px ui-monospace,monospace';g.textAlign='center';g.textBaseline='middle';g.fillText(txt,128,32);
@@ -313,7 +326,7 @@ async function onSongSet(p){console.log('EchoVro song',p);/* await fetch('/api/p
 function setMyTag(){if(!me)return;const w=me.w,o=w.userData.st;
  if(o){w.remove(o);o.material.map.dispose();o.material.dispose();w.userData.st=null}
  if(state.song){w.userData.st=songTag(state.song,me.H);w.add(w.userData.st)}}
-function setSong(){const v=$('#sgi').value.trim().slice(0,60);state.song=v;onSongSet({place:state.place,username:state.username,song:v});setMyTag();renderSheet();toast(v?'Now playing: '+v:'Song cleared.')}
+function setSong(){const v=$('#sgi').value.trim().slice(0,60);state.song=v;if(v){const q=v.split(/\s+[–-]\s+/);state.history.push([q[0],q[1]||'']);if(state.history.length>20)state.history.shift()}nearU=null;onSongSet({place:state.place,username:state.username,song:v});setMyTag();renderSheet();toast(v?'Now playing: '+v:'Song cleared.')}
 function renderSheet(){const f=feed;if(!f||!state.place||!state.music)return;const m=state.music.service,P=PLACES[state.place],mine={u:state.username,av:state.avatar,s:state.song||'—'};
  $('#sheet').innerHTML=`<h3>Your song here</h3><div class="mine"><input id="sgi" list="sgl" maxlength="60" placeholder="Song – artist" value="${esc(state.song||'')}"><button class="btn" id="sgb">Set</button></div><datalist id="sgl">${f.songs.map(x=>`<option value="${esc(x[0]+' – '+x[1])}">`).join('')}</datalist><h3>Here now</h3><div class="pr">${[mine,...f.people].map(p=>`<div class="pp">${pvw(avOf(p.av))}<b>${p.u}</b><i>♪ ${esc(p.s)}</i></div>`).join('')}</div><h3>Songs for this place</h3>${f.songs.map(x=>`<a class="sg" href="${songLink(m,x)}" target="_blank" rel="noopener"><b>${x[0]}</b><span>${x[1]}</span><em>Open in ${SVC[m].n}</em></a>`).join('')}<p class="cr">${P.credit}</p>`;
  $('#sgb').onclick=setSong;$('#sgi').onkeydown=e=>{if(e.key==='Enter')setSong()}}
@@ -331,7 +344,7 @@ async function spawnCrowd(root,fp,tok){
  const f=await fp;if(tok!==seq)return;
  root.updateMatrixWorld(true);
  const b=new THREE.Box3().setFromObject(root),sz=b.getSize(new THREE.Vector3()),r=Math.max(sz.x,sz.y,sz.z)||1,H=r*.05;   // avatar height = 5% of the place
- const list=[{u:state.username,av:state.avatar,me:1,s:state.song},...((f&&f.people)||[]).map(p=>({u:p.u,av:p.av,s:p.s}))];
+ const list=[{u:state.username,av:state.avatar,me:1,s:state.song},...((f&&f.people)||[]).map(p=>({u:p.u,av:p.av,s:p.s,m:p.m,t:p.t}))];
  const grp=new THREE.Group(),ray=new THREE.Raycaster(),n=list.length,R=H*1.5;
  const g0=PLACES[state.place].ground?groundSpots(root,ray,b,H,n):null,spots=[];
  for(let i=0;i<n;i++){if(g0){spots.push(g0[i]);continue}
@@ -345,14 +358,14 @@ async function spawnCrowd(root,fp,tok){
   let bb=new THREE.Box3().setFromObject(inner);inner.scale.setScalar(H/((bb.max.y-bb.min.y)||1));inner.updateMatrixWorld(true);
   bb=new THREE.Box3().setFromObject(inner);const cc=bb.getCenter(new THREE.Vector3());inner.position.set(-cc.x,-bb.min.y,-cc.z);
   const w=new THREE.Group();w.add(inner,nameTag(P.u,P.me,H));if(P.s){w.userData.st=songTag(P.s,H);w.add(w.userData.st)}w.position.set(px,gy,pz);
-  w.userData.me=P.me;w.userData.ry=w.rotation.y=Math.atan2(camX-px,camZ-pz)+(pv.userData.rot||0);grp.add(w)}
+  w.userData.me=P.me;w.userData.P=P;w.userData.ry=w.rotation.y=Math.atan2(camX-px,camZ-pz)+(pv.userData.rot||0);grp.add(w)}
  if(tok!==seq)return;if(!grp.children.length)return;
  sc5.add(grp);crowd=grp;setupMe(grp.children.find(c=>c.userData.me),H);
  cam5.near=Math.min(r/1000,H/50);cam5.updateProjectionMatrix();
  ctl.target.set(cx,gy0+H*.55,cz);cam5.position.set(camX,gy0+H*1.7,camZ);ctl.minDistance=H*1.2;ctl.update()}
 (function loop5(){requestAnimationFrame(loop5);const n=performance.now(),dt=Math.min(.05,(n-(loop5.t||n))/1000);loop5.t=n;
  if(run){if(crowd){const t=n/1000;crowd.children.forEach((w,i)=>{if(me&&w===me.w)return;w.rotation.y=w.userData.ry+Math.sin(t*.8+i*1.7)*.18})}
-  tickMe(dt);ctl.update();R5.render(sc5,cam5)}})();
+  tickMe(dt);tickNear(n);ctl.update();R5.render(sc5,cam5)}})();
 /* ===== Controls for your avatar: walk, climb stairs, sit ===== */
 function setupMe(w,H){if(!w)return;const inner=w.children[0],rot=((models[state.avatar]||{}).userData||{}).rot||0;
  const bn=(p,s)=>{let r=null;inner.traverse(o=>{if(!r&&o.isBone&&p.test(o.name)&&s.test(o.name))r=o});return r},
@@ -360,6 +373,26 @@ function setupMe(w,H){if(!w)return;const inner=w.children[0],rot=((models[state.
  const j=[bn(TH,L),bn(TH,R),bn(KN,L),bn(KN,R)].map(b=>b&&{b,r:b.rotation.x});
  me={w,inner,H,j,rot,h:w.userData.ry-rot,ty:w.position.y,iy:inner.position.y,ph:0,a:0,s:0,sit:0,seat:0}}
 const shift=(x,y,z)=>{const v=new THREE.Vector3(x,y,z);cam5.position.add(v);ctl.target.add(v)};
+/* ===== Compatibility modal: appears when you walk up to someone (uses echovro-ml.js) ===== */
+const myTracks=()=>[...(state.tracks||[]),...state.history];
+const trackList=P=>P.me?myTracks():(P.t&&P.t.length?P.t:(P.s?[[P.s,'']]:[]));
+function showCompat(P){
+ const key=P.u+'|'+myTracks().length;let r=cc[key];
+ if(!r){const mine=ML.profile(myTracks()),profs=[mine];
+  crowd.children.forEach(w=>{const q=w.userData.P;if(q&&!q.me)profs.push(q.prof||(q.prof=ML.profile(trackList(q))))});
+  ML.fit(profs);                                       // TF-IDF weights from everyone in the room
+  r=cc[key]=ML.compat(mine,P.prof||(P.prof=ML.profile(trackList(P))))}
+ const L=g=>ML.LABEL[g],my=SVC[state.music.service].n,th=SVC[P.m]?SVC[P.m].n:'';
+ $('#cmav').innerHTML=pvw(avOf(P.av));$('#cmn').textContent=P.u;
+ $('#cmsv').textContent=th?(th===my?'Also on '+th:my+' ↔ '+th):'';
+ $('#cmpct').textContent=r.score==null?'—':r.score+'%';$('#cmlb').textContent=r.label;$('#cmfill').style.width=(r.score||0)+'%';
+ $('#cmc').innerHTML=r.shared.map(g=>'<u>'+L(g)+'</u>').join('')||(r.score==null?'':'<u>No shared genres yet</u>');
+ $('#cmt').textContent=(P.s?'Listening to: '+P.s+'. ':'')+(r.theirTop.length?'Their taste: '+r.theirTop.slice(0,3).map(L).join(', ')+'.':'')+(r.bridge?' They could introduce you to '+L(r.bridge)+'.':'');
+ $('#cm').classList.add('on')}
+function tickNear(n){if(!me||!crowd||n-nearT<200)return;nearT=n;const p=me.w.position,H=me.H;let best=null,bd=1e9;
+ crowd.children.forEach(w=>{if(w===me.w||!w.userData.P)return;const d=Math.hypot(w.position.x-p.x,w.position.z-p.z)+Math.abs(w.position.y-p.y)*2;if(d<bd){bd=d;best=w}});
+ if(best&&bd<(nearU?H*1.7:H*1.1)){if(nearU!==best){nearU=best;showCompat(best.userData.P)}}
+ else if(nearU){nearU=null;$('#cm').classList.remove('on')}}
 function findSeat(){const m=me,o=m.w.position,H=m.H;
  for(let i=0;i<12;i++){const a=i/12*6.283,x=o.x+Math.sin(a)*H*.7,z=o.z+Math.cos(a)*H*.7;
   mray.set(new THREE.Vector3(x,o.y+H*.6,z),DOWN);const h=mray.intersectObject(cur,true)[0];
@@ -397,6 +430,7 @@ const songLink=(m,s)=>SVC[m].q+encodeURIComponent(s[0]+' '+s[1]);
 async function enterPlace(k){
  const P=PLACES[k],tok=++seq;state.place=k;state.song='';feed=null;drop();go(5);
  $('#pn').textContent=P.name;$('#pb').textContent=P.blurb;$('#sheet').innerHTML='';$('#ld').style.display='';$('#bar').style.width='0';$('#lt').textContent='Loading '+P.name+'…';
+ if(!state.tracks)fetchMyTracks(state).then(t=>{state.tracks=t||[]});
  const fp=fetchPlaceFeed(k,state);fp.then(f=>{if(tok!==seq||!f)return;feed=f;renderSheet()});
  try{init5();
   prog[k]=p=>{$('#bar').style.width=Math.round(p*100)+'%'};
