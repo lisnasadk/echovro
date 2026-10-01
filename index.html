@@ -96,6 +96,27 @@ body.in5 #c,body.in5 .vig{display:none}
 #s5.on #pad.rdy{display:grid;pointer-events:auto}
 #pad button{all:unset;cursor:pointer;text-align:center;padding:12px 0;background:rgba(15,27,51,.8);border:1px solid rgba(184,191,202,.4);color:var(--cream);font:12px ui-monospace,monospace;letter-spacing:.08em;touch-action:none;user-select:none}
 #pad button:active,#pad button.on{background:var(--cream);color:var(--navy)}
+#sr{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:rgba(5,9,18,.7);padding:20px;overflow-y:auto}#sr.on{display:flex}
+#sr .card{text-align:left}#sr .row{justify-content:flex-start;margin-bottom:6px}
+#s6{justify-content:flex-start;align-items:center;text-align:left;gap:16px}#s6 .top{width:min(720px,100%)}#s6 .card{width:min(720px,100%)}#s6 .row{justify-content:flex-start;margin-bottom:6px}
+#rch{max-height:24vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin:14px 0}
+#rpl iframe{display:block;margin-top:14px}
+#rcd{display:flex;gap:18px;overflow-x:auto;padding:12px 4px 8px;min-height:150px}
+.cdw{all:unset;cursor:pointer;flex:none;width:112px;text-align:center}
+.cdw em{display:block;margin-top:8px;font:11px ui-monospace,monospace;font-style:normal;letter-spacing:.12em;color:var(--silver)}
+.cd{display:block;position:relative;width:112px;aspect-ratio:1;border-radius:50%;box-shadow:0 14px 30px rgba(0,0,0,.5);transition:transform .3s}
+.cdw:hover .cd{transform:scale(1.07) rotate(-6deg)}
+.disc{position:absolute;inset:0;border-radius:50%;background:conic-gradient(#e9eefb,#9fb6dc,#f3e7cf,#c0a8e0,#8fd6e4,#f6f0e0,#9fb6dc,#e9eefb);animation:cdspin 7s linear infinite;animation-play-state:paused}
+.cdw:hover .disc,.cdw.fresh .disc{animation-play-state:running}
+.disc::before{content:"";position:absolute;inset:0;border-radius:50%;background:repeating-radial-gradient(circle,transparent 0 3px,rgba(15,27,51,.07) 3px 4px)}
+.disc::after{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 40deg,transparent 0 20%,rgba(255,255,255,.6) 25%,transparent 32% 70%,rgba(255,255,255,.4) 76%,transparent 83%)}
+.cdl{position:absolute;left:50%;top:50%;width:46%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,transparent 0 9%,var(--navy2) 10%);border:1px solid rgba(239,229,207,.6);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:12%;text-align:center}
+.cdl b{font:500 9px/1.1 'Playfair Display',serif;color:var(--cream);max-height:2.2em;overflow:hidden}.cdl i{font-size:8px;color:var(--silver);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cdw.sent .cdl{background:radial-gradient(circle,transparent 0 9%,var(--cream) 10%)}.cdw.sent .cdl b{color:var(--navy)}.cdw.sent .cdl i{color:#4a5a78}
+.cdw.fresh .cd{animation:cdin .8s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes cdspin{to{transform:rotate(360deg)}}
+@keyframes cdin{from{opacity:0;transform:translateX(120px) rotate(300deg) scale(.4)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.disc{animation:none!important}.cdw.fresh .cd{animation:none}}
 </style></head><body>
 <canvas id="c"></canvas><div class="vig"></div><canvas id="pl"></canvas>
 
@@ -152,10 +173,33 @@ body.in5 #c,body.in5 .vig{display:none}
   <div id="pad"><button data-k="f" style="grid-column:2">▲</button><button data-k="l">◀</button><button data-k="b">▼</button><button data-k="r">▶</button><button id="bc" style="grid-column:1/3">CLIMB</button><button id="bs">SIT</button></div>
 </section>
 
+<!-- 6 · LISTENING ROOM -->
+<section class="scr" id="s6">
+  <div class="top"><button class="btn g" id="rbk">Back</button><div><h2>Listening room</h2><p class="sub">Listen to the same song together and chat as you go.</p></div></div>
+  <div class="card">
+    <label>Listening with</label><div class="row" id="rwho"></div>
+    <label>Song link (Spotify, YouTube Music or Gaana)</label>
+    <div class="mine"><input id="rlk" placeholder="Paste a song link"><button class="btn" id="rgo">Load</button></div>
+    <div id="rpl"></div>
+    <label>Send a song as a CD</label>
+    <div class="mine"><input id="rcdi" placeholder="Song – artist, or paste a link"><button class="btn" id="rcdb">Send CD</button></div>
+    <div id="rcd"></div>
+    <div class="row" style="margin:14px 0 0"><button class="btn" id="rsync">Play together</button></div>
+    <div id="rch"></div>
+    <div class="mine" style="margin:0"><input id="rci" maxlength="300" placeholder="Message…"><button class="btn" id="rcs">Send</button></div>
+  </div>
+</section>
+
 <div class="dots" id="dots"><i class="on"></i><i></i><i></i><i></i><i></i></div>
 <button id="pf" aria-label="Your profile"><div class="fa" id="pfa"></div><span id="pfb"></span></button>
 <aside id="pp"><div class="pph"><div class="fa" id="ppav"></div><div><b id="ppn"></b><i id="pps"></i></div><button class="btn g" id="ppx">✕</button></div><div id="ppb"></div></aside>
 <div id="call"><span id="cl"></span><button class="btn" id="cacc" style="display:none">Accept</button><button class="btn g" id="cmute">Mute</button><button class="btn" id="cend">End</button></div>
+<div id="sr"><div class="card"><h2 id="srt"></h2><p class="sub">Pick a song you think they would love. They will see it with your request.</p>
+<div class="row" id="srs"></div>
+<label for="sri">Song</label><input id="sri" list="srl" placeholder="Song – artist"><datalist id="srl"></datalist>
+<label for="srk">Or paste a song link (optional)</label><input id="srk" placeholder="https://…">
+<div class="cma"><a class="btn g" id="sro" target="_blank" rel="noopener">Find in app</a><button class="btn" id="srsend">Send song</button></div>
+<div class="cma"><button class="btn g" id="srx">Cancel</button></div></div></div>
 <div id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -178,13 +222,11 @@ const CONFIG={
 
 /* ============ 3D PLACES ============
    All places live in the repo's /places folder as .glb files (names are case-sensitive):
-     places/park.glb, places/city.glb, places/cafe.glb, places/gallery.glb
+     places/city.glb, places/cafe.glb, places/gallery.glb
    Places are fetched in the background once the user reaches the "link music" step (warmPlaces), then cached in memory.
    The files are Draco-compressed with WebP textures, so DRACOLoader is required (see loadGLTF below).
    Serve the site over http/https (e.g. GitHub Pages); opening the file from disk will not work. */
 const PLACES={
- park:{icon:'🌳',name:'The Park',blurb:'Open air and slow walks.',url:'places/park.glb',
-  credit:'“Albert Park Circuit Melbourne 2018 layout” by <a href="https://sketchfab.com/Tyler_Dave" target="_blank" rel="noopener">Dave Love SketchFab</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>'},
  city:{icon:'🏙️',name:'The City',blurb:'Lights, traffic, late nights.',url:'places/city.glb',ground:true,
   credit:'“City Scene” by <a href="https://sketchfab.com/mortalityrexotable" target="_blank" rel="noopener">golukumar</a> · Sketchfab Standard license'},
  cafe:{icon:'☕',name:'The Café',blurb:'Warm corners, quiet talk.',url:'places/cafe.glb',
@@ -198,8 +240,6 @@ const SVC={spotify:{n:'Spotify',q:'https://open.spotify.com/search/'},ytm:{n:'Yo
 
 // Hook: who is at a place + songs for it. Replace the body with your backend call, e.g. fetch('/api/places/'+key+'/feed?user='+profile.username)
 const MOCK={
- park:{people:[{u:'luna.v',av:'female_avatar_1',s:'Here Comes the Sun',m:'spotify',t:[['Here Comes the Sun', 'The Beatles'], ['Perfect', 'Ed Sheeran'], ['Banana Pancakes', 'Jack Johnson'], ['Clair de Lune', 'Claude Debussy']]},{u:'arjun.k',av:'male_avatar_1',s:'Kun Faya Kun',m:'ytm',t:[['Kun Faya Kun', 'A.R. Rahman'], ['Ilahi', 'Arijit Singh'], ['Tum Se Hi', 'Mohit Chauhan'], ['Kabira', 'Tochi Raina']]},{u:'kai_r',av:'male_avatar_3',s:'Three Little Birds',m:'spotify',t:[['Three Little Birds', 'Bob Marley'], ['Banana Pancakes', 'Jack Johnson'], ['Here Comes the Sun', 'The Beatles']]}],
-  songs:[['Here Comes the Sun','The Beatles'],['Kun Faya Kun','A.R. Rahman'],['Three Little Birds','Bob Marley'],['Ilahi','Arijit Singh']]},
  city:{people:[{u:'neo.m',av:'male_avatar_2',s:'Blinding Lights',m:'spotify',t:[['Blinding Lights', 'The Weeknd'], ['Starboy', 'The Weeknd'], ['Levitating', 'Dua Lipa']]},{u:'mira.s',av:'female_avatar_2',s:'Malare',m:'gaana',t:[['Malare', 'Vijay Yesudas'], ['Tum Se Hi', 'Mohit Chauhan'], ['Agar Tum Saath Ho', 'Arijit Singh']]},{u:'zed_9',av:'female_avatar_3',s:'Levitating',m:'ytm',t:[['Levitating', 'Dua Lipa'], ['Blinding Lights', 'The Weeknd'], ['Perfect', 'Ed Sheeran']]}],
   songs:[['Blinding Lights','The Weeknd'],['Levitating','Dua Lipa'],['Malare','Vijay Yesudas'],['Starboy','The Weeknd']]},
  cafe:{people:[{u:'ana.b',av:'female_avatar_1',s:'Perfect',m:'spotify',t:[['Perfect', 'Ed Sheeran'], ['Banana Pancakes', 'Jack Johnson'], ['Here Comes the Sun', 'The Beatles']]},{u:'ravi.t',av:'male_avatar_1',s:'Tum Se Hi',m:'gaana',t:[['Tum Se Hi', 'Mohit Chauhan'], ['Kun Faya Kun', 'A.R. Rahman'], ['Agar Tum Saath Ho', 'Arijit Singh'], ['Kabira', 'Tochi Raina']]},{u:'sam_o',av:'male_avatar_3',s:'Banana Pancakes',m:'ytm',t:[['Banana Pancakes', 'Jack Johnson'], ['Three Little Birds', 'Bob Marley'], ['Weightless', 'Marconi Union']]}],
@@ -235,13 +275,14 @@ let step=0;
 const avOf=id=>[...AVATARS.male,...AVATARS.female].find(a=>a.id===id),findAv=()=>avOf(state.avatar);
 function go(n){
  if(n>=4&&!state.music){toast('Link a music service to continue.');n=3}   // music linking is mandatory
- step=n;$$('.scr').forEach((s,i)=>s.classList.toggle('on',i===n));$$('#dots i').forEach((d,i)=>d.classList.toggle('on',i===Math.min(n,4)));$('#dots').style.display=n===5?'none':'';
+ step=n;$$('.scr').forEach((s,i)=>s.classList.toggle('on',i===n));$$('#dots i').forEach((d,i)=>d.classList.toggle('on',i===Math.min(n,4)));$('#dots').style.display=n>=5?'none':'';
  $('#pl').classList.toggle('on',n===5);
  document.body.classList.toggle('in5',n===5);
  if(n===1)ensure('male');if(n===2){drawAvatars();ensure(state.gender)}
  if(n===3)warmPlaces();   // start downloading the place models in the background
  if(n===3||n===4){const h=pvw(findAv());$('#me3').innerHTML=$('#me4').innerHTML=h;$('#hi').textContent='Hi, '+state.username+'!';$('#done').textContent='Where shall we meet, '+state.username+'?'}
  if(n===4){ensure('male');ensure('female');drawPlaces()}
+ if(n===6)renderRoom();
  $('#pf').style.display=n>=3?'block':'none';
  if(n>=3){if(connsFor!==state.username)loadConns();const a=findAv();$('#pfa').innerHTML=a?pvw(a):'';badge()}}
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),3200)}
@@ -291,13 +332,13 @@ $('#b3').onclick=()=>state.music?finish3():toast('Link a music service to contin
 (()=>{const q=new URLSearchParams(location.search);if(q.get('code')){try{Object.assign(state,JSON.parse(sessionStorage.getItem('echovro_state')||'{}'));state.music={service:q.get('state')||'spotify',code:q.get('code')};history.replaceState(null,'',location.pathname);if(state.avatar)setTimeout(()=>{linkedUI();finish3()},50)}catch(e){}}})();
 
 /* ===== Step 4: choose a place ===== */
-function drawPlaces(){$('#places').innerHTML=Object.entries(PLACES).map(([k,p],i)=>`<button class="pc" style="--i:${i}" data-k="${k}"><em>${p.icon}</em><b>${p.name}</b><span>${p.blurb}</span></button>`).join('');
- $$('.pc').forEach(b=>b.onclick=()=>enterPlace(b.dataset.k))}
+function drawPlaces(){$('#places').innerHTML=Object.entries(PLACES).map(([k,p],i)=>`<button class="pc" style="--i:${i}" data-k="${k}"><em>${p.icon}</em><b>${p.name}</b><span>${p.blurb}</span></button>`).join('')+`<button class="pc" data-room="1"><em>🎧</em><b>Listening room</b><span>Listen together, chat live.</span></button>`;
+ $$('.pc[data-k]').forEach(b=>b.onclick=()=>enterPlace(b.dataset.k));$('.pc[data-room]').onclick=()=>go(6)}
 
 /* ===== Step 5: the place — scenes are loaded once, cached, and warmed in the background ===== */
 let R5=null,ctl=null,cur=null,run=false,seq=0;const sc5=new THREE.Scene(),cam5=new THREE.PerspectiveCamera(50,1,.1,1000);
 /* ===== Backdrop: opaque sky "wall" + ground disc so the app UI never shows behind a place ===== */
-const SKY={park:['#5f9bd6','#e3edf7'],city:['#0b1226','#3a4f7a'],cafe:['#2a1c14','#7a5a40'],gallery:['#16294a','#9db3d3']};
+const SKY={city:['#0b1226','#3a4f7a'],cafe:['#2a1c14','#7a5a40'],gallery:['#16294a','#9db3d3']};
 const skyTex={};let floor=null;
 function skyFor(k){if(skyTex[k])return skyTex[k];
  const c=document.createElement('canvas');c.width=2;c.height=512;const g=c.getContext('2d'),gr=g.createLinearGradient(0,0,0,512),s=SKY[k]||SKY.gallery;
@@ -431,14 +472,14 @@ const bub=m=>`<div class="bub${m.me?' me':''}">${esc(m.t)}</div>`;
 function badge(){const n=Object.values(conns).reduce((s,c)=>s+(c.unread||0)+(c.status==='pending'&&c.dir==='in'?1:0),0),b=$('#pfb');b.textContent=n||'';b.style.display=n?'flex':'none'}
 function refresh(){badge();renderPanel();renderCmActions()}
 function getConn(P){return conns[P.u]||(conns[P.u]={u:P.u,av:P.av,m:P.m,status:'none',msgs:[],unread:0})}
-function request(P){const c=getConn(P);   // step 1 of everything: a connection request
+function request(P,song){const c=getConn(P);   // step 1 of everything: a connection request
  if(c.status!=='none')return;
- c.status='pending';c.dir='out';saveConns();onRequestSend({to:P.u});refresh();toast('Connection request sent to '+P.u);
+ c.status='pending';c.dir='out';c.song=song;saveConns();onRequestSend({to:P.u,song});refresh();toast('Song sent to '+P.u);
  if(CONFIG.DEMO_MODE)setTimeout(()=>accepted(P.u),1800)}
 function accepted(u){const c=conns[u];if(!c||c.status!=='pending')return;c.status='connected';saveConns();refresh();toast(u+' accepted — you are connected');
  openPanel('thread',u)}
-function incoming(P){const c=getConn(P);if(c.status!=='none')return;c.status='pending';c.dir='in';saveConns();refresh();
- toast(P.u+' wants to connect — open Requests in your profile')}
+function incoming(P){const c=getConn(P);if(c.status!=='none')return;c.status='pending';c.dir='in';c.song=P.song||{t:P.s,svc:P.m};saveConns();refresh();
+ toast(P.u+' sent you a song to connect — open Requests in your profile')}
 function respond(u,ok){const c=conns[u];if(!c)return;onRespondSend({to:u,accept:ok});
  if(ok){c.status='connected';toast('Connected with '+u)}else c.status='none';
  saveConns();refresh();if(ok)openPanel('thread',u)}
@@ -446,9 +487,9 @@ function renderCmActions(){const P=cmP;if(!P)return;const c=conns[P.u],a=$('#cma
  if(c&&c.status==='connected')a.innerHTML='<button class="btn" data-a="chat">Message</button><button class="btn" data-a="voice">Voice call</button>';
  else if(c&&c.status==='pending'&&c.dir==='in')a.innerHTML='<button class="btn" data-a="yes">Accept</button><button class="btn g" data-a="no">Decline</button>';
  else if(c&&c.status==='pending')a.innerHTML='<button class="btn" disabled>Request sent…</button>';
- else a.innerHTML='<button class="btn" data-a="connect">Send connection request</button>';
+ else a.innerHTML='<button class="btn" data-a="connect">Connect through a song</button>';
  a.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const k=b.dataset.a;
-  if(k==='chat')openPanel('thread',P.u);else if(k==='voice')openVoice(conns[P.u]);else if(k==='connect')request(P);else respond(P.u,k==='yes')})}
+  if(k==='chat')openPanel('thread',P.u);else if(k==='voice')openVoice(conns[P.u]);else if(k==='connect')openSongPick(P);else respond(P.u,k==='yes')})}
 /* ---- profile panel with chat menu ---- */
 function openPanel(view,u){ppThread=view==='thread'&&conns[u]&&conns[u].status==='connected'?u:null;if(ppThread&&conns[u]){conns[u].unread=0;saveConns()}$('#pp').classList.add('on');renderPanel();badge()}
 function renderPanel(){const p=$('#pp');if(!p.classList.contains('on'))return;const a=findAv();
@@ -463,7 +504,7 @@ function renderPanel(){const p=$('#pp');if(!p.classList.contains('on'))return;co
  const chats=list.filter(c=>c.status==='connected'),rin=list.filter(c=>c.status==='pending'&&c.dir==='in'),rout=list.filter(c=>c.status==='pending'&&c.dir==='out'),un=chats.reduce((s,c)=>s+(c.unread||0),0);
  body.innerHTML=`<div class="tabs"><button data-t="chats" class="${ppTab==='chats'?'on':''}">Chats${un?' ('+un+')':''}</button><button data-t="req" class="${ppTab==='req'?'on':''}">Requests${rin.length?' ('+rin.length+')':''}</button></div>`+
   (ppTab==='chats'?(chats.map(c=>{const l=(c.msgs||[]).slice(-1)[0];return `<div class="crow" data-u="${esc(c.u)}">${fa(c.av)}<div><b>${esc(c.u)}</b><i>${l?esc((l.me?'You: ':'')+l.t):'Connected'}</i></div>${c.unread?'<em>'+c.unread+'</em>':''}</div>`}).join('')||'<p class="emp">No connections yet. Walk up to someone and send a text or voice request.</p>')
-  :(rin.map(c=>`<div class="crow">${fa(c.av)}<div><b>${esc(c.u)}</b><i>wants to connect</i></div><button class="btn" data-y="${esc(c.u)}">✓</button><button class="btn g" data-n="${esc(c.u)}">✕</button></div>`).join('')+rout.map(c=>`<div class="crow">${fa(c.av)}<div><b>${esc(c.u)}</b><i>request sent…</i></div></div>`).join('')||'<p class="emp">No pending requests.</p>'));
+  :(rin.map(c=>`<div class="crow">${fa(c.av)}<div><b>${esc(c.u)}</b><i>♪ ${esc((c.song&&c.song.t)||'a song')}${c.song&&SVC[c.song.svc]?' · '+SVC[c.song.svc].n:''}</i></div><button class="btn" data-y="${esc(c.u)}">✓</button><button class="btn g" data-n="${esc(c.u)}">✕</button></div>`).join('')+rout.map(c=>`<div class="crow">${fa(c.av)}<div><b>${esc(c.u)}</b><i>request sent…</i></div></div>`).join('')||'<p class="emp">No pending requests.</p>'));
  body.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{ppTab=b.dataset.t;renderPanel()});
  body.querySelectorAll('.crow[data-u]').forEach(r=>r.onclick=()=>openPanel('thread',r.dataset.u));
  body.querySelectorAll('[data-y]').forEach(b=>b.onclick=()=>respond(b.dataset.y,true));
@@ -556,6 +597,63 @@ async function enterPlace(k){
   if(CONFIG.DEMO_MODE){const t2=tok;setTimeout(()=>{if(t2!==seq||step!==5||!feed)return;const p=feed.people.find(q=>!conns[q.u]||conns[q.u].status==='none');if(p)incoming(p)},12000)}   // demo: someone sends you a request
  }catch(e){delete placeCache[k];console.error('Place load failed',P.url,e);if(tok===seq)$('#lt').textContent='Could not load '+P.url+' — '+((e&&e.message)||(e&&e.target&&('HTTP '+(e.target.status||'error')))||String(e))}}
 $('#bk').onclick=()=>{seq++;drop();go(4)};
+
+/* ===== Connect through a song: the only way to send a connection request ===== */
+let srP=null,srS='';
+function srUpd(){$$('#srs [data-s]').forEach(b=>{b.onclick=()=>{srS=b.dataset.s;srUpd()};b.classList.toggle('ok',b.dataset.s===srS)});$('#sro').href=SVC[srS].q+encodeURIComponent($('#sri').value)}
+function openSongPick(P){srP=P;srS=state.music.service;$('#srt').textContent='Connect with '+P.u+' through a song';
+ $('#srs').innerHTML=Object.keys(SVC).map(k=>`<button class="btn g" data-s="${k}">${SVC[k].n}</button>`).join('');
+ $('#srl').innerHTML=(feed?feed.songs:[]).map(x=>`<option value="${esc(x[0]+' – '+x[1])}">`).join('');
+ $('#sri').value='';$('#srk').value='';$('#sr').classList.add('on');srUpd()}
+$('#sri').oninput=srUpd;$('#srx').onclick=()=>$('#sr').classList.remove('on');
+$('#srsend').onclick=()=>{const t=$('#sri').value.trim(),l=$('#srk').value.trim();if(!t&&!l)return toast('Pick a song to send.');
+ $('#sr').classList.remove('on');request(srP,{t:t||l,svc:srS,link:l})};
+
+/* ===== Listening room: same song, same moment, with text chat ===== */
+let room={with:null,link:'',msgs:[],cds:[]};
+async function onRoomSend(p){console.log('EchoVro room',p)}   // hook: deliver to p.to. types: link, play {at}, chat {text}
+function parseLink(u){let m;
+ if(m=u.match(/open\.spotify\.com\/(?:intl-[a-z]+\/)?track\/(\w+)/))return{svc:'spotify',src:'https://open.spotify.com/embed/track/'+m[1]};
+ if(m=u.match(/(?:youtu\.be\/|[?&]v=)([\w-]{11})/))return{svc:'ytm',src:'https://www.youtube.com/embed/'+m[1]};
+ if(/gaana\.com\/song\//.test(u))return{svc:'gaana',src:''};
+ return null}
+function renderRoom(){const f=Object.values(conns).filter(c=>c.status==='connected');
+ if(!room.with&&f[0])room.with=f[0].u;
+ $('#rwho').innerHTML=f.length?f.map(c=>`<button class="btn g${c.u===room.with?' ok':''}" data-u="${esc(c.u)}">${esc(c.u)}</button>`).join(''):'<p class="emp">Connect with someone through a song first, then invite them here.</p>';
+ $$('#rwho [data-u]').forEach(b=>b.onclick=()=>{room.with=b.dataset.u;room.msgs=[];room.cds=[];renderRoom()});
+ renderCDs();$('#rch').innerHTML=room.msgs.map(bub).join('')||'<p class="emp">Say hi 👋</p>';$('#rch').scrollTop=1e5;
+ const l=room.link&&parseLink(room.link);
+ $('#rpl').innerHTML=!l?'':l.src?`<iframe src="${l.src}" allow="autoplay; encrypted-media" style="width:100%;height:${l.svc==='spotify'?152:220}px;border:0"></iframe>`:`<a class="btn" href="${esc(room.link)}" target="_blank" rel="noopener">Open in Gaana</a>`}
+$('#rgo').onclick=()=>{const u=$('#rlk').value.trim();if(!parseLink(u))return toast('Paste a Spotify, YouTube Music or Gaana song link.');
+ room.link=u;if(room.with)onRoomSend({to:room.with,type:'link',link:u});renderRoom()};
+function countdown(at){const iv=setInterval(()=>{const s=Math.ceil((at-Date.now())/1000);if(s>0)return toast('Playing in '+s+'…');clearInterval(iv);
+ const l=room.link&&parseLink(room.link),f=$('#rpl iframe');
+ if(l&&l.svc==='ytm'&&f){f.src=l.src+'?autoplay=1';toast('Playing together')}else toast('Press play now ▶')},1000)}
+$('#rsync').onclick=()=>{if(!room.link||!room.with)return toast('Pick a friend and load a song first.');
+ const at=Date.now()+5000;onRoomSend({to:room.with,type:'play',at});countdown(at)};
+function sendRoom(){const v=$('#rci').value.trim();if(!v||!room.with)return;room.msgs.push({me:1,t:v});$('#rci').value='';
+ onRoomSend({to:room.with,type:'chat',text:v});renderRoom();
+ if(CONFIG.DEMO_MODE)setTimeout(()=>{room.msgs.push({t:REPLIES[Math.floor(Math.random()*REPLIES.length)]});renderRoom()},1200)}
+$('#rcs').onclick=sendRoom;$('#rci').onkeydown=e=>{if(e.key==='Enter')sendRoom()};$('#rbk').onclick=()=>go(4);
+// Call from your backend: EchoVroReceive.room({from,type:'link'|'play'|'chat',link,at,text})
+EchoVroReceive.room=m=>{if(m.type==='link'){room.link=m.link;toast(m.from+' shared a song')}
+ if(m.type==='cd'){room.cds.push({t:m.t,svc:m.svc,link:m.link,from:m.from,fresh:1});toast(m.from+' sent you a CD')}
+ if(m.type==='chat')room.msgs.push({t:m.text});if(m.type==='play')countdown(m.at);renderRoom()};
+
+/* ===== Songs as CDs: send a song, it lands in the room as a disc. Tap a CD to play it. ===== */
+function cdHTML(c,i){const q=c.t.split(/\s+[–-]\s+/);
+ return `<button class="cdw${c.me?' sent':''}${c.fresh?' fresh':''}" data-i="${i}" aria-label="Play ${esc(c.t)}"><span class="cd"><span class="disc"></span><span class="cdl"><b>${esc(q[0])}</b><i>${esc(q[1]||'')}</i></span></span><em>${c.me?'You':esc(c.from||room.with||'')}</em></button>`}
+function renderCDs(){const el=$('#rcd');if(!el)return;
+ el.innerHTML=room.cds.map(cdHTML).join('')||'<p class="emp">No CDs yet. Send one and it lands here.</p>';
+ $$('#rcd .cdw').forEach(b=>b.onclick=()=>playCD(room.cds[+b.dataset.i]));room.cds.forEach(c=>c.fresh=0)}
+function playCD(c){if(c.link&&parseLink(c.link)){room.link=c.link;if(room.with)onRoomSend({to:room.with,type:'link',link:c.link});renderRoom();toast('Playing '+c.t)}
+ else window.open(SVC[c.svc||state.music.service].q+encodeURIComponent(c.t),'_blank','noopener')}
+function sendCD(){const v=$('#rcdi').value.trim();if(!room.with)return toast('Connect with someone first.');if(!v)return toast('Type a song first.');
+ const isL=/^https?:\/\//i.test(v),pl=isL?parseLink(v):null,c={me:1,t:isL?'Song link':v.slice(0,60),svc:pl?pl.svc:state.music.service,link:isL?v:'',fresh:1};
+ room.cds.push(c);$('#rcdi').value='';onRoomSend({to:room.with,type:'cd',t:c.t,svc:c.svc,link:c.link});renderCDs();toast('CD sent to '+room.with);
+ if(CONFIG.DEMO_MODE)setTimeout(()=>{const d=[['Blinding Lights – The Weeknd','spotify'],['Kun Faya Kun – A.R. Rahman','ytm'],['Clair de Lune – Claude Debussy','gaana']][Math.floor(Math.random()*3)];
+  room.cds.push({t:d[0],svc:d[1],from:room.with,fresh:1});renderCDs();toast(room.with+' sent you a CD')},2500)}
+$('#rcdb').onclick=sendCD;$('#rcdi').onkeydown=e=>{if(e.key==='Enter')sendCD()};
 
 /* ===== 3D avatar previews: one shared WebGL renderer drawn into each card's canvas ===== */
 const PV=256;   // preview resolution (cards are ≤170px wide)
