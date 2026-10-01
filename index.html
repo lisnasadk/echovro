@@ -79,7 +79,7 @@ body.in5 #c,body.in5 .vig{display:none}
 .cmc{display:flex;gap:6px;flex-wrap:wrap}.cmc u{text-decoration:none;font:11px ui-monospace,monospace;letter-spacing:.08em;padding:4px 8px;border:1px solid rgba(184,191,202,.5)}
 #cm p{margin-top:10px;font-size:15px;color:var(--silver);line-height:1.35}
 #toast{z-index:40}
-.fa{width:40px;aspect-ratio:1;border-radius:50%;overflow:hidden;background:radial-gradient(circle at 50% 35%,#2a4470,#16294a);flex:none}.fa svg{width:100%;display:block}
+.fa{width:40px;aspect-ratio:1;border-radius:50%;overflow:hidden;background:radial-gradient(circle at 50% 35%,#2a4470,#16294a);flex:none}.fa .pvw{width:100%}.fa .ph{visibility:hidden}.nogl .fa .ph{visibility:visible}.fa .ph svg{width:100%;display:block}
 #pf{display:none;position:fixed;top:calc(14px + env(safe-area-inset-top,0px));right:14px;z-index:6;width:46px;height:46px;padding:0;border-radius:50%;border:2px solid var(--cream);background:#16294a;cursor:pointer}#pf .fa{width:100%}
 #pfb{display:none;position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:#e8604a;color:#fff;font:11px/18px ui-monospace,monospace;justify-content:center}
 #pp{position:fixed;top:0;right:0;bottom:0;width:min(380px,100%);z-index:20;display:flex;flex-direction:column;padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px));background:rgba(15,27,51,.97);border-left:1px solid rgba(184,191,202,.3);backdrop-filter:blur(12px);transform:translateX(100%);transition:transform .35s;text-align:left}
@@ -243,7 +243,7 @@ function go(n){
  if(n===3||n===4){const h=pvw(findAv());$('#me3').innerHTML=$('#me4').innerHTML=h;$('#hi').textContent='Hi, '+state.username+'!';$('#done').textContent='Where shall we meet, '+state.username+'?'}
  if(n===4){ensure('male');ensure('female');drawPlaces()}
  $('#pf').style.display=n>=3?'block':'none';
- if(n>=3){if(connsFor!==state.username)loadConns();const a=findAv();$('#pfa').innerHTML=a?face(a.look):'';badge()}}
+ if(n>=3){if(connsFor!==state.username)loadConns();const a=findAv();$('#pfa').innerHTML=a?pvw(a):'';badge()}}
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),3200)}
 
 function face(l){let back='',top='';const h=l.hair;
@@ -426,7 +426,7 @@ async function signal(m){console.log('EchoVro signal',m)}           // WebRTC of
 // Call these when your backend pushes something to this user:
 window.EchoVroReceive={request:P=>incoming(P),accepted:u=>accepted(u),message:(u,t)=>receiveMsg(u,t),signal:m=>onSignal(m)};
 const REPLIES=['Love your taste! 🎧','Hey! Which song are you on right now?','Ha, same here — great pick.','Send me your favourite track?','Nice to meet you here!'];
-const fa=av=>{const a=avOf(av);return `<div class="fa">${a?face(a.look):''}</div>`};
+const fa=av=>{const a=avOf(av);return `<div class="fa">${a?pvw(a):''}</div>`};   // real 3D avatar (.glb) rendered by the shared preview renderer
 const bub=m=>`<div class="bub${m.me?' me':''}">${esc(m.t)}</div>`;
 function badge(){const n=Object.values(conns).reduce((s,c)=>s+(c.unread||0)+(c.status==='pending'&&c.dir==='in'?1:0),0),b=$('#pfb');b.textContent=n||'';b.style.display=n?'flex':'none'}
 function refresh(){badge();renderPanel();renderCmActions()}
@@ -452,7 +452,7 @@ function renderCmActions(){const P=cmP;if(!P)return;const c=conns[P.u],a=$('#cma
 /* ---- profile panel with chat menu ---- */
 function openPanel(view,u){ppThread=view==='thread'&&conns[u]&&conns[u].status==='connected'?u:null;if(ppThread&&conns[u]){conns[u].unread=0;saveConns()}$('#pp').classList.add('on');renderPanel();badge()}
 function renderPanel(){const p=$('#pp');if(!p.classList.contains('on'))return;const a=findAv();
- $('#ppav').innerHTML=a?face(a.look):'';$('#ppn').textContent=state.username;$('#pps').textContent=state.music?SVC[state.music.service].n+' linked':'';
+ $('#ppav').innerHTML=a?pvw(a):'';$('#ppn').textContent=state.username;$('#pps').textContent=state.music?SVC[state.music.service].n+' linked':'';
  const body=$('#ppb'),list=Object.values(conns);
  if(ppThread&&conns[ppThread]&&conns[ppThread].status==='connected'){const c=conns[ppThread];
   body.innerHTML=`<div class="thh"><button class="btn g" id="thb">←</button>${fa(c.av)}<b>${esc(c.u)}</b><button class="btn" id="thv">🎙 Voice</button></div><div id="thm">${(c.msgs||[]).map(bub).join('')||'<p class="emp">Say hi 👋</p>'}</div><div class="mine" style="margin:10px 0 0"><input id="thi" maxlength="300" placeholder="Message…"><button class="btn" id="ths">Send</button></div>`;
@@ -564,7 +564,7 @@ const T=THREE,models={},loading={};let R3=null;
 const sc3=new T.Scene(),cam3=new T.PerspectiveCamera(28,1,.01,100);
 try{R3=new T.WebGLRenderer({alpha:true,antialias:true});R3.setSize(PV,PV,false);R3.outputEncoding=T.sRGBEncoding;R3.toneMapping=T.ACESFilmicToneMapping;R3.toneMappingExposure=1.05;
  const kl=new T.DirectionalLight(0xfff1d6,1.7),rl=new T.DirectionalLight(0x8fa8cc,1.2);kl.position.set(2,3,4);rl.position.set(-3,2,-3);sc3.add(new T.HemisphereLight(0xdfe8ff,0x16294a,.9),kl,rl)}
-catch(e){R3=null;console.warn('WebGL unavailable — showing illustrated avatars',e)}
+catch(e){R3=null;document.body.classList.add('nogl');console.warn('WebGL unavailable — showing illustrated avatars',e)}
 function frameOf(root){root.updateMatrixWorld(true);let head=null,hips=null;
  root.traverse(o=>{if(o.isBone){if(/^Head(_\d+)?$/.test(o.name))head=o;if(/^Hips(_\d+)?$/.test(o.name))hips=o}});
  if(head&&hips){const a=head.getWorldPosition(new T.Vector3()),b=hips.getWorldPosition(new T.Vector3()),u=a.y-b.y;return{x:a.x,y:a.y+u*.12,z:a.z,s:u*.95}}
@@ -576,7 +576,7 @@ function ensure(g){if(!R3)return;AVATARS[g].forEach(a=>{if(models[a.id]||loading
   pivot.userData={y:f.y,d:f.s/2/Math.tan(14*Math.PI/180)*1.05,rot:a.rot||0,clips:gl.animations||[]};sc3.add(pivot);models[a.id]=pivot},undefined,e=>{delete loading[a.id];console.warn('Avatar failed to load (serve the site over http/https):',a.model,e)})})}
 (function loop3(t){requestAnimationFrame(loop3);if(!R3)return;
  if(t-(loop3.l||0)<33)return;loop3.l=t;   // ~30fps is plenty for a gentle sway
- document.querySelectorAll('.pvw').forEach(w=>{const s=w.closest('.scr');if(!s||!s.classList.contains('on'))return;const m=models[w.dataset.id];if(!m)return;
+ document.querySelectorAll('.pvw').forEach(w=>{const s=w.closest('.scr,#pp,#pf');if(!s||!(s.matches('.scr,#pp')?s.classList.contains('on'):s.style.display==='block'))return;const m=models[w.dataset.id];if(!m)return;
   const u=m.userData,id=w.dataset.id;m.rotation.y=u.rot+Math.sin(t*.0008+id.charCodeAt(id.length-1))*.45;
   cam3.position.set(0,u.y,u.d);cam3.near=u.d*.05;cam3.far=u.d*30;cam3.updateProjectionMatrix();cam3.lookAt(0,u.y,0);
   m.visible=true;R3.render(sc3,cam3);m.visible=false;
