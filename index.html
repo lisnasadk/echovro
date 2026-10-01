@@ -2,6 +2,9 @@
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>EchoVro — Music is better together.</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Cormorant+Garamond:ital,wght@0,500;1,500&display=swap" rel="stylesheet">
 <style>
 :root{--navy:#0f1b33;--navy2:#16294a;--cream:#efe5cf;--blue:#6f8bb0;--silver:#b8bfca;--sp:#1db954;box-sizing:border-box}
@@ -140,11 +143,8 @@ const CONFIG={
 
 /* ============ 3D PLACES ============
    All places live in the repo's /places folder as .glb files (names are case-sensitive):
-     places/park.glb
-     places/city.glb
-     places/cafe.glb
-     places/gallery.glb
-   Each file is loaded ONLY when the person taps that place (loadGLTF in enterPlace), never up front.
+     places/park.glb, places/city.glb, places/cafe.glb, places/gallery.glb
+   Places are fetched in the background once the user reaches the "link music" step (warmPlaces), then cached in memory.
    The files are Draco-compressed with WebP textures, so DRACOLoader is required (see loadGLTF below).
    Serve the site over http/https (e.g. GitHub Pages); opening the file from disk will not work. */
 const PLACES={
@@ -199,6 +199,7 @@ function go(n){
  step=n;$$('.scr').forEach((s,i)=>s.classList.toggle('on',i===n));$$('#dots i').forEach((d,i)=>d.classList.toggle('on',i===Math.min(n,4)));$('#dots').style.display=n===5?'none':'';
  $('#pl').classList.toggle('on',n===5);
  if(n===1)ensure('male');if(n===2){drawAvatars();ensure(state.gender)}
+ if(n===3)warmPlaces();   // start downloading the place models in the background
  if(n===3||n===4){const h=pvw(findAv());$('#me3').innerHTML=$('#me4').innerHTML=h;$('#hi').textContent='Hi, '+state.username+'!';$('#done').textContent='Where shall we meet, '+state.username+'?'}
  if(n===4){ensure('male');ensure('female');drawPlaces()}}
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),3200)}
@@ -251,7 +252,7 @@ $('#b3').onclick=()=>state.music?finish3():toast('Link a music service to contin
 function drawPlaces(){$('#places').innerHTML=Object.entries(PLACES).map(([k,p],i)=>`<button class="pc" style="--i:${i}" data-k="${k}"><em>${p.icon}</em><b>${p.name}</b><span>${p.blurb}</span></button>`).join('');
  $$('.pc').forEach(b=>b.onclick=()=>enterPlace(b.dataset.k))}
 
-/* ===== Step 5: the place — loads the 3D scene (places/*.glb) only now ===== */
+/* ===== Step 5: the place — scenes are loaded once, cached, and warmed in the background ===== */
 let R5=null,ctl=null,cur=null,run=false,seq=0;const sc5=new THREE.Scene(),cam5=new THREE.PerspectiveCamera(50,1,.1,1000);
 function init5(){if(R5)return;
  R5=new THREE.WebGLRenderer({canvas:$('#pl'),alpha:true,antialias:true});R5.setPixelRatio(Math.min(devicePixelRatio||1,2));R5.outputEncoding=THREE.sRGBEncoding;
@@ -262,10 +263,18 @@ function fit5(){if(!R5)return;R5.setSize(innerWidth,innerHeight,false);cam5.aspe
 // The place files are Draco-compressed, so the loader needs a DRACOLoader with its decoder path.
 const draco=new THREE.DRACOLoader();
 draco.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/draco/gltf/');
+draco.preload();   // fetch the decoder now instead of on first model
 const loadGLTF=(u,pr)=>new Promise((ok,no)=>{
  const l=new THREE.GLTFLoader();l.setDRACOLoader(draco);
  l.load(u,g=>ok(g.scene),e=>e.total&&pr(e.loaded/e.total),no)});
-function drop(){run=false;if(!cur)return;sc5.remove(cur);cur.traverse(o=>{if(o.isMesh){o.geometry.dispose();[].concat(o.material).forEach(m=>{for(const k in m)if(m[k]&&m[k].isTexture)m[k].dispose();m.dispose()})}});cur=null}
+// Cache: each place is downloaded/parsed once. Progress callbacks go to whoever is waiting (prog[k]).
+const placeCache={},prog={};
+const getPlace=k=>placeCache[k]||(placeCache[k]=loadGLTF(PLACES[k].url,p=>prog[k]&&prog[k](p)));
+let warmed=0;
+async function warmPlaces(){if(warmed)return;warmed=1;
+ for(const k in PLACES){try{await getPlace(k)}catch(e){delete placeCache[k]}}}   // one at a time so bandwidth isn't split
+// Detach only — the cached scene keeps its GPU data so re-entering a place is instant.
+function drop(){run=false;if(cur){sc5.remove(cur);cur=null}}
 (function loop5(){requestAnimationFrame(loop5);if(run){ctl.update();R5.render(sc5,cam5)}})();
 const songLink=(m,s)=>SVC[m].q+encodeURIComponent(s[0]+' '+s[1]);
 async function enterPlace(k){
@@ -274,38 +283,44 @@ async function enterPlace(k){
  fetchPlaceFeed(k,state).then(f=>{if(tok!==seq||!f)return;const m=state.music.service;
   $('#sheet').innerHTML=`<h3>Here now</h3><div class="pr">${f.people.map(p=>`<div class="pp">${pvw(avOf(p.av))}<b>${p.u}</b><i>♪ ${p.s}</i></div>`).join('')}</div><h3>Songs for this place</h3>${f.songs.map(s=>`<a class="sg" href="${songLink(m,s)}" target="_blank" rel="noopener"><b>${s[0]}</b><span>${s[1]}</span><em>Open in ${SVC[m].n}</em></a>`).join('')}<p class="cr">${P.credit}</p>`});
  try{init5();
-  const root=await loadGLTF(P.url,p=>{$('#bar').style.width=Math.round(p*100)+'%'});
-  if(tok!==seq){root.traverse(o=>{if(o.isMesh)o.geometry.dispose()});return}
+  prog[k]=p=>{$('#bar').style.width=Math.round(p*100)+'%'};
+  const root=await getPlace(k);
+  if(tok!==seq)return;
   $('#lt').textContent='Building the scene…';
   const b=new THREE.Box3().setFromObject(root),c=b.getCenter(new THREE.Vector3()),s=b.getSize(new THREE.Vector3()),r=Math.max(s.x,s.y,s.z)||1;
   root.position.sub(c);sc5.add(root);cur=root;
   cam5.near=r/1000;cam5.far=r*30;cam5.updateProjectionMatrix();cam5.position.set(r*.7,r*.5,r*.7);
   ctl.target.set(0,0,0);ctl.minDistance=r*.05;ctl.maxDistance=r*2.5;ctl.maxPolarAngle=Math.PI*.495;ctl.update();
   $('#ld').style.display='none';run=true;
- }catch(e){console.error('Place load failed',P.url,e);if(tok===seq)$('#lt').textContent='Could not load '+P.url+' — '+((e&&e.message)||(e&&e.target&&('HTTP '+(e.target.status||'error')))||String(e))}}
+ }catch(e){delete placeCache[k];console.error('Place load failed',P.url,e);if(tok===seq)$('#lt').textContent='Could not load '+P.url+' — '+((e&&e.message)||(e&&e.target&&('HTTP '+(e.target.status||'error')))||String(e))}}
 $('#bk').onclick=()=>{seq++;drop();go(4)};
 
 /* ===== 3D avatar previews: one shared WebGL renderer drawn into each card's canvas ===== */
-const pvw=a=>`<div class="pvw" data-id="${a.id}"><div class="ph">${face(a.look)}</div><canvas class="pv" width="320" height="320"></canvas></div>`;
+const PV=256;   // preview resolution (cards are ≤170px wide)
+const pvw=a=>`<div class="pvw" data-id="${a.id}"><div class="ph">${face(a.look)}</div><canvas class="pv" width="${PV}" height="${PV}"></canvas></div>`;
 const T=THREE,models={},loading={};let R3=null;
 const sc3=new T.Scene(),cam3=new T.PerspectiveCamera(28,1,.01,100);
-try{R3=new T.WebGLRenderer({alpha:true,antialias:true});R3.setSize(320,320,false);R3.outputEncoding=T.sRGBEncoding;R3.toneMapping=T.ACESFilmicToneMapping;R3.toneMappingExposure=1.05;
+try{R3=new T.WebGLRenderer({alpha:true,antialias:true});R3.setSize(PV,PV,false);R3.outputEncoding=T.sRGBEncoding;R3.toneMapping=T.ACESFilmicToneMapping;R3.toneMappingExposure=1.05;
  const kl=new T.DirectionalLight(0xfff1d6,1.7),rl=new T.DirectionalLight(0x8fa8cc,1.2);kl.position.set(2,3,4);rl.position.set(-3,2,-3);sc3.add(new T.HemisphereLight(0xdfe8ff,0x16294a,.9),kl,rl)}
 catch(e){R3=null;console.warn('WebGL unavailable — showing illustrated avatars',e)}
 function frameOf(root){root.updateMatrixWorld(true);let head=null,hips=null;
  root.traverse(o=>{if(o.isBone){if(/^Head(_\d+)?$/.test(o.name))head=o;if(/^Hips(_\d+)?$/.test(o.name))hips=o}});
  if(head&&hips){const a=head.getWorldPosition(new T.Vector3()),b=hips.getWorldPosition(new T.Vector3()),u=a.y-b.y;return{x:a.x,y:a.y+u*.12,z:a.z,s:u*.95}}
  const b=new T.Box3().setFromObject(root),h=b.max.y-b.min.y;return{x:(b.min.x+b.max.x)/2,y:b.max.y-h*.16,z:(b.min.z+b.max.z)/2,s:h*.36}}
+const avLoader=new T.GLTFLoader();avLoader.setDRACOLoader(draco);   // shared loader; also handles Draco-compressed avatars
 function ensure(g){if(!R3)return;AVATARS[g].forEach(a=>{if(models[a.id]||loading[a.id])return;loading[a.id]=1;
- new T.GLTFLoader().load(a.model,gl=>{const root=gl.scene;root.traverse(o=>{if(o.isMesh)o.frustumCulled=false});
+ avLoader.load(a.model,gl=>{const root=gl.scene;root.traverse(o=>{if(o.isMesh)o.frustumCulled=false});
   const f=frameOf(root),pivot=new T.Group();root.position.x-=f.x;root.position.z-=f.z;pivot.add(root);pivot.visible=false;
-  pivot.userData={y:f.y,d:f.s/2/Math.tan(14*Math.PI/180)*1.05,rot:a.rot||0};sc3.add(pivot);models[a.id]=pivot},undefined,e=>console.warn('Avatar failed to load (serve the site over http/https):',a.model,e))})}
+  pivot.userData={y:f.y,d:f.s/2/Math.tan(14*Math.PI/180)*1.05,rot:a.rot||0};sc3.add(pivot);models[a.id]=pivot},undefined,e=>{delete loading[a.id];console.warn('Avatar failed to load (serve the site over http/https):',a.model,e)})})}
 (function loop3(t){requestAnimationFrame(loop3);if(!R3)return;
+ if(t-(loop3.l||0)<33)return;loop3.l=t;   // ~30fps is plenty for a gentle sway
  document.querySelectorAll('.pvw').forEach(w=>{const s=w.closest('.scr');if(!s||!s.classList.contains('on'))return;const m=models[w.dataset.id];if(!m)return;
   const u=m.userData,id=w.dataset.id;m.rotation.y=u.rot+Math.sin(t*.0008+id.charCodeAt(id.length-1))*.45;
   cam3.position.set(0,u.y,u.d);cam3.near=u.d*.05;cam3.far=u.d*30;cam3.updateProjectionMatrix();cam3.lookAt(0,u.y,0);
   m.visible=true;R3.render(sc3,cam3);m.visible=false;
-  const c=w.querySelector('canvas').getContext('2d');c.clearRect(0,0,320,320);c.drawImage(R3.domElement,0,0);w.classList.add('rdy')})})(0);
+  const c=w.querySelector('canvas').getContext('2d');c.clearRect(0,0,PV,PV);c.drawImage(R3.domElement,0,0);w.classList.add('rdy')})})(0);
+// Start fetching every avatar right away (splash screen), so they're ready by the time step 2 opens.
+['male','female'].forEach(ensure);
 
 /* ===== Music notes: slam into the screen, then drift through the air ===== */
 const cv=$('#c'),x=cv.getContext('2d'),G=['♪','♫','♩','♬'],COL=['#efe5cf','#8fa8cc','#c9d2e0','#efe5cf'];
