@@ -11,9 +11,9 @@
 *{box-sizing:inherit;margin:0}
 html,body{height:100%;overflow:hidden;background:radial-gradient(120% 90% at 65% 40%,#1d3358 0%,#0f1b33 55%,#08101f 100%);color:var(--cream);font-family:'Cormorant Garamond',Georgia,serif}
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
-#pl{opacity:0;pointer-events:none;transition:opacity .5s}#pl.on{opacity:1;pointer-events:auto}
+#pl{opacity:0;pointer-events:none;transition:opacity .7s}#pl.on{opacity:1;pointer-events:auto}
 .vig{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 55%,rgba(5,9,18,.7) 100%)}
-.scr{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:calc(24px + env(safe-area-inset-top,0px)) 22px calc(60px + env(safe-area-inset-bottom,0px));opacity:0;pointer-events:none;transform:translateY(24px);transition:opacity .5s,transform .5s cubic-bezier(.2,.7,.2,1);overflow-y:auto}
+.scr{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:calc(24px + env(safe-area-inset-top,0px)) 22px calc(60px + env(safe-area-inset-bottom,0px));opacity:0;pointer-events:none;transform:translateY(24px);transition:opacity .7s,transform .7s cubic-bezier(.2,.7,.2,1);overflow-y:auto}
 .scr.on{opacity:1;pointer-events:auto;transform:none}
 .logo{display:flex;align-items:center;gap:14px;justify-content:center}
 .logo svg{width:clamp(34px,5vw,52px)}
@@ -23,15 +23,11 @@ h2{font:700 clamp(30px,5vw,44px)/1.1 'Playfair Display',serif;margin-bottom:8px}
 .tag{margin-top:10px;font:italic 500 clamp(22px,3.4vw,32px) 'Cormorant Garamond',serif;color:var(--silver)}
 .desc{max-width:560px;margin:22px auto 30px;font-size:clamp(19px,2.4vw,23px);line-height:1.45;color:var(--cream);opacity:.9}
 .sub{color:var(--silver);font-style:italic;font-size:20px;margin-bottom:22px}
-.btn{all:unset;cursor:pointer;padding:14px 30px;background:var(--cream);color:var(--navy);font:12px ui-monospace,Menlo,monospace;letter-spacing:.2em;text-transform:uppercase;transition:transform .2s,opacity .2s,box-shadow .2s;border-radius:2px;display:inline-block;-webkit-user-select:none;user-select:none}
+.btn{all:unset;cursor:pointer;padding:14px 30px;background:var(--cream);color:var(--navy);font:12px ui-monospace,Menlo,monospace;letter-spacing:.2em;text-transform:uppercase;transition:transform .2s,opacity .2s}
 .btn:hover{transform:translateY(-2px)}.btn[disabled]{opacity:.35;pointer-events:none}
 .btn.g{background:none;color:var(--silver);border:1px solid rgba(184,191,202,.5)}
-.btn.sp{background:var(--sp);color:#04140a;font-weight:600}
-.btn.yt{background:#ff4e45;color:#ffffff;font-weight:600}
-.btn.ga{background:#ff7a33;color:#ffffff;font-weight:600}
-.btn.sel{outline:3px solid var(--cream);box-shadow:0 0 25px rgba(239,229,207,.7);transform:translateY(-2px)}
-.btn.dim{opacity:.45}
-.btn.ok::after{content:" ✓"}
+.btn.sp{background:var(--sp);color:#04140a}.btn.yt{background:#ff4e45;color:#1a0505}.btn.ga{background:#ff7a33;color:#1a0a02}
+.btn.dim{opacity:.35}.btn.ok::after{content:" ✓"}
 .card{width:min(420px,100%);padding:30px 28px;background:rgba(22,41,74,.55);border:1px solid rgba(184,191,202,.3);backdrop-filter:blur(10px);box-shadow:0 30px 80px rgba(0,0,0,.45)}
 label{display:block;text-align:left;font:11px ui-monospace,Menlo,monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--silver);margin:16px 0 6px}
 input{width:100%;padding:12px 14px;background:rgba(8,16,31,.6);border:1px solid rgba(184,191,202,.35);color:var(--cream);font:20px 'Cormorant Garamond',serif;outline:none}
@@ -55,37 +51,23 @@ input:focus{border-color:var(--cream)}
 .pc em{display:block;font-style:normal;font-size:34px;margin-bottom:8px}.pc b{display:block;font:500 22px 'Playfair Display',serif}.pc span{display:block;margin-top:6px;font-style:italic;font-size:17px;color:var(--silver)}
 .dots{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(22px + env(safe-area-inset-bottom,0px));display:flex;gap:10px;z-index:3}
 .dots i{width:8px;height:8px;border:1px solid var(--cream);border-radius:50%;transition:background .3s}.dots i.on{background:var(--cream)}
-#toast{position:fixed;top:calc(18px + env(safe-area-inset-top,0px));left:50%;transform:translate(-50%,-80px);padding:10px 18px;background:var(--cream);color:var(--navy);font:12px ui-monospace,monospace;letter-spacing:.06em;transition:transform .3s;z-index:9;max-width:90vw}
+#toast{position:fixed;top:calc(18px + env(safe-area-inset-top,0px));left:50%;transform:translate(-50%,-80px);padding:10px 18px;background:var(--cream);color:var(--navy);font:12px ui-monospace,monospace;letter-spacing:.06em;transition:transform .4s;z-index:9;max-width:90vw}
 #toast.on{transform:translate(-50%,0)}
 .cr{font:11px/1.6 ui-monospace,monospace;color:var(--silver);opacity:.6;margin-top:18px;max-width:680px}.cr a{color:inherit}
-
 /* place view */
-#s5{justify-content:space-between;align-items:stretch;text-align:left;overflow:hidden;padding:calc(16px + env(safe-area-inset-top,0px)) 18px calc(16px + env(safe-area-inset-bottom,0px))}
-#s5.on{pointer-events:none}#s5 .top,#s5 #sheet,#s5 #act-bar,#s5 #dpad{pointer-events:auto}
-.top{display:flex;gap:16px;align-items:center;z-index:5}.top h2{margin:0;font-size:clamp(24px,4vw,34px)}.top .sub{margin:0;font-size:18px}
+#s5{justify-content:space-between;align-items:stretch;text-align:left;overflow:hidden;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+#s5.on{pointer-events:none}#s5 .top,#s5 #sheet{pointer-events:auto}
+.top{display:flex;gap:16px;align-items:center}.top h2{margin:0;font-size:clamp(24px,4vw,34px)}.top .sub{margin:0;font-size:18px}
 #ld{align-self:center;text-align:center;width:min(420px,100%)}
 .barw{height:3px;background:rgba(184,191,202,.3)}#bar{height:100%;width:0;background:var(--cream);transition:width .2s}
 #ld p{margin-top:12px;color:var(--silver);font-size:18px}
-
-#act-bar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:8px auto;width:100%;max-width:760px;z-index:5}
-.act-btn{all:unset;cursor:pointer;padding:9px 16px;background:rgba(15,27,51,.85);border:1px solid rgba(184,191,202,.45);color:var(--cream);font:11px ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;backdrop-filter:blur(6px);transition:transform .12s, background .12s;display:flex;align-items:center;gap:6px;border-radius:4px;-webkit-user-select:none;user-select:none;touch-action:none}
-.act-btn:hover{background:rgba(239,229,207,.15);border-color:var(--cream)}
-.act-btn:active, .act-btn.holding, .act-btn.active{background:var(--cream);color:var(--navy);box-shadow:0 0 15px rgba(239,229,207,.5);transform:scale(0.97)}
-
-#hint-box{position:fixed;top:calc(74px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);background:rgba(15,27,51,.8);border:1px solid rgba(184,191,202,.25);padding:5px 12px;font:11px ui-monospace,monospace;color:var(--silver);border-radius:20px;pointer-events:none;z-index:4}
-
-#sheet{width:min(720px,100%);align-self:center;max-height:26vh;overflow-y:auto;padding:12px 16px;background:rgba(15,27,51,.88);border:1px solid rgba(184,191,202,.3);backdrop-filter:blur(8px);z-index:5}
-#sheet h3{font:500 17px 'Playfair Display',serif;margin:4px 0 6px}
-.pr{display:flex;gap:12px;overflow-x:auto;padding-bottom:4px}.pp{width:75px;flex:none;text-align:center}.pp .pvw{width:46px;margin:0 auto 4px;border:1px solid var(--cream)}
-.pp b{display:block;font-size:14px;font-weight:500}.pp i{display:block;font-size:12px;color:var(--silver);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sg{display:grid;grid-template-columns:1fr auto;column-gap:10px;padding:6px 0;border-top:1px solid rgba(184,191,202,.2);color:inherit;text-decoration:none}
-.sg b{font:500 17px 'Playfair Display',serif}.sg span{grid-column:1;color:var(--silver);font-size:15px}
-.sg em{grid-row:1/3;grid-column:2;align-self:center;font:10px ui-monospace,monospace;font-style:normal;letter-spacing:.12em;text-transform:uppercase}
-
-#dpad{position:fixed;right:20px;bottom:calc(32vh + 10px);display:grid;grid-template-columns:38px 38px 38px;grid-template-rows:38px 38px;gap:4px;z-index:6}
-.dp-btn{all:unset;cursor:pointer;background:rgba(22,41,74,.85);border:1px solid rgba(184,191,202,.3);color:var(--cream);font:15px monospace;display:flex;align-items:center;justify-content:center;border-radius:4px;-webkit-user-select:none;user-select:none;touch-action:none}
-.dp-btn:active{background:var(--cream);color:var(--navy)}
-
+#sheet{width:min(720px,100%);align-self:center;max-height:42vh;overflow-y:auto;padding:18px 20px;background:rgba(15,27,51,.84);border:1px solid rgba(184,191,202,.3);backdrop-filter:blur(10px)}
+#sheet h3{font:500 20px 'Playfair Display',serif;margin:6px 0 10px}
+.pr{display:flex;gap:16px;overflow-x:auto;padding-bottom:6px}.pp{width:84px;flex:none;text-align:center}.pp .pvw{width:56px;margin:0 auto 6px;border:1px solid var(--cream)}
+.pp b{display:block;font-size:16px;font-weight:500}.pp i{display:block;font-size:14px;color:var(--silver);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sg{display:grid;grid-template-columns:1fr auto;column-gap:12px;padding:10px 0;border-top:1px solid rgba(184,191,202,.2);color:inherit;text-decoration:none}
+.sg b{font:500 19px 'Playfair Display',serif}.sg span{grid-column:1;color:var(--silver);font-size:17px}
+.sg em{grid-row:1/3;grid-column:2;align-self:center;font:11px ui-monospace,monospace;font-style:normal;letter-spacing:.14em;text-transform:uppercase}
 body.in5 #c,body.in5 .vig{display:none}
 </style></head><body>
 <canvas id="c"></canvas><div class="vig"></div><canvas id="pl"></canvas>
@@ -118,16 +100,12 @@ body.in5 #c,body.in5 .vig{display:none}
   <p class="cr" id="cr"></p>
 </section>
 
-<!-- 3 · LINK MUSIC -->
+<!-- 3 · LINK MUSIC (required) -->
 <section class="scr" id="s3">
   <div class="me" id="me3"></div>
   <h2 id="hi">Hi!</h2><p class="sub">Link your music to continue.</p>
   <p class="must">This step is required. Pick the service you listen on, so people at each place can hear what moves you.</p>
-  <div class="row">
-    <button class="btn sp" type="button" data-svc="spotify">Spotify</button>
-    <button class="btn yt" type="button" data-svc="ytm">YouTube Music</button>
-    <button class="btn ga" type="button" data-svc="gaana">Gaana</button>
-  </div>
+  <div class="row"><button class="btn sp" data-svc="spotify">Spotify</button><button class="btn yt" data-svc="ytm">YouTube Music</button><button class="btn ga" data-svc="gaana">Gaana</button></div>
   <button class="btn" id="b3" disabled>Continue</button>
 </section>
 
@@ -138,25 +116,10 @@ body.in5 #c,body.in5 .vig{display:none}
   <div class="grid" id="places"></div>
 </section>
 
-<!-- 5 · PLACE -->
+<!-- 5 · PLACE (3D scene + people + songs) -->
 <section class="scr" id="s5">
   <div class="top"><button class="btn g" id="bk">Back</button><div><h2 id="pn"></h2><p class="sub" id="pb"></p></div></div>
-  <div id="hint-box">💡 Click or HOLD buttons below to Walk, Sit (90°), Climb Stairs & Jam</div>
   <div id="ld"><div class="barw"><div id="bar"></div></div><p id="lt"></p></div>
-  
-  <div id="act-bar">
-    <button class="act-btn" id="btn-walk" data-act="walk">🚶 Walk</button>
-    <button class="act-btn" id="btn-sit" data-act="sit">🪑 Sit</button>
-    <button class="act-btn" id="btn-stairs" data-act="stairs">🪜 Stairs</button>
-    <button class="act-btn" id="btn-dance" data-act="dance">🕺 Jam</button>
-    <button class="act-btn" id="btn-cam">🎥 Follow</button>
-  </div>
-
-  <div id="dpad" style="display:none">
-    <div></div><button class="dp-btn" data-k="w">▲</button><div></div>
-    <button class="dp-btn" data-k="a">◀</button><button class="dp-btn" data-k="s">▼</button><button class="dp-btn" data-k="d">▶</button>
-  </div>
-
   <div id="sheet"></div>
 </section>
 
@@ -169,17 +132,23 @@ body.in5 #c,body.in5 .vig{display:none}
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/SkeletonUtils.js"></script>
 <script>
-/* ============ CONFIG ============ */
+/* ============ CONFIG — the programmer fills these ============ */
 const CONFIG={
-  DEMO_MODE:true,
-  SPOTIFY_CLIENT_ID:'',
-  YT_CLIENT_ID:'',
+  DEMO_MODE:true,                               // ← true = "linking" is simulated so you can test the flow. Set to false in production.
+  SPOTIFY_CLIENT_ID:'',                         // ← Spotify client id
+  YT_CLIENT_ID:'',                              // ← Google OAuth client id (YouTube Music uses Google sign-in)
   YT_SCOPES:'https://www.googleapis.com/auth/youtube.readonly',
-  GAANA_AUTH_URL:'',
+  GAANA_AUTH_URL:'',                            // ← Gaana has no public login API; put your partner/auth URL here
   REDIRECT_URI:location.origin+location.pathname,
   SPOTIFY_SCOPES:'user-read-email user-read-private user-top-read user-read-currently-playing user-read-playback-state playlist-read-private'
 };
 
+/* ============ 3D PLACES ============
+   All places live in the repo's /places folder as .glb files (names are case-sensitive):
+     places/park.glb, places/city.glb, places/cafe.glb, places/gallery.glb
+   Places are fetched in the background once the user reaches the "link music" step (warmPlaces), then cached in memory.
+   The files are Draco-compressed with WebP textures, so DRACOLoader is required (see loadGLTF below).
+   Serve the site over http/https (e.g. GitHub Pages); opening the file from disk will not work. */
 const PLACES={
  park:{icon:'🌳',name:'The Park',blurb:'Open air and slow walks.',url:'places/park.glb',
   credit:'“Albert Park Circuit Melbourne 2018 layout” by <a href="https://sketchfab.com/Tyler_Dave" target="_blank" rel="noopener">Dave Love SketchFab</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>'},
@@ -191,8 +160,10 @@ const PLACES={
   credit:'“The Picture Gallery [Low Poly] | VR” by <a href="https://sketchfab.com/abhayexe" target="_blank" rel="noopener">abhayexe</a> · Sketchfab Standard license'}
 };
 
+// Music services. `q` builds a search link that opens the song in the person's own app.
 const SVC={spotify:{n:'Spotify',q:'https://open.spotify.com/search/'},ytm:{n:'YouTube Music',q:'https://music.youtube.com/search?q='},gaana:{n:'Gaana',q:'https://gaana.com/search/'}};
 
+// Hook: who is at a place + songs for it. Replace the body with your backend call, e.g. fetch('/api/places/'+key+'/feed?user='+profile.username)
 const MOCK={
  park:{people:[{u:'luna.v',av:'female_avatar_1',s:'Here Comes the Sun'},{u:'arjun.k',av:'male_avatar_1',s:'Kun Faya Kun'},{u:'kai_r',av:'male_avatar_3',s:'Three Little Birds'}],
   songs:[['Here Comes the Sun','The Beatles'],['Kun Faya Kun','A.R. Rahman'],['Three Little Birds','Bob Marley'],['Ilahi','Arijit Singh']]},
@@ -205,6 +176,7 @@ const MOCK={
 };
 async function fetchPlaceFeed(key,profile){ return MOCK[key]; }
 
+// Avatars: 3D files live in /avatars. `rot` (radians) turns a model if it faces the wrong way; `look` is the fallback illustration.
 const SK='https://sketchfab.com/3d-models/';
 const AVATARS={
  male:[
@@ -216,29 +188,24 @@ const AVATARS={
   {id:'female_avatar_2',label:'Avatar 2',model:'avatars/female_avatar_2.glb',title:'Sophia Metzger, business-casual attire',author:'XRProfXR',src:SK+'sophia-metzger-business-casual-attire-a1d68ab1c7304a3babfc76517a1adac7',look:{skin:'#c68a62',hair:'#1a1210',shirt:'#8fa8cc',style:'bun'}},
   {id:'female_avatar_3',label:'Avatar 3',model:'avatars/female_avatar_3.glb',title:'Avatar 1',author:'archaosnihilist',src:SK+'avatar-1-34803472a019430fb18694bdbded433d',look:{skin:'#e0b48f',hair:'#8a3b2e',shirt:'#d9a441',style:'long'}}]
 };
-async function onComplete(profile){ console.log('EchoVro profile',profile); }
+// Hook: send the finished profile (incl. linked music service + auth code) to your backend here. Called once music is linked.
+async function onComplete(profile){ console.log('EchoVro profile',profile); /* await fetch('/api/signup',{method:'POST',body:JSON.stringify(profile)}); */ }
+/* ============================================================= */
 
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const state={email:'',username:'',gender:'male',avatar:null,music:null,place:null};
 let step=0;
 const avOf=id=>[...AVATARS.male,...AVATARS.female].find(a=>a.id===id),findAv=()=>avOf(state.avatar);
-
 function go(n){
- if(n>=4&&!state.music){toast('Link a music service to continue.');n=3}
+ if(n>=4&&!state.music){toast('Link a music service to continue.');n=3}   // music linking is mandatory
  step=n;$$('.scr').forEach((s,i)=>s.classList.toggle('on',i===n));$$('#dots i').forEach((d,i)=>d.classList.toggle('on',i===Math.min(n,4)));$('#dots').style.display=n===5?'none':'';
  $('#pl').classList.toggle('on',n===5);
  document.body.classList.toggle('in5',n===5);
- if(n===1)ensure('male');
- if(n===2){drawAvatars();ensure(state.gender)}
- if(n===3){linkedUI();}
- if(n===3||n===4){
-  const curAv=findAv();
-  if(curAv){const h=pvw(curAv);$('#me3').innerHTML=$('#me4').innerHTML=h;}
-  $('#hi').textContent='Hi, '+state.username+'!';
-  $('#done').textContent='Where shall we meet, '+state.username+'?';
- }
- if(n===4){drawPlaces()}}
-function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2800)}
+ if(n===1)ensure('male');if(n===2){drawAvatars();ensure(state.gender)}
+ if(n===3)warmPlaces();   // start downloading the place models in the background
+ if(n===3||n===4){const h=pvw(findAv());$('#me3').innerHTML=$('#me4').innerHTML=h;$('#hi').textContent='Hi, '+state.username+'!';$('#done').textContent='Where shall we meet, '+state.username+'?'}
+ if(n===4){ensure('male');ensure('female');drawPlaces()}}
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),3200)}
 
 function face(l){let back='',top='';const h=l.hair;
  if(l.style==='long')back=`<path d="M26 52Q24 22 50 20Q76 22 74 52L77 82L23 82Z" fill="${h}"/>`;
@@ -258,508 +225,118 @@ $('#b1').onclick=()=>{const e=$('#em').value.trim(),u=$('#un').value.trim(),er=$
  er.textContent='';state.email=e;state.username=u;go(2)};
 $('#b2').onclick=()=>go(3);
 
-/* ===== Step 3: Link Music UI ===== */
-function linkedUI(){
- const m=state.music&&state.music.service;
- $$('[data-svc]').forEach(b=>{
-  const isMatch=b.dataset.svc===m;
-  b.classList.toggle('ok',isMatch);
-  b.classList.toggle('sel',isMatch);
-  b.classList.toggle('dim',!!m&&!isMatch);
- });
- $('#b3').disabled=!m;
-}
-
-function linked(service,code){
- state.music={service,code};
- linkedUI();
- const svcName=(SVC[service]&&SVC[service].n)||service;
- toast(svcName+' linked successfully.');
-}
-
+/* ===== Step 3: link a music service (mandatory) — Spotify / YouTube Music / Gaana ===== */
+function linkedUI(){const m=state.music&&state.music.service;$$('[data-svc]').forEach(b=>{b.classList.toggle('ok',b.dataset.svc===m);b.classList.toggle('dim',!!m&&b.dataset.svc!==m)});$('#b3').disabled=!m}
+function linked(service,code){state.music={service,code};linkedUI();toast(SVC[service].n+' linked.')}
 async function connect(k){
- if(CONFIG.DEMO_MODE){
-  linked(k,'demo');
-  return;
- }
+ if(CONFIG.DEMO_MODE)return linked(k,'demo');
  const q=new URLSearchParams({redirect_uri:CONFIG.REDIRECT_URI,state:k});
  try{sessionStorage.setItem('echovro_state',JSON.stringify(state))}catch(e){}
- if(k==='gaana'){
-  if(!CONFIG.GAANA_AUTH_URL){linked(k,'demo');return toast('Gaana linked in demo mode.');}
-  return location.href=CONFIG.GAANA_AUTH_URL+(CONFIG.GAANA_AUTH_URL.includes('?')?'&':'?')+q;
- }
+ if(k==='gaana'){if(!CONFIG.GAANA_AUTH_URL)return toast('Gaana auth URL not set yet — add it in CONFIG.');
+  return location.href=CONFIG.GAANA_AUTH_URL+(CONFIG.GAANA_AUTH_URL.includes('?')?'&':'?')+q}
  const id=k==='spotify'?CONFIG.SPOTIFY_CLIENT_ID:CONFIG.YT_CLIENT_ID;
- if(!id){linked(k,'demo');return toast(SVC[k].n+' linked in demo mode.');}
- 
+ if(!id)return toast(SVC[k].n+' client ID not set yet — add it in CONFIG.');
+ // Authorization Code + PKCE (no secret in the browser)
  const A='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
  const v=[...crypto.getRandomValues(new Uint8Array(64))].map(b=>A[b%62]).join('');
  const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v));
  const c=btoa(String.fromCharCode(...new Uint8Array(d))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
  try{sessionStorage.setItem('mus_verifier',v)}catch(e){}
  q.set('client_id',id);q.set('response_type','code');q.set('code_challenge_method','S256');q.set('code_challenge',c);
- if(k==='spotify'){q.set('scope',CONFIG.SPOTIFY_SCOPES);location.href='https://accounts.spotify.com/authorize?'+q;}
- else{q.set('scope',CONFIG.YT_SCOPES);q.set('access_type','offline');location.href='https://accounts.google.com/o/oauth2/v2/auth?'+q;}
-}
-
-$$('[data-svc]').forEach(b=>{
- b.addEventListener('click',()=>connect(b.dataset.svc));
-});
-
+ if(k==='spotify'){q.set('scope',CONFIG.SPOTIFY_SCOPES);location.href='https://accounts.spotify.com/authorize?'+q}
+ else{q.set('scope',CONFIG.YT_SCOPES);q.set('access_type','offline');location.href='https://accounts.google.com/o/oauth2/v2/auth?'+q}}
+$$('[data-svc]').forEach(b=>b.onclick=()=>connect(b.dataset.svc));
 const finish3=()=>{onComplete({...state});go(4)};
 $('#b3').onclick=()=>state.music?finish3():toast('Link a music service to continue.');
+// Returning from the music service (?code=...&state=spotify|ytm|gaana): resume. Exchange the code for a token on your backend.
+(()=>{const q=new URLSearchParams(location.search);if(q.get('code')){try{Object.assign(state,JSON.parse(sessionStorage.getItem('echovro_state')||'{}'));state.music={service:q.get('state')||'spotify',code:q.get('code')};history.replaceState(null,'',location.pathname);if(state.avatar)setTimeout(()=>{linkedUI();finish3()},50)}catch(e){}}})();
 
-(()=>{
- const q=new URLSearchParams(location.search);
- if(q.get('code')){
-  try{
-   Object.assign(state,JSON.parse(sessionStorage.getItem('echovro_state')||'{}'));
-   state.music={service:q.get('state')||'spotify',code:q.get('code')};
-   history.replaceState(null,'',location.pathname);
-   if(state.avatar)setTimeout(()=>{linkedUI();finish3()},50);
-  }catch(e){}
- }
-})();
-
+/* ===== Step 4: choose a place ===== */
 function drawPlaces(){$('#places').innerHTML=Object.entries(PLACES).map(([k,p],i)=>`<button class="pc" style="--i:${i}" data-k="${k}"><em>${p.icon}</em><b>${p.name}</b><span>${p.blurb}</span></button>`).join('');
  $$('.pc').forEach(b=>b.onclick=()=>enterPlace(b.dataset.k))}
 
-/* ================= 3D PLACE SYSTEM (Freeze-Free) ================= */
-let R5=null,ctl=null,cur=null,run=false,seq=0,avatarHeight=1;
-const sc5=new THREE.Scene(),cam5=new THREE.PerspectiveCamera(50,1,.1,1000);
+/* ===== Step 5: the place — scenes are loaded once, cached, and warmed in the background ===== */
+let R5=null,ctl=null,cur=null,run=false,seq=0;const sc5=new THREE.Scene(),cam5=new THREE.PerspectiveCamera(50,1,.1,1000);
+/* ===== Backdrop: opaque sky "wall" + ground disc so the app UI never shows behind a place ===== */
 const SKY={park:['#5f9bd6','#e3edf7'],city:['#0b1226','#3a4f7a'],cafe:['#2a1c14','#7a5a40'],gallery:['#16294a','#9db3d3']};
-const skyTex={};let floor=null,myAvatarWrapper=null,isFollowCam=true;
-const keys={w:0,a:0,s:0,d:0};
-let holdingAction=null;
-let walkableMeshes=[];
-
+const skyTex={};let floor=null;
 function skyFor(k){if(skyTex[k])return skyTex[k];
- const c=document.createElement('canvas');c.width=2;c.height=256;const g=c.getContext('2d'),gr=g.createLinearGradient(0,0,0,256),s=SKY[k]||SKY.gallery;
- gr.addColorStop(0,s[0]);gr.addColorStop(1,s[1]);g.fillStyle=gr;g.fillRect(0,0,2,256);
+ const c=document.createElement('canvas');c.width=2;c.height=512;const g=c.getContext('2d'),gr=g.createLinearGradient(0,0,0,512),s=SKY[k]||SKY.gallery;
+ gr.addColorStop(0,s[0]);gr.addColorStop(1,s[1]);g.fillStyle=gr;g.fillRect(0,0,2,512);
  const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;return skyTex[k]=t}
-
-function setBackdrop(k,b,r){
+function setBackdrop(k,b,r){   // b = place bounding box AFTER it was centered, r = its largest dimension
  sc5.background=skyFor(k);
  if(floor){sc5.remove(floor);floor.geometry.dispose();floor.material.dispose()}
- floor=new THREE.Mesh(new THREE.CircleGeometry(r*8,32),new THREE.MeshBasicMaterial({color:(SKY[k]||SKY.gallery)[1]}));
- floor.rotation.x=-Math.PI/2;floor.position.y=b.min.y-r*.004;sc5.add(floor)}
-
+ floor=new THREE.Mesh(new THREE.CircleGeometry(r*12,64),new THREE.MeshBasicMaterial({color:(SKY[k]||SKY.gallery)[1]}));
+ floor.rotation.x=-Math.PI/2;floor.position.y=b.min.y-r*.004;sc5.add(floor)}   // just under the model so it never z-fights
 function init5(){if(R5)return;
- R5=new THREE.WebGLRenderer({canvas:$('#pl'),alpha:true,antialias:true,powerPreference:'high-performance'});
- R5.setPixelRatio(Math.min(devicePixelRatio||1,1.25));
- R5.outputEncoding=THREE.sRGBEncoding;
+ R5=new THREE.WebGLRenderer({canvas:$('#pl'),alpha:true,antialias:true});R5.setPixelRatio(Math.min(devicePixelRatio||1,2));R5.outputEncoding=THREE.sRGBEncoding;
  const d=new THREE.DirectionalLight(0xfff1d6,1.4);d.position.set(5,10,6);sc5.add(new THREE.HemisphereLight(0xffffff,0x445577,1.1),d);
- ctl=new THREE.OrbitControls(cam5,R5.domElement);ctl.enableDamping=true;ctl.dampingFactor=0.08;ctl.autoRotate=false;ctl.autoRotateSpeed=.6;
- addEventListener('resize',fit5);fit5();setupPlaceInteractions()}
-
+ ctl=new THREE.OrbitControls(cam5,R5.domElement);ctl.enableDamping=true;ctl.autoRotate=true;ctl.autoRotateSpeed=.6;
+ addEventListener('resize',fit5);fit5()}
 function fit5(){if(!R5)return;R5.setSize(innerWidth,innerHeight,false);cam5.aspect=innerWidth/innerHeight;cam5.updateProjectionMatrix()}
-
+// The place files are Draco-compressed, so the loader needs a DRACOLoader with its decoder path.
 const draco=new THREE.DRACOLoader();
 draco.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/draco/gltf/');
-draco.preload();
+draco.preload();   // fetch the decoder now instead of on first model
 const loadGLTF=(u,pr)=>new Promise((ok,no)=>{
  const l=new THREE.GLTFLoader();l.setDRACOLoader(draco);
  l.load(u,g=>ok(g.scene),e=>e.total&&pr(e.loaded/e.total),no)});
-
+// Cache: each place is downloaded/parsed once. Progress callbacks go to whoever is waiting (prog[k]).
 const placeCache={},prog={};
 const getPlace=k=>placeCache[k]||(placeCache[k]=loadGLTF(PLACES[k].url,p=>prog[k]&&prog[k](p)));
-
-function drop(){
- run=false;if(cur){sc5.remove(cur);cur=null}if(floor){sc5.remove(floor);floor=null}
- if(crowd){sc5.remove(crowd);crowd.traverse(o=>{if(o.isSprite){o.material.map.dispose();o.material.dispose()}});crowd=null}
- myAvatarWrapper=null;holdingAction=null;walkableMeshes=[];}
-
+let warmed=0;
+async function warmPlaces(){if(warmed)return;warmed=1;
+ for(const k in PLACES){try{await getPlace(k)}catch(e){delete placeCache[k]}}}   // one at a time so bandwidth isn't split
+// Detach only — the cached scene keeps its GPU data so re-entering a place is instant.
+function drop(){run=false;if(cur){sc5.remove(cur);cur=null}if(floor){sc5.remove(floor);floor=null}
+ if(crowd){sc5.remove(crowd);crowd.traverse(o=>{if(o.isSprite){o.material.map.dispose();o.material.dispose()}});crowd=null}}   // avatar geometry is shared with the previews, so it is not disposed
+/* ===== People physically in the place: your avatar + everyone from the feed, standing on the floor ===== */
 let crowd=null;
-const avReady=id=>new Promise(ok=>{let n=0;(function w(){if(models[id]||++n>80)return ok(models[id]);setTimeout(w,100)})()});
-
-function nameTag(txt,me,H){const c=document.createElement('canvas');c.width=128;c.height=32;const g=c.getContext('2d');
- g.fillStyle=me?'rgba(239,229,207,.95)':'rgba(15,27,51,.82)';g.fillRect(0,4,128,24);g.fillStyle=me?'#0f1b33':'#efe5cf';g.font='14px ui-monospace,monospace';g.textAlign='center';g.textBaseline='middle';g.fillText(txt,64,16);
+const avReady=id=>new Promise(ok=>{let n=0;(function w(){if(models[id]||++n>80)return ok(models[id]);setTimeout(w,100)})()});   // wait (≤8s) for the avatar file
+function nameTag(txt,me,H){const c=document.createElement('canvas');c.width=256;c.height=64;const g=c.getContext('2d');
+ g.fillStyle=me?'rgba(239,229,207,.95)':'rgba(15,27,51,.82)';g.fillRect(0,8,256,48);g.fillStyle=me?'#0f1b33':'#efe5cf';g.font='26px ui-monospace,monospace';g.textAlign='center';g.textBaseline='middle';g.fillText(txt,128,32);
  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthTest:false}));sp.scale.set(H*.9,H*.225,1);sp.position.y=H*1.15;sp.renderOrder=9;return sp}
-
-function indexWalkableMeshes(root){
- walkableMeshes=[];
- root.traverse(o=>{if(o.isMesh)walkableMeshes.push(o);});
-}
-
-function mapAvatarBones(mesh){
- const bones={leftUpLeg:null,rightUpLeg:null,leftLeg:null,rightLeg:null,leftArm:null,rightArm:null,hips:null,spine:null};
- mesh.traverse(o=>{
-  if(!o.isBone)return;
-  const n=o.name.toLowerCase();
-  if(!bones.hips&&(n.includes('hip')||n.includes('pelvis')))bones.hips=o;
-  if(!bones.spine&&(n.includes('spine')||n.includes('chest')))bones.spine=o;
-  if(!bones.leftUpLeg&&(n.includes('leftupleg')||n.includes('thigh_l')||n.includes('thigh.l')||n.includes('upperleg_l')||n.includes('up_l')))bones.leftUpLeg=o;
-  if(!bones.rightUpLeg&&(n.includes('rightupleg')||n.includes('thigh_r')||n.includes('thigh.r')||n.includes('upperleg_r')||n.includes('up_r')))bones.rightUpLeg=o;
-  if(!bones.leftLeg&&(n.includes('leftleg')||n.includes('calf_l')||n.includes('calf.l')||n.includes('shin_l')||n.includes('knee_l')||n.includes('leg_l')||n.includes('lowerleg_l')))bones.leftLeg=o;
-  if(!bones.rightLeg&&(n.includes('rightleg')||n.includes('calf_r')||n.includes('calf.r')||n.includes('shin_r')||n.includes('knee_r')||n.includes('leg_r')||n.includes('lowerleg_r')))bones.rightLeg=o;
-  if(!bones.leftArm&&(n.includes('arm_l')||n.includes('shoulder_l')||n.includes('leftarm')||n.includes('upperarm_l')))bones.leftArm=o;
-  if(!bones.rightArm&&(n.includes('arm_r')||n.includes('shoulder_r')||n.includes('rightarm')||n.includes('upperarm_r')))bones.rightArm=o;
- });
- if(!bones.leftUpLeg&&bones.leftLeg){bones.leftUpLeg=bones.leftLeg;bones.leftLeg=null;}
- if(!bones.rightUpLeg&&bones.rightLeg){bones.rightUpLeg=bones.rightLeg;bones.rightLeg=null;}
- return bones;
-}
-
+// Outdoor scenes (ground:true): find the real street level, then keep only flat spots at that level (no rooftops, no raised ledges).
+function groundSpots(root,ray,b,H,n){
+ const down=new THREE.Vector3(0,-1,0),pts=[];
+ for(let rr=0;rr<=H*10;rr+=H*1.4)for(let k=0;k<(rr?14:1);k++){const a=k/14*6.283,x=Math.cos(a)*rr,z=Math.sin(a)*rr;
+  ray.set(new THREE.Vector3(x,b.max.y+1,z),down);const h=ray.intersectObject(root,true)[0];   // first surface seen from above
+  if(h&&h.face&&h.face.normal.clone().transformDirection(h.object.matrixWorld).y>.85)pts.push({x,z,y:h.point.y})}
+ if(pts.length<n)return null;
+ const ys=pts.map(q=>q.y).sort((a,c)=>a-c),g=ys[Math.floor(ys.length*.2)],out=[];   // street level = low percentile
+ for(const q of pts){if(Math.abs(q.y-g)>H*.15)continue;if(out.every(o=>Math.hypot(o.x-q.x,o.z-q.z)>H*1.1))out.push(q);if(out.length===n)break}
+ return out.length===n?out:null}
 async function spawnCrowd(root,fp,tok){
  const f=await fp;if(tok!==seq)return;
  root.updateMatrixWorld(true);
- indexWalkableMeshes(root);
- const b=new THREE.Box3().setFromObject(root),sz=b.getSize(new THREE.Vector3()),r=Math.max(sz.x,sz.y,sz.z)||1,H=r*.05;
- avatarHeight=H;
-
+ const b=new THREE.Box3().setFromObject(root),sz=b.getSize(new THREE.Vector3()),r=Math.max(sz.x,sz.y,sz.z)||1,H=r*.05;   // avatar height = 5% of the place
  const list=[{u:state.username,av:state.avatar,me:1},...((f&&f.people)||[]).map(p=>({u:p.u,av:p.av}))];
- const grp=new THREE.Group(),n=list.length,R=H*1.5,spots=[];
- for(let i=0;i<n;i++){
-  const ang=n===1?0:(i/(n-1)-.5)*Math.PI*.9+Math.PI/4,px=Math.sin(ang)*R,pz=Math.cos(ang)*R;
-  const gy=getElevationAt(px,pz,b.min.y);
-  spots.push({x:px,z:pz,y:gy});
- }
+ const grp=new THREE.Group(),ray=new THREE.Raycaster(),n=list.length,R=H*1.5;
+ const g0=PLACES[state.place].ground?groundSpots(root,ray,b,H,n):null,spots=[];
+ for(let i=0;i<n;i++){if(g0){spots.push(g0[i]);continue}
+  const ang=n===1?0:(i/(n-1)-.5)*Math.PI*.9+Math.PI/4,px=Math.sin(ang)*R,pz=Math.cos(ang)*R;   // fan of people in front of the camera
+  ray.set(new THREE.Vector3(px,b.min.y+sz.y*.4,pz),new THREE.Vector3(0,-1,0));
+  const hit=ray.intersectObject(root,true)[0];spots.push({x:px,z:pz,y:hit?hit.point.y:b.min.y})}
  const cx=spots.reduce((a,q)=>a+q.x,0)/n,cz=spots.reduce((a,q)=>a+q.z,0)/n,gy0=spots[0].y,camX=cx+H*3.4,camZ=cz+H*3.4;
-
- for(let i=0;i<n;i++){
-  const P=list[i],pv=await avReady(P.av);if(tok!==seq)return;if(!pv)continue;
+ for(let i=0;i<n;i++){const P=list[i],pv=await avReady(P.av);if(tok!==seq)return;if(!pv)continue;
   const {x:px,z:pz,y:gy}=spots[i];
-  const inner=new THREE.Group();
-  const cloned=THREE.SkeletonUtils.clone(pv.children[0]);
-  inner.add(cloned);
-  inner.updateMatrixWorld(true);
-  let bb=new THREE.Box3().setFromObject(inner);
-  inner.scale.setScalar(H/((bb.max.y-bb.min.y)||1));
-  inner.updateMatrixWorld(true);
-  bb=new THREE.Box3().setFromObject(inner);
-  const cc=bb.getCenter(new THREE.Vector3());
-  inner.position.set(-cc.x,-bb.min.y,-cc.z);
-  
-  const w=new THREE.Group();
-  w.add(inner,nameTag(P.u,P.me,H));
-  w.position.set(px,gy,pz);
-  w.userData={
-   ry:Math.atan2(camX-px,camZ-pz)+(pv.userData.rot||0),
-   mode:'idle',
-   targetPos:null,
-   walkSpeed:H*1.9,
-   bones:mapAvatarBones(cloned),
-   baseInnerY:inner.position.y,
-   isMe:P.me,
-   timer:Math.random()*5,
-   climbTarget:null,
-   sitBaseY:gy,
-   lastElevCheck:0
-  };
-  w.rotation.y=w.userData.ry;
-  grp.add(w);
-  if(P.me)myAvatarWrapper=w;
- }
+  const inner=new THREE.Group();inner.add(THREE.SkeletonUtils.clone(pv.children[0]));inner.updateMatrixWorld(true);
+  let bb=new THREE.Box3().setFromObject(inner);inner.scale.setScalar(H/((bb.max.y-bb.min.y)||1));inner.updateMatrixWorld(true);
+  bb=new THREE.Box3().setFromObject(inner);const cc=bb.getCenter(new THREE.Vector3());inner.position.set(-cc.x,-bb.min.y,-cc.z);
+  const w=new THREE.Group();w.add(inner,nameTag(P.u,P.me,H));w.position.set(px,gy,pz);
+  w.userData.ry=w.rotation.y=Math.atan2(camX-px,camZ-pz)+(pv.userData.rot||0);grp.add(w)}
  if(tok!==seq)return;if(!grp.children.length)return;
  sc5.add(grp);crowd=grp;
  cam5.near=Math.min(r/1000,H/50);cam5.updateProjectionMatrix();
- ctl.target.set(cx,gy0+H*.55,cz);cam5.position.set(camX,gy0+H*1.7,camZ);ctl.minDistance=H*0.8;ctl.update();
-}
-
-const rayDown=new THREE.Raycaster();
-const vDown=new THREE.Vector3(0,-1,0);
-function getElevationAt(x,z,currentY){
- if(!walkableMeshes.length)return currentY;
- rayDown.set(new THREE.Vector3(x,currentY+avatarHeight*2,z),vDown);
- const hits=rayDown.intersectObjects(walkableMeshes,false);
- if(hits.length>0){
-  for(let i=0;i<hits.length;i++){
-   if(hits[i].point.y<=currentY+avatarHeight*1.6)return hits[i].point.y;
-  }
-  return hits[0].point.y;
- }
- return currentY;
-}
-
-/* 60FPS Animation Loop */
-let lastT=performance.now();
-function updateAvatarPhysics(dt){
- if(!crowd||!cur)return;
- const t=performance.now()/1000;
- 
- if(myAvatarWrapper){
-  const me=myAvatarWrapper;
-  const H=avatarHeight;
-  
-  if(holdingAction==='walk'||holdingAction==='stairs'){
-   me.userData.mode=holdingAction;
-   let moveDir=new THREE.Vector3();
-   cam5.getWorldDirection(moveDir);moveDir.y=0;moveDir.normalize();
-
-   const stepLen=me.userData.walkSpeed*dt;
-   const nextX=me.position.x+moveDir.x*stepLen;
-   const nextZ=me.position.z+moveDir.z*stepLen;
-   
-   let nextY=me.position.y;
-   if(t-me.userData.lastElevCheck>0.04){
-    nextY=getElevationAt(nextX,nextZ,me.position.y);
-    me.userData.lastElevCheck=t;
-   }
-   
-   me.position.x=nextX;
-   me.position.z=nextZ;
-   const isClimbing=nextY>me.position.y+0.01;
-   me.position.y+=(nextY-me.position.y)*Math.min(1,dt*12);
-   
-   const targetAngle=Math.atan2(moveDir.x,moveDir.z);
-   me.rotation.y+=(targetAngle-me.rotation.y)*Math.min(1,dt*10);
-
-   const walkFreq=holdingAction==='stairs'?7.5:9.5;
-   const stepCycle=Math.sin(t*walkFreq);
-   const legLift=Math.abs(Math.cos(t*walkFreq))*(isClimbing?H*0.2:H*0.05);
-   me.children[0].position.y=me.userData.baseInnerY+legLift;
-   
-   const b=me.userData.bones;
-   if(b.leftUpLeg&&b.rightUpLeg){
-    b.leftUpLeg.rotation.x=-stepCycle*0.55;
-    b.rightUpLeg.rotation.x=stepCycle*0.55;
-    if(b.leftLeg)b.leftLeg.rotation.x=Math.max(0,stepCycle*0.7);
-    if(b.rightLeg)b.rightLeg.rotation.x=Math.max(0,-stepCycle*0.7);
-    if(b.leftArm)b.leftArm.rotation.x=stepCycle*0.4;
-    if(b.rightArm)b.rightArm.rotation.x=-stepCycle*0.4;
-   }
-  }else if(holdingAction==='sit'){
-   me.userData.mode='sit';
-  }else if(holdingAction==='dance'){
-   me.userData.mode='dance';
-  }else{
-   const moveZ=keys.w?-1:(keys.s?1:0);
-   const moveX=keys.a?-1:(keys.d?1:0);
-   if(moveZ!==0||moveX!==0){
-    me.userData.mode='walk';
-    me.userData.targetPos=null;
-    const forward=new THREE.Vector3();
-    cam5.getWorldDirection(forward);forward.y=0;forward.normalize();
-    const side=new THREE.Vector3().crossVectors(new THREE.Vector3(0,1,0),forward).normalize();
-    const moveDir=new THREE.Vector3().addScaledVector(forward,-moveZ).addScaledVector(side,-moveX).normalize();
-    
-    const stepLen=me.userData.walkSpeed*dt;
-    const nextX=me.position.x+moveDir.x*stepLen;
-    const nextZ=me.position.z+moveDir.z*stepLen;
-    let nextY=me.position.y;
-    if(t-me.userData.lastElevCheck>0.04){
-     nextY=getElevationAt(nextX,nextZ,me.position.y);
-     me.userData.lastElevCheck=t;
-    }
-    me.position.x=nextX;
-    me.position.z=nextZ;
-    me.position.y+=(nextY-me.position.y)*Math.min(1,dt*12);
-    
-    const targetAngle=Math.atan2(moveDir.x,moveDir.z);
-    me.rotation.y+=(targetAngle-me.rotation.y)*Math.min(1,dt*10);
-   }
-  }
- }
-
- for(let i=0;i<crowd.children.length;i++){
-  const w=crowd.children[i];
-  const u=w.userData;
-  const inner=w.children[0];
-  const H=avatarHeight;
-  const b=u.bones;
-
-  if(!u.isMe){
-   u.timer-=dt;
-   if(u.timer<=0){
-    u.timer=5+Math.random()*6;
-    const rnd=Math.random();
-    if(rnd<0.45){
-     const ang=Math.random()*Math.PI*2,dist=H*(1+Math.random()*3);
-     u.targetPos=new THREE.Vector3(w.position.x+Math.cos(ang)*dist,w.position.y,w.position.z+Math.sin(ang)*dist);
-     u.mode='walk';
-    }else if(rnd<0.7){u.mode='sit';}
-    else{u.mode='idle';u.targetPos=null;}
-   }
-  }
-
-  if(u.mode==='walk'||u.mode==='stairs'){
-   if(u.isMe&&holdingAction)continue;
-
-   if(u.targetPos){
-    const dx=u.targetPos.x-w.position.x;
-    const dz=u.targetPos.z-w.position.z;
-    const dist=Math.hypot(dx,dz);
-    if(dist>H*0.2){
-     const dirX=dx/dist,dirZ=dz/dist;
-     const moveAmt=Math.min(dist,u.walkSpeed*dt);
-     const nx=w.position.x+dirX*moveAmt;
-     const nz=w.position.z+dirZ*moveAmt;
-     let ny=w.position.y;
-     if(t-u.lastElevCheck>0.05){ny=getElevationAt(nx,nz,w.position.y);u.lastElevCheck=t;}
-     
-     w.position.x=nx;
-     w.position.z=nz;
-     w.position.y+=(ny-w.position.y)*Math.min(1,dt*10);
-
-     const tarRot=Math.atan2(dirX,dirZ);
-     let diff=tarRot-w.rotation.y;
-     while(diff<-Math.PI)diff+=Math.PI*2;
-     while(diff>Math.PI)diff-=Math.PI*2;
-     w.rotation.y+=diff*Math.min(1,dt*8);
-
-     const walkFreq=u.mode==='stairs'?7.5:9.5;
-     const stepCycle=Math.sin(t*walkFreq+i*2);
-     const legLift=Math.abs(Math.cos(t*walkFreq+i*2))*(H*0.06);
-     inner.position.y=u.baseInnerY+legLift;
-     
-     if(b.leftUpLeg&&b.rightUpLeg){
-      b.leftUpLeg.rotation.x=-stepCycle*0.55;
-      b.rightUpLeg.rotation.x=stepCycle*0.55;
-      if(b.leftLeg)b.leftLeg.rotation.x=Math.max(0,stepCycle*0.7);
-      if(b.rightLeg)b.rightLeg.rotation.x=Math.max(0,-stepCycle*0.7);
-     }
-    }else{
-     u.targetPos=null;
-     if(u.isMe)u.mode='idle';
-    }
-   }else if(u.isMe&&keys.w===0&&keys.s===0&&keys.a===0&&keys.d===0){
-    inner.position.y+=(u.baseInnerY-inner.position.y)*0.1;
-    if(b.leftUpLeg)b.leftUpLeg.rotation.x*=0.85;
-    if(b.rightUpLeg)b.rightUpLeg.rotation.x*=0.85;
-    if(b.leftLeg)b.leftLeg.rotation.x*=0.85;
-    if(b.rightLeg)b.rightLeg.rotation.x*=0.85;
-   }
-  }else if(u.mode==='sit'){
-   const sitY=u.baseInnerY-H*0.38;
-   inner.position.y+=(sitY-inner.position.y)*Math.min(1,dt*6);
-   if(b.leftUpLeg&&b.rightUpLeg){
-    b.leftUpLeg.rotation.x+=(-Math.PI*0.5-b.leftUpLeg.rotation.x)*0.12;
-    b.rightUpLeg.rotation.x+=(-Math.PI*0.5-b.rightUpLeg.rotation.x)*0.12;
-    if(b.leftLeg)b.leftLeg.rotation.x+=(Math.PI*0.5-b.leftLeg.rotation.x)*0.12;
-    if(b.rightLeg)b.rightLeg.rotation.x+=(Math.PI*0.5-b.rightLeg.rotation.x)*0.12;
-   }
-  }else if(u.mode==='dance'){
-   inner.position.y=u.baseInnerY+Math.abs(Math.sin(t*7+i))*H*0.08;
-   inner.rotation.y=Math.sin(t*5)*0.25;
-   if(b.leftUpLeg)b.leftUpLeg.rotation.x=Math.sin(t*7)*0.2;
-   if(b.rightUpLeg)b.rightUpLeg.rotation.x=-Math.sin(t*7)*0.2;
-   if(b.leftArm)b.leftArm.rotation.z=-0.9+Math.sin(t*7)*0.5;
-   if(b.rightArm)b.rightArm.rotation.z=0.9-Math.cos(t*7)*0.5;
-  }else{
-   inner.position.y+=(u.baseInnerY-inner.position.y)*0.1;
-   inner.rotation.y+=(0-inner.rotation.y)*0.1;
-   if(b.leftUpLeg)b.leftUpLeg.rotation.x*=0.85;
-   if(b.rightUpLeg)b.rightUpLeg.rotation.x*=0.85;
-   if(b.leftLeg)b.leftLeg.rotation.x*=0.85;
-   if(b.rightLeg)b.rightLeg.rotation.x*=0.85;
-   if(b.leftArm){b.leftArm.rotation.x*=0.85;b.leftArm.rotation.z*=0.85;}
-   if(b.rightArm){b.rightArm.rotation.x*=0.85;b.rightArm.rotation.z*=0.85;}
-   w.rotation.y=u.ry+Math.sin(t*.8+i*1.7)*.14;
-  }
- }
-
- if(isFollowCam&&myAvatarWrapper&&ctl){
-  const p=myAvatarWrapper.position;
-  ctl.target.lerp(new THREE.Vector3(p.x,p.y+avatarHeight*0.6,p.z),0.08);
- }
-}
-
-(function loop5(){
- requestAnimationFrame(loop5);
- if(run){
-  const now=performance.now();
-  const dt=Math.min((now-lastT)/1000,0.06);
-  lastT=now;
-  updateAvatarPhysics(dt);
-  ctl.update();
-  R5.render(sc5,cam5);
- }
-})();
-
-const mouseRay=new THREE.Raycaster();
-const mouseVec=new THREE.Vector2();
-
-function setupPlaceInteractions(){
- const canvas=$('#pl');
- canvas.addEventListener('pointerdown',e=>{
-  if(!run||!myAvatarWrapper||!walkableMeshes.length)return;
-  if(e.clientY<80||e.clientY>innerHeight-140)return;
-  mouseVec.x=(e.clientX/innerWidth)*2-1;
-  mouseVec.y=-(e.clientY/innerHeight)*2+1;
-  mouseRay.setFromCamera(mouseVec,cam5);
-  const hits=mouseRay.intersectObjects(walkableMeshes,false);
-  if(hits.length>0){
-   const pt=hits[0].point;
-   myAvatarWrapper.userData.targetPos=new THREE.Vector3(pt.x,pt.y,pt.z);
-   myAvatarWrapper.userData.mode='walk';
-   toast('Walking to spot…');
-  }
- });
-
- addEventListener('keydown',e=>{
-  const k=e.key.toLowerCase();
-  if(keys[k]!==undefined){keys[k]=1;if(myAvatarWrapper)myAvatarWrapper.userData.mode='walk';}
- });
- addEventListener('keyup',e=>{
-  const k=e.key.toLowerCase();
-  if(keys[k]!==undefined){
-   keys[k]=0;
-   if(!keys.w&&!keys.a&&!keys.s&&!keys.d&&myAvatarWrapper&&!myAvatarWrapper.userData.targetPos&&!holdingAction){
-    myAvatarWrapper.userData.mode='idle';
-   }
-  }
- });
-
- $$('.act-btn[data-act]').forEach(btn=>{
-  const act=btn.dataset.act;
-
-  const startAction=(e)=>{
-   e.preventDefault();
-   holdingAction=act;
-   btn.classList.add('holding');
-   if(!myAvatarWrapper)return;
-   myAvatarWrapper.userData.mode=act;
-   myAvatarWrapper.userData.targetPos=null;
-
-   if(act==='walk')toast('🚶 Walking…');
-   else if(act==='sit')toast('🪑 Sitting (90° posture)…');
-   else if(act==='stairs'){
-    myAvatarWrapper.userData.climbTarget=null;
-    toast('🪜 Climbing stairs…');
-   }else if(act==='dance')toast('🕺 Jamming!');
-  };
-
-  const stopAction=(e)=>{
-   if(holdingAction===act){
-    holdingAction=null;
-    btn.classList.remove('holding');
-    if(myAvatarWrapper&&(act==='walk'||act==='stairs'||act==='dance')){
-     myAvatarWrapper.userData.mode='idle';
-    }
-   }
-  };
-
-  btn.addEventListener('pointerdown',startAction);
-  btn.addEventListener('pointerup',stopAction);
-  btn.addEventListener('pointerleave',stopAction);
-  btn.addEventListener('pointercancel',stopAction);
- });
-
- $('#btn-cam').onclick=()=>{
-  isFollowCam=!isFollowCam;
-  ctl.autoRotate=!isFollowCam;
-  $('#btn-cam').classList.toggle('active',isFollowCam);
-  toast(isFollowCam?'Camera locked to Avatar.':'Free Orbit Camera enabled.');
- };
-
- $$('.dp-btn').forEach(b=>{
-  const k=b.dataset.k;
-  b.addEventListener('pointerdown',e=>{e.preventDefault();keys[k]=1;if(myAvatarWrapper)myAvatarWrapper.userData.mode='walk';});
-  b.addEventListener('pointerup',e=>{e.preventDefault();keys[k]=0;if(!keys.w&&!keys.a&&!keys.s&&!keys.d&&myAvatarWrapper&&!holdingAction)myAvatarWrapper.userData.mode='idle';});
-  b.addEventListener('pointerleave',e=>{keys[k]=0;});
- });
- if('ontouchstart' in window)$('#dpad').style.display='grid';
-}
-
-const songLink=(m,s)=>{
- const svc=SVC[m]||SVC.spotify;
- return svc.q+encodeURIComponent(s[0]+' '+s[1]);
-};
-
+ ctl.target.set(cx,gy0+H*.55,cz);cam5.position.set(camX,gy0+H*1.7,camZ);ctl.minDistance=H*1.2;ctl.update()}
+(function loop5(){requestAnimationFrame(loop5);if(run){if(crowd){const t=performance.now()/1000;crowd.children.forEach((w,i)=>{w.rotation.y=w.userData.ry+Math.sin(t*.8+i*1.7)*.18})}ctl.update();R5.render(sc5,cam5)}})();
+const songLink=(m,s)=>SVC[m].q+encodeURIComponent(s[0]+' '+s[1]);
 async function enterPlace(k){
  const P=PLACES[k],tok=++seq;state.place=k;drop();go(5);
  $('#pn').textContent=P.name;$('#pb').textContent=P.blurb;$('#sheet').innerHTML='';$('#ld').style.display='';$('#bar').style.width='0';$('#lt').textContent='Loading '+P.name+'…';
- const fp=fetchPlaceFeed(k,state);fp.then(f=>{if(tok!==seq||!f)return;const m=state.music?state.music.service:'spotify';
-  $('#sheet').innerHTML=`<h3>Here now</h3><div class="pr">${f.people.map(p=>`<div class="pp">${pvw(avOf(p.av))}<b>${p.u}</b><i>♪ ${p.s}</i></div>`).join('')}</div><h3>Songs for this place</h3>${f.songs.map(s=>`<a class="sg" href="${songLink(m,s)}" target="_blank" rel="noopener"><b>${s[0]}</b><span>${s[1]}</span><em>Open in ${(SVC[m]||SVC.spotify).n}</em></a>`).join('')}<p class="cr">${P.credit}</p>`});
+ const fp=fetchPlaceFeed(k,state);fp.then(f=>{if(tok!==seq||!f)return;const m=state.music.service;
+  $('#sheet').innerHTML=`<h3>Here now</h3><div class="pr">${f.people.map(p=>`<div class="pp">${pvw(avOf(p.av))}<b>${p.u}</b><i>♪ ${p.s}</i></div>`).join('')}</div><h3>Songs for this place</h3>${f.songs.map(s=>`<a class="sg" href="${songLink(m,s)}" target="_blank" rel="noopener"><b>${s[0]}</b><span>${s[1]}</span><em>Open in ${SVC[m].n}</em></a>`).join('')}<p class="cr">${P.credit}</p>`});
  try{init5();
   prog[k]=p=>{$('#bar').style.width=Math.round(p*100)+'%'};
   const root=await getPlace(k);
@@ -771,57 +348,54 @@ async function enterPlace(k){
   cam5.near=r/1000;cam5.far=r*30;cam5.updateProjectionMatrix();cam5.position.set(r*.7,r*.5,r*.7);
   ctl.target.set(0,0,0);ctl.minDistance=r*.05;ctl.maxDistance=r*2.5;ctl.maxPolarAngle=Math.PI*.495;ctl.update();
   await spawnCrowd(root,fp,tok);if(tok!==seq)return;
-  $('#ld').style.display='none';run=true;lastT=performance.now();
+  $('#ld').style.display='none';run=true;
  }catch(e){delete placeCache[k];console.error('Place load failed',P.url,e);if(tok===seq)$('#lt').textContent='Could not load '+P.url+' — '+((e&&e.message)||(e&&e.target&&('HTTP '+(e.target.status||'error')))||String(e))}}
 $('#bk').onclick=()=>{seq++;drop();go(4)};
 
-/* ===== 3D avatar previews ===== */
-const PV=256;
-const pvw=a=>a?`<div class="pvw" data-id="${a.id}"><div class="ph">${face(a.look)}</div><canvas class="pv" width="${PV}" height="${PV}"></canvas></div>`:'';
+/* ===== 3D avatar previews: one shared WebGL renderer drawn into each card's canvas ===== */
+const PV=256;   // preview resolution (cards are ≤170px wide)
+const pvw=a=>`<div class="pvw" data-id="${a.id}"><div class="ph">${face(a.look)}</div><canvas class="pv" width="${PV}" height="${PV}"></canvas></div>`;
 const T=THREE,models={},loading={};let R3=null;
 const sc3=new T.Scene(),cam3=new T.PerspectiveCamera(28,1,.01,100);
-try{R3=new T.WebGLRenderer({alpha:true,antialias:true});R3.setSize(PV,PV,false);R3.outputEncoding=T.sRGBEncoding;R3.toneMapping=T.ACESFilmicToneMapping;
+try{R3=new T.WebGLRenderer({alpha:true,antialias:true});R3.setSize(PV,PV,false);R3.outputEncoding=T.sRGBEncoding;R3.toneMapping=T.ACESFilmicToneMapping;R3.toneMappingExposure=1.05;
  const kl=new T.DirectionalLight(0xfff1d6,1.7),rl=new T.DirectionalLight(0x8fa8cc,1.2);kl.position.set(2,3,4);rl.position.set(-3,2,-3);sc3.add(new T.HemisphereLight(0xdfe8ff,0x16294a,.9),kl,rl)}
-catch(e){R3=null;}
-
+catch(e){R3=null;console.warn('WebGL unavailable — showing illustrated avatars',e)}
 function frameOf(root){root.updateMatrixWorld(true);let head=null,hips=null;
  root.traverse(o=>{if(o.isBone){if(/^Head(_\d+)?$/.test(o.name))head=o;if(/^Hips(_\d+)?$/.test(o.name))hips=o}});
  if(head&&hips){const a=head.getWorldPosition(new T.Vector3()),b=hips.getWorldPosition(new T.Vector3()),u=a.y-b.y;return{x:a.x,y:a.y+u*.12,z:a.z,s:u*.95}}
  const b=new T.Box3().setFromObject(root),h=b.max.y-b.min.y;return{x:(b.min.x+b.max.x)/2,y:b.max.y-h*.16,z:(b.min.z+b.max.z)/2,s:h*.36}}
-const avLoader=new T.GLTFLoader();avLoader.setDRACOLoader(draco);
-
+const avLoader=new T.GLTFLoader();avLoader.setDRACOLoader(draco);   // shared loader; also handles Draco-compressed avatars
 function ensure(g){if(!R3)return;AVATARS[g].forEach(a=>{if(models[a.id]||loading[a.id])return;loading[a.id]=1;
  avLoader.load(a.model,gl=>{const root=gl.scene;root.traverse(o=>{if(o.isMesh)o.frustumCulled=false});
   const f=frameOf(root),pivot=new T.Group();root.position.x-=f.x;root.position.z-=f.z;pivot.add(root);pivot.visible=false;
-  pivot.userData={y:f.y,d:f.s/2/Math.tan(14*Math.PI/180)*1.05,rot:a.rot||0,clips:gl.animations||[]};sc3.add(pivot);models[a.id]=pivot},undefined,e=>{delete loading[a.id];})})}
-
-(function loop3(t){requestAnimationFrame(loop3);if(!R3||step!==2)return;
- if(t-(loop3.l||0)<40)return;loop3.l=t;
- document.querySelectorAll('#s2 .pvw').forEach(w=>{const m=models[w.dataset.id];if(!m)return;
+  pivot.userData={y:f.y,d:f.s/2/Math.tan(14*Math.PI/180)*1.05,rot:a.rot||0,clips:gl.animations||[]};sc3.add(pivot);models[a.id]=pivot},undefined,e=>{delete loading[a.id];console.warn('Avatar failed to load (serve the site over http/https):',a.model,e)})})}
+(function loop3(t){requestAnimationFrame(loop3);if(!R3)return;
+ if(t-(loop3.l||0)<33)return;loop3.l=t;   // ~30fps is plenty for a gentle sway
+ document.querySelectorAll('.pvw').forEach(w=>{const s=w.closest('.scr');if(!s||!s.classList.contains('on'))return;const m=models[w.dataset.id];if(!m)return;
   const u=m.userData,id=w.dataset.id;m.rotation.y=u.rot+Math.sin(t*.0008+id.charCodeAt(id.length-1))*.45;
   cam3.position.set(0,u.y,u.d);cam3.near=u.d*.05;cam3.far=u.d*30;cam3.updateProjectionMatrix();cam3.lookAt(0,u.y,0);
   m.visible=true;R3.render(sc3,cam3);m.visible=false;
   const c=w.querySelector('canvas').getContext('2d');c.clearRect(0,0,PV,PV);c.drawImage(R3.domElement,0,0);w.classList.add('rdy')})})(0);
+// Start fetching every avatar right away (splash screen), so they're ready by the time step 2 opens.
 ['male','female'].forEach(ensure);
 
-/* ===== Background Floating Music Notes ===== */
+/* ===== Music notes: slam into the screen, then drift through the air ===== */
 const cv=$('#c'),x=cv.getContext('2d'),G=['♪','♫','♩','♬'],COL=['#efe5cf','#8fa8cc','#c9d2e0','#efe5cf'];
 let W,H,dpr,notes=[],rip=[];
-function size(){dpr=1;W=innerWidth;H=innerHeight;cv.width=W;cv.height=H;}
+function size(){dpr=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cv.width=W*dpr;cv.height=H*dpr;x.setTransform(dpr,0,0,dpr,0,0)}
 addEventListener('resize',size);size();
-const N=W<700?20:36;
-for(let i=0;i<N;i++)notes.push({g:G[i%4],c:COL[i%4],tx:Math.random()*W,ty:Math.random()*H,sz:18+Math.random()*34,delay:Math.random()*2,dur:.55+Math.random()*.3,sp:14+Math.random()*24,ph:Math.random()*6.28,hit:false});
+const N=W<700?34:60;
+for(let i=0;i<N;i++)notes.push({g:G[i%4],c:COL[i%4],tx:Math.random()*W,ty:Math.random()*H,sz:22+Math.random()*46,delay:Math.random()*2.4,dur:.55+Math.random()*.35,sp:14+Math.random()*30,ph:Math.random()*6.28,hit:false});
 let t0=performance.now();
-function loop(now){requestAnimationFrame(loop);if(step===5)return;
- const t=(now-t0)/1000;x.clearRect(0,0,W,H);x.textAlign='center';x.textBaseline='middle';
- rip=rip.filter(r=>r.u<1);rip.forEach(r=>{r.u+=.025;x.strokeStyle=`rgba(239,229,207,${(1-r.u)*.45})`;x.lineWidth=1.5;x.beginPath();x.arc(r.x,r.y,8+r.u*r.r,0,6.283);x.stroke()});
+function loop(now){requestAnimationFrame(loop);if(step===5)return;const t=(now-t0)/1000;x.clearRect(0,0,W,H);x.textAlign='center';x.textBaseline='middle';
+ rip=rip.filter(r=>r.u<1);rip.forEach(r=>{r.u+=.022;x.strokeStyle=`rgba(239,229,207,${(1-r.u)*.55})`;x.lineWidth=2;x.beginPath();x.arc(r.x,r.y,8+r.u*r.r,0,6.283);x.stroke()});
  notes.forEach(n=>{const u=(t-n.delay)/n.dur;if(u<0)return;let px,py,s,a;
-  if(u<1){const e=u*u*u;px=W/2+(n.tx-W/2)*e;py=H/2+(n.ty-H/2)*e;s=.05+e*1.35;a=Math.min(1,u*2.5)}
-  else{if(!n.hit){n.hit=true;n.land=t;rip.push({x:n.tx,y:n.ty,u:0,r:n.sz*2.2})}
-   const f=t-n.land,k=Math.max(0,1-f*3);s=1+.35*k*Math.sin(f*22);a=1;
-   n.ty-=n.sp*.016;if(n.ty<-60){n.ty=H+60;n.tx=Math.random()*W}
-   px=n.tx+Math.sin(t*.7+n.ph)*18;py=n.ty+Math.sin(t*.9+n.ph)*6}
-  x.globalAlpha=a*(py>H-80?Math.max(0,(H+60-py)/140):1);x.font=`${n.sz*s}px serif`;x.fillStyle=n.c;x.save();x.translate(px,py);x.rotate(Math.sin(t*.6+n.ph)*.25);x.fillText(n.g,0,0);x.restore()});
- x.globalAlpha=1;}
+  if(u<1){const e=u*u*u;px=W/2+(n.tx-W/2)*e;py=H/2+(n.ty-H/2)*e;s=.05+e*1.35;a=Math.min(1,u*2.5)}   // flying toward the viewer
+  else{if(!n.hit){n.hit=true;n.land=t;rip.push({x:n.tx,y:n.ty,u:0,r:n.sz*2.6})}                    // impact
+   const f=t-n.land,k=Math.max(0,1-f*3);s=1+.35*k*Math.sin(f*22);a=1;                              // squash-bounce settle
+   n.ty-=n.sp*.016;if(n.ty<-60){n.ty=H+60;n.tx=Math.random()*W}                                     // drift upward
+   px=n.tx+Math.sin(t*.7+n.ph)*22;py=n.ty+Math.sin(t*.9+n.ph)*8}
+  x.globalAlpha=a*(py>H-80?Math.max(0,(H+60-py)/140):1);x.font=`${n.sz*s}px serif`;x.shadowColor='rgba(143,168,204,.9)';x.shadowBlur=14;x.fillStyle=n.c;x.save();x.translate(px,py);x.rotate(Math.sin(t*.6+n.ph)*.25);x.fillText(n.g,0,0);x.restore()});
+ x.globalAlpha=1;x.shadowBlur=0}
 requestAnimationFrame(loop);
 </script></body></html>
