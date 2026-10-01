@@ -8,6 +8,7 @@
 *{box-sizing:inherit;margin:0}
 html,body{height:100%;overflow:hidden;background:radial-gradient(120% 90% at 65% 40%,#1d3358 0%,#0f1b33 55%,#08101f 100%);color:var(--cream);font-family:'Cormorant Garamond',Georgia,serif}
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+#pl{opacity:0;pointer-events:none;transition:opacity .7s}#pl.on{opacity:1;pointer-events:auto}
 .vig{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 55%,rgba(5,9,18,.7) 100%)}
 .scr{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:calc(24px + env(safe-area-inset-top,0px)) 22px calc(60px + env(safe-area-inset-bottom,0px));opacity:0;pointer-events:none;transform:translateY(24px);transition:opacity .7s,transform .7s cubic-bezier(.2,.7,.2,1);overflow-y:auto}
 .scr.on{opacity:1;pointer-events:auto;transform:none}
@@ -22,7 +23,8 @@ h2{font:700 clamp(30px,5vw,44px)/1.1 'Playfair Display',serif;margin-bottom:8px}
 .btn{all:unset;cursor:pointer;padding:14px 30px;background:var(--cream);color:var(--navy);font:12px ui-monospace,Menlo,monospace;letter-spacing:.2em;text-transform:uppercase;transition:transform .2s,opacity .2s}
 .btn:hover{transform:translateY(-2px)}.btn[disabled]{opacity:.35;pointer-events:none}
 .btn.g{background:none;color:var(--silver);border:1px solid rgba(184,191,202,.5)}
-.btn.sp{background:var(--sp);color:#04140a}
+.btn.sp{background:var(--sp);color:#04140a}.btn.yt{background:#ff4e45;color:#1a0505}.btn.ga{background:#ff7a33;color:#1a0a02}
+.btn.dim{opacity:.35}.btn.ok::after{content:" ✓"}
 .card{width:min(420px,100%);padding:30px 28px;background:rgba(22,41,74,.55);border:1px solid rgba(184,191,202,.3);backdrop-filter:blur(10px);box-shadow:0 30px 80px rgba(0,0,0,.45)}
 label{display:block;text-align:left;font:11px ui-monospace,Menlo,monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--silver);margin:16px 0 6px}
 input{width:100%;padding:12px 14px;background:rgba(8,16,31,.6);border:1px solid rgba(184,191,202,.35);color:var(--cream);font:20px 'Cormorant Garamond',serif;outline:none}
@@ -39,14 +41,32 @@ input:focus{border-color:var(--cream)}
 .av b{display:block;margin-top:10px;font:500 20px 'Playfair Display',serif}
 @keyframes pop{from{opacity:0;transform:translateY(40px) scale(.7)}to{opacity:1;transform:none}}
 .me{width:120px;margin:0 auto 14px}.me .pvw{border:2px solid var(--cream)}
-.row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:22px}
+.must{max-width:440px;font-size:18px;color:var(--silver);margin-bottom:24px}
+.pc{all:unset;cursor:pointer;display:block;width:clamp(140px,40vw,200px);padding:22px 16px;background:rgba(22,41,74,.55);border:1px solid rgba(184,191,202,.3);transition:transform .25s,border-color .25s}
+.pc:hover{transform:translateY(-6px);border-color:var(--cream)}
+.pc em{display:block;font-style:normal;font-size:34px;margin-bottom:8px}.pc b{display:block;font:500 22px 'Playfair Display',serif}.pc span{display:block;margin-top:6px;font-style:italic;font-size:17px;color:var(--silver)}
 .dots{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(22px + env(safe-area-inset-bottom,0px));display:flex;gap:10px;z-index:3}
 .dots i{width:8px;height:8px;border:1px solid var(--cream);border-radius:50%;transition:background .3s}.dots i.on{background:var(--cream)}
 #toast{position:fixed;top:calc(18px + env(safe-area-inset-top,0px));left:50%;transform:translate(-50%,-80px);padding:10px 18px;background:var(--cream);color:var(--navy);font:12px ui-monospace,monospace;letter-spacing:.06em;transition:transform .4s;z-index:9;max-width:90vw}
 #toast.on{transform:translate(-50%,0)}
 .cr{font:11px/1.6 ui-monospace,monospace;color:var(--silver);opacity:.6;margin-top:18px;max-width:680px}.cr a{color:inherit}
+/* place view */
+#s5{justify-content:space-between;align-items:stretch;text-align:left;overflow:hidden;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+#s5.on{pointer-events:none}#s5 .top,#s5 #sheet{pointer-events:auto}
+.top{display:flex;gap:16px;align-items:center}.top h2{margin:0;font-size:clamp(24px,4vw,34px)}.top .sub{margin:0;font-size:18px}
+#ld{align-self:center;text-align:center;width:min(420px,100%)}
+.barw{height:3px;background:rgba(184,191,202,.3)}#bar{height:100%;width:0;background:var(--cream);transition:width .2s}
+#ld p{margin-top:12px;color:var(--silver);font-size:18px}
+#sheet{width:min(720px,100%);align-self:center;max-height:42vh;overflow-y:auto;padding:18px 20px;background:rgba(15,27,51,.84);border:1px solid rgba(184,191,202,.3);backdrop-filter:blur(10px)}
+#sheet h3{font:500 20px 'Playfair Display',serif;margin:6px 0 10px}
+.pr{display:flex;gap:16px;overflow-x:auto;padding-bottom:6px}.pp{width:84px;flex:none;text-align:center}.pp .pvw{width:56px;margin:0 auto 6px;border:1px solid var(--cream)}
+.pp b{display:block;font-size:16px;font-weight:500}.pp i{display:block;font-size:14px;color:var(--silver);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sg{display:grid;grid-template-columns:1fr auto;column-gap:12px;padding:10px 0;border-top:1px solid rgba(184,191,202,.2);color:inherit;text-decoration:none}
+.sg b{font:500 19px 'Playfair Display',serif}.sg span{grid-column:1;color:var(--silver);font-size:17px}
+.sg em{grid-row:1/3;grid-column:2;align-self:center;font:11px ui-monospace,monospace;font-style:normal;letter-spacing:.14em;text-transform:uppercase}
 </style></head><body>
-<canvas id="c"></canvas><div class="vig"></div>
+<canvas id="c"></canvas><div class="vig"></div><canvas id="pl"></canvas>
 
 <!-- 0 · SPLASH -->
 <section class="scr on" id="s0">
@@ -76,32 +96,82 @@ input:focus{border-color:var(--cream)}
   <p class="cr" id="cr"></p>
 </section>
 
-<!-- 3 · SPOTIFY -->
+<!-- 3 · LINK MUSIC (required) -->
 <section class="scr" id="s3">
   <div class="me" id="me3"></div>
-  <h2 id="hi">Hi!</h2><p class="sub">Connect Spotify so your friends can hear what moves you.</p>
-  <div class="row"><button class="btn sp" id="bsp">Connect Spotify</button><button class="btn g" id="bsk">Skip for now</button></div>
+  <h2 id="hi">Hi!</h2><p class="sub">Link your music to continue.</p>
+  <p class="must">This step is required. Pick the service you listen on, so people at each place can hear what moves you.</p>
+  <div class="row"><button class="btn sp" data-svc="spotify">Spotify</button><button class="btn yt" data-svc="ytm">YouTube Music</button><button class="btn ga" data-svc="gaana">Gaana</button></div>
+  <button class="btn" id="b3" disabled>Continue</button>
 </section>
 
-<!-- 4 · DONE -->
+<!-- 4 · CHOOSE A PLACE -->
 <section class="scr" id="s4">
   <div class="me" id="me4"></div>
-  <h2>You're in.</h2><p class="sub" id="done">Welcome to EchoVro.</p>
-  <button class="btn" id="bgo">Enter EchoVro</button>
+  <h2 id="done">Where shall we meet?</h2><p class="sub">Pick a place to meet people and get song recommendations.</p>
+  <div class="grid" id="places"></div>
 </section>
 
-<div class="dots" id="dots"><i class="on"></i><i></i><i></i><i></i></div>
+<!-- 5 · PLACE (3D scene + people + songs) -->
+<section class="scr" id="s5">
+  <div class="top"><button class="btn g" id="bk">Back</button><div><h2 id="pn"></h2><p class="sub" id="pb"></p></div></div>
+  <div id="ld"><div class="barw"><div id="bar"></div></div><p id="lt"></p></div>
+  <div id="sheet"></div>
+</section>
+
+<div class="dots" id="dots"><i class="on"></i><i></i><i></i><i></i><i></i></div>
 <div id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script>
 /* ============ CONFIG — the programmer fills these ============ */
 const CONFIG={
-  SPOTIFY_CLIENT_ID:'',                         // ← Spotify API key (client id) goes here
-  SPOTIFY_REDIRECT_URI:location.origin+location.pathname,
+  DEMO_MODE:true,                               // ← true = "linking" is simulated so you can test the flow. Set to false in production.
+  SPOTIFY_CLIENT_ID:'',                         // ← Spotify client id
+  YT_CLIENT_ID:'',                              // ← Google OAuth client id (YouTube Music uses Google sign-in)
+  YT_SCOPES:'https://www.googleapis.com/auth/youtube.readonly',
+  GAANA_AUTH_URL:'',                            // ← Gaana has no public login API; put your partner/auth URL here
+  REDIRECT_URI:location.origin+location.pathname,
   SPOTIFY_SCOPES:'user-read-email user-read-private user-top-read user-read-currently-playing user-read-playback-state playlist-read-private'
 };
+
+/* ============ 3D PLACES — upload the files here ============
+   Unzip each zip so the folder looks like this (scene.gltf + scene.bin + textures/ must stay together):
+     places/park/scene.gltf     ← park.zip
+     places/city/scene.gltf     ← city.zip
+     places/cafe/scene.gltf     ← cafe.zip
+     places/gallery/scene.gltf  ← 1790862185795_picture_gallery.zip
+   Each file is loaded ONLY when the person taps that place (loadGLTF in enterPlace), never up front —
+   they are large (up to ~100 MB). Serve the site over http/https; opening the file from disk will not work. */
+const PLACES={
+ park:{icon:'🌳',name:'The Park',blurb:'Open air and slow walks.',url:'places/park/scene.gltf',
+  credit:'“Albert Park Circuit Melbourne 2018 layout” by <a href="https://sketchfab.com/Tyler_Dave" target="_blank" rel="noopener">Dave Love SketchFab</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>'},
+ city:{icon:'🏙️',name:'The City',blurb:'Lights, traffic, late nights.',url:'places/city/scene.gltf',
+  credit:'“City Scene” by <a href="https://sketchfab.com/mortalityrexotable" target="_blank" rel="noopener">golukumar</a> · Sketchfab Standard license'},
+ cafe:{icon:'☕',name:'The Café',blurb:'Warm corners, quiet talk.',url:'places/cafe/scene.gltf',
+  credit:'“Cafe-Misti” by <a href="https://sketchfab.com/asimitree" target="_blank" rel="noopener">Simit Rajwadi</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>'},
+ gallery:{icon:'🖼️',name:'Picture Gallery',blurb:'Hushed rooms, long looks.',url:'places/gallery/scene.gltf',
+  credit:'“The Picture Gallery [Low Poly] | VR” by <a href="https://sketchfab.com/abhayexe" target="_blank" rel="noopener">abhayexe</a> · Sketchfab Standard license'}
+};
+
+// Music services. `q` builds a search link that opens the song in the person's own app.
+const SVC={spotify:{n:'Spotify',q:'https://open.spotify.com/search/'},ytm:{n:'YouTube Music',q:'https://music.youtube.com/search?q='},gaana:{n:'Gaana',q:'https://gaana.com/search/'}};
+
+// Hook: who is at a place + songs for it. Replace the body with your backend call, e.g. fetch('/api/places/'+key+'/feed?user='+profile.username)
+const MOCK={
+ park:{people:[{u:'luna.v',av:'female_avatar_1',s:'Here Comes the Sun'},{u:'arjun.k',av:'male_avatar_1',s:'Kun Faya Kun'},{u:'kai_r',av:'male_avatar_3',s:'Three Little Birds'}],
+  songs:[['Here Comes the Sun','The Beatles'],['Kun Faya Kun','A.R. Rahman'],['Three Little Birds','Bob Marley'],['Ilahi','Arijit Singh']]},
+ city:{people:[{u:'neo.m',av:'male_avatar_2',s:'Blinding Lights'},{u:'mira.s',av:'female_avatar_2',s:'Malare'},{u:'zed_9',av:'female_avatar_3',s:'Levitating'}],
+  songs:[['Blinding Lights','The Weeknd'],['Levitating','Dua Lipa'],['Malare','Vijay Yesudas'],['Starboy','The Weeknd']]},
+ cafe:{people:[{u:'ana.b',av:'female_avatar_1',s:'Perfect'},{u:'ravi.t',av:'male_avatar_1',s:'Tum Se Hi'},{u:'sam_o',av:'male_avatar_3',s:'Banana Pancakes'}],
+  songs:[['Perfect','Ed Sheeran'],['Tum Se Hi','Mohit Chauhan'],['Banana Pancakes','Jack Johnson'],['Agar Tum Saath Ho','Arijit Singh']]},
+ gallery:{people:[{u:'iris.d',av:'female_avatar_2',s:'Clair de Lune'},{u:'omar.h',av:'male_avatar_2',s:'Weightless'},{u:'pia_l',av:'female_avatar_3',s:'Gymnopédie No. 1'}],
+  songs:[['Clair de Lune','Claude Debussy'],['Gymnopédie No. 1','Erik Satie'],['Weightless','Marconi Union'],['Kabira','Tochi Raina']]}
+};
+async function fetchPlaceFeed(key,profile){ return MOCK[key]; }
+
 // Avatars: 3D files live in /avatars. `rot` (radians) turns a model if it faces the wrong way; `look` is the fallback illustration.
 const SK='https://sketchfab.com/3d-models/';
 const AVATARS={
@@ -114,17 +184,22 @@ const AVATARS={
   {id:'female_avatar_2',label:'Avatar 2',model:'avatars/female_avatar_2.glb',title:'Sophia Metzger, business-casual attire',author:'XRProfXR',src:SK+'sophia-metzger-business-casual-attire-a1d68ab1c7304a3babfc76517a1adac7',look:{skin:'#c68a62',hair:'#1a1210',shirt:'#8fa8cc',style:'bun'}},
   {id:'female_avatar_3',label:'Avatar 3',model:'avatars/female_avatar_3.glb',title:'Avatar 1',author:'archaosnihilist',src:SK+'avatar-1-34803472a019430fb18694bdbded433d',look:{skin:'#e0b48f',hair:'#8a3b2e',shirt:'#d9a441',style:'long'}}]
 };
-// Hook: send the finished profile to your backend here.
+// Hook: send the finished profile (incl. linked music service + auth code) to your backend here. Called once music is linked.
 async function onComplete(profile){ console.log('EchoVro profile',profile); /* await fetch('/api/signup',{method:'POST',body:JSON.stringify(profile)}); */ }
 /* ============================================================= */
 
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
-const state={email:'',username:'',gender:'male',avatar:null,spotify:false};
+const state={email:'',username:'',gender:'male',avatar:null,music:null,place:null};
 let step=0;
-function go(n){step=n;$$('.scr').forEach((s,i)=>s.classList.toggle('on',i===n));$$('#dots i').forEach((d,i)=>d.classList.toggle('on',i===Math.min(n,3)));
- if(n===1)ensure('male');if(n===2){drawAvatars();ensure(state.gender)}if(n===3||n===4){const h=pvw(findAv());$('#me3').innerHTML=$('#me4').innerHTML=h;$('#hi').textContent='Hi, '+state.username+'!';$('#done').textContent='Welcome to EchoVro, '+state.username+'.'}}
+const avOf=id=>[...AVATARS.male,...AVATARS.female].find(a=>a.id===id),findAv=()=>avOf(state.avatar);
+function go(n){
+ if(n>=4&&!state.music){toast('Link a music service to continue.');n=3}   // music linking is mandatory
+ step=n;$$('.scr').forEach((s,i)=>s.classList.toggle('on',i===n));$$('#dots i').forEach((d,i)=>d.classList.toggle('on',i===Math.min(n,4)));$('#dots').style.display=n===5?'none':'';
+ $('#pl').classList.toggle('on',n===5);
+ if(n===1)ensure('male');if(n===2){drawAvatars();ensure(state.gender)}
+ if(n===3||n===4){const h=pvw(findAv());$('#me3').innerHTML=$('#me4').innerHTML=h;$('#hi').textContent='Hi, '+state.username+'!';$('#done').textContent='Where shall we meet, '+state.username+'?'}
+ if(n===4){ensure('male');ensure('female');drawPlaces()}}
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),3200)}
-const findAv=()=>[...AVATARS.male,...AVATARS.female].find(a=>a.id===state.avatar);
 
 function face(l){let back='',top='';const h=l.hair;
  if(l.style==='long')back=`<path d="M26 52Q24 22 50 20Q76 22 74 52L77 82L23 82Z" fill="${h}"/>`;
@@ -143,20 +218,65 @@ $('#b1').onclick=()=>{const e=$('#em').value.trim(),u=$('#un').value.trim(),er=$
  if(!/^[a-zA-Z0-9_.]{3,20}$/.test(u))return er.textContent='Username: 3–20 letters, numbers, dots or underscores.';
  er.textContent='';state.email=e;state.username=u;go(2)};
 $('#b2').onclick=()=>go(3);
-$('#bsk').onclick=()=>go(4);
-$('#bgo').onclick=()=>onComplete({...state});
 
-// Spotify — Authorization Code + PKCE (no secret in the browser)
-$('#bsp').onclick=async()=>{
- if(!CONFIG.SPOTIFY_CLIENT_ID)return toast('Spotify client ID not set yet — add it in CONFIG.');
+/* ===== Step 3: link a music service (mandatory) — Spotify / YouTube Music / Gaana ===== */
+function linkedUI(){const m=state.music&&state.music.service;$$('[data-svc]').forEach(b=>{b.classList.toggle('ok',b.dataset.svc===m);b.classList.toggle('dim',!!m&&b.dataset.svc!==m)});$('#b3').disabled=!m}
+function linked(service,code){state.music={service,code};linkedUI();toast(SVC[service].n+' linked.')}
+async function connect(k){
+ if(CONFIG.DEMO_MODE)return linked(k,'demo');
+ const q=new URLSearchParams({redirect_uri:CONFIG.REDIRECT_URI,state:k});
+ try{sessionStorage.setItem('echovro_state',JSON.stringify(state))}catch(e){}
+ if(k==='gaana'){if(!CONFIG.GAANA_AUTH_URL)return toast('Gaana auth URL not set yet — add it in CONFIG.');
+  return location.href=CONFIG.GAANA_AUTH_URL+(CONFIG.GAANA_AUTH_URL.includes('?')?'&':'?')+q}
+ const id=k==='spotify'?CONFIG.SPOTIFY_CLIENT_ID:CONFIG.YT_CLIENT_ID;
+ if(!id)return toast(SVC[k].n+' client ID not set yet — add it in CONFIG.');
+ // Authorization Code + PKCE (no secret in the browser)
  const A='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
  const v=[...crypto.getRandomValues(new Uint8Array(64))].map(b=>A[b%62]).join('');
  const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v));
  const c=btoa(String.fromCharCode(...new Uint8Array(d))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
- try{sessionStorage.setItem('sp_verifier',v);sessionStorage.setItem('echovro_state',JSON.stringify(state))}catch(e){}
- location.href='https://accounts.spotify.com/authorize?'+new URLSearchParams({client_id:CONFIG.SPOTIFY_CLIENT_ID,response_type:'code',redirect_uri:CONFIG.SPOTIFY_REDIRECT_URI,scope:CONFIG.SPOTIFY_SCOPES,code_challenge_method:'S256',code_challenge:c})};
-// Returning from Spotify (?code=...): resume at the last step. Exchange the code for a token on your backend.
-(()=>{const q=new URLSearchParams(location.search);if(q.get('code')){try{Object.assign(state,JSON.parse(sessionStorage.getItem('echovro_state')||'{}'));state.spotify=true;state.spotifyCode=q.get('code');history.replaceState(null,'',location.pathname);if(state.avatar)setTimeout(()=>go(4),50)}catch(e){}}})();
+ try{sessionStorage.setItem('mus_verifier',v)}catch(e){}
+ q.set('client_id',id);q.set('response_type','code');q.set('code_challenge_method','S256');q.set('code_challenge',c);
+ if(k==='spotify'){q.set('scope',CONFIG.SPOTIFY_SCOPES);location.href='https://accounts.spotify.com/authorize?'+q}
+ else{q.set('scope',CONFIG.YT_SCOPES);q.set('access_type','offline');location.href='https://accounts.google.com/o/oauth2/v2/auth?'+q}}
+$$('[data-svc]').forEach(b=>b.onclick=()=>connect(b.dataset.svc));
+const finish3=()=>{onComplete({...state});go(4)};
+$('#b3').onclick=()=>state.music?finish3():toast('Link a music service to continue.');
+// Returning from the music service (?code=...&state=spotify|ytm|gaana): resume. Exchange the code for a token on your backend.
+(()=>{const q=new URLSearchParams(location.search);if(q.get('code')){try{Object.assign(state,JSON.parse(sessionStorage.getItem('echovro_state')||'{}'));state.music={service:q.get('state')||'spotify',code:q.get('code')};history.replaceState(null,'',location.pathname);if(state.avatar)setTimeout(()=>{linkedUI();finish3()},50)}catch(e){}}})();
+
+/* ===== Step 4: choose a place ===== */
+function drawPlaces(){$('#places').innerHTML=Object.entries(PLACES).map(([k,p],i)=>`<button class="pc" style="--i:${i}" data-k="${k}"><em>${p.icon}</em><b>${p.name}</b><span>${p.blurb}</span></button>`).join('');
+ $$('.pc').forEach(b=>b.onclick=()=>enterPlace(b.dataset.k))}
+
+/* ===== Step 5: the place — loads the uploaded 3D scene only now ===== */
+let R5=null,ctl=null,cur=null,run=false,seq=0;const sc5=new THREE.Scene(),cam5=new THREE.PerspectiveCamera(50,1,.1,1000);
+function init5(){if(R5)return;
+ R5=new THREE.WebGLRenderer({canvas:$('#pl'),alpha:true,antialias:true});R5.setPixelRatio(Math.min(devicePixelRatio||1,2));R5.outputEncoding=THREE.sRGBEncoding;
+ const d=new THREE.DirectionalLight(0xfff1d6,1.4);d.position.set(5,10,6);sc5.add(new THREE.HemisphereLight(0xffffff,0x445577,1.1),d);
+ ctl=new THREE.OrbitControls(cam5,R5.domElement);ctl.enableDamping=true;ctl.autoRotate=true;ctl.autoRotateSpeed=.6;
+ addEventListener('resize',fit5);fit5()}
+function fit5(){if(!R5)return;R5.setSize(innerWidth,innerHeight,false);cam5.aspect=innerWidth/innerHeight;cam5.updateProjectionMatrix()}
+const loadGLTF=(u,pr)=>new Promise((ok,no)=>new THREE.GLTFLoader().load(u,g=>ok(g.scene),e=>e.total&&pr(e.loaded/e.total),no));
+function drop(){run=false;if(!cur)return;sc5.remove(cur);cur.traverse(o=>{if(o.isMesh){o.geometry.dispose();[].concat(o.material).forEach(m=>{for(const k in m)if(m[k]&&m[k].isTexture)m[k].dispose();m.dispose()})}});cur=null}
+(function loop5(){requestAnimationFrame(loop5);if(run){ctl.update();R5.render(sc5,cam5)}})();
+const songLink=(m,s)=>SVC[m].q+encodeURIComponent(s[0]+' '+s[1]);
+async function enterPlace(k){
+ const P=PLACES[k],tok=++seq;state.place=k;drop();go(5);
+ $('#pn').textContent=P.name;$('#pb').textContent=P.blurb;$('#sheet').innerHTML='';$('#ld').style.display='';$('#bar').style.width='0';$('#lt').textContent='Loading '+P.name+'…';
+ fetchPlaceFeed(k,state).then(f=>{if(tok!==seq||!f)return;const m=state.music.service;
+  $('#sheet').innerHTML=`<h3>Here now</h3><div class="pr">${f.people.map(p=>`<div class="pp">${pvw(avOf(p.av))}<b>${p.u}</b><i>♪ ${p.s}</i></div>`).join('')}</div><h3>Songs for this place</h3>${f.songs.map(s=>`<a class="sg" href="${songLink(m,s)}" target="_blank" rel="noopener"><b>${s[0]}</b><span>${s[1]}</span><em>Open in ${SVC[m].n}</em></a>`).join('')}<p class="cr">${P.credit}</p>`});
+ try{init5();
+  const root=await loadGLTF(P.url,p=>{$('#bar').style.width=Math.round(p*100)+'%'});
+  if(tok!==seq){root.traverse(o=>{if(o.isMesh)o.geometry.dispose()});return}
+  $('#lt').textContent='Building the scene…';
+  const b=new THREE.Box3().setFromObject(root),c=b.getCenter(new THREE.Vector3()),s=b.getSize(new THREE.Vector3()),r=Math.max(s.x,s.y,s.z)||1;
+  root.position.sub(c);sc5.add(root);cur=root;
+  cam5.near=r/1000;cam5.far=r*30;cam5.updateProjectionMatrix();cam5.position.set(r*.7,r*.5,r*.7);
+  ctl.target.set(0,0,0);ctl.minDistance=r*.05;ctl.maxDistance=r*2.5;ctl.maxPolarAngle=Math.PI*.495;ctl.update();
+  $('#ld').style.display='none';run=true;
+ }catch(e){console.warn(e);if(tok===seq)$('#lt').textContent='Could not load this place. Check that '+P.url+' (with scene.bin and textures/) is uploaded and the site is served over http(s).'}}
+$('#bk').onclick=()=>{seq++;drop();go(4)};
 
 /* ===== 3D avatar previews: one shared WebGL renderer drawn into each card's canvas ===== */
 const pvw=a=>`<div class="pvw" data-id="${a.id}"><div class="ph">${face(a.look)}</div><canvas class="pv" width="320" height="320"></canvas></div>`;
