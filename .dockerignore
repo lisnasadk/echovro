@@ -1,0 +1,11 @@
+.git
+.gitignore
+.github
+.idea
+.vscode
+**/target
+**/.classpath
+**/.project
+**/.settings
+**/node_modules
+**/.DS_Store

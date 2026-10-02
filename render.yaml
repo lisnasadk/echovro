@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: echovro-api
+    runtime: docker
+    region: oregon
+    plan: free
+    dockerfilePath: ./backend/echovro/Dockerfile
+    dockerContext: ./backend/echovro
+    envVars:
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGINS
+        value: https://echovrolive.vercel.app
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DATABASE_URL
+        sync: false
