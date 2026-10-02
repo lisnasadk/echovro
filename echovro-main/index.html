@@ -1139,9 +1139,10 @@ function receiveMsg(u,text){const c=conns[u];if(!c||c.status!=='connected')retur
 $('#pf').onclick=()=>openPanel();$('#ppx').onclick=()=>$('#pp').classList.remove('on');
 /* ---- voice chat (WebRTC; signalling goes through signal()/EchoVroReceive.signal) ---- */
 function showCall(t,inc){$('#call').classList.add('on');$('#cl').textContent=t;$('#cacc').style.display=inc?'':'none';$('#cmute').style.display=inc?'none':'';$('#cmute').textContent='Mute'}
-function makePc(c,stream){const pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});   // add a TURN server for restrictive networks
+function makePc(c,stream){const pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
  stream.getTracks().forEach(t=>pc.addTrack(t,stream));
- const au=new Audio();au.autoplay=true;pc.ontrack=e=>{au.srcObject=e.streams[0]};
+ const au=new Audio();au.autoplay=true;
+ pc.ontrack=e=>{au.srcObject=e.streams[0]; if(call) call.au = au; $('#call').appendChild(au);};
  pc.onicecandidate=e=>e.candidate&&signal({to:c.u,type:'ice',data:e.candidate});
  pc.onconnectionstatechange=()=>{const s=pc.connectionState;if(s==='connected')callUp();if(s==='failed'||s==='closed')endCall(true)};
  return pc}
@@ -1160,7 +1161,7 @@ async function acceptCall(){const m=pendingOffer;if(!m)return;pendingOffer=null;
  for(const i of iceBuf)try{await pc.addIceCandidate(i)}catch(e){}iceBuf=[];
  const a=await pc.createAnswer();await pc.setLocalDescription(a);signal({to:c.u,type:'answer',data:a});showCall('Connecting…')}
 function endCall(remote){if(pendingOffer){if(!remote)signal({to:pendingOffer.from,type:'hangup'});pendingOffer=null}
- if(call){clearInterval(call.iv);call.stream.getTracks().forEach(t=>t.stop());if(call.pc)call.pc.close();if(!remote)signal({to:call.c.u,type:'hangup'});call=null}
+ if(call){clearInterval(call.iv);call.stream.getTracks().forEach(t=>t.stop());if(call.au)call.au.remove();if(call.pc)call.pc.close();if(!remote)signal({to:call.c.u,type:'hangup'});call=null}
  $('#call').classList.remove('on')}
 $('#cend').onclick=()=>endCall(false);$('#cacc').onclick=acceptCall;
 $('#cmute').onclick=()=>{if(!call)return;const t=call.stream.getAudioTracks();t.forEach(x=>x.enabled=!x.enabled);$('#cmute').textContent=t[0]&&t[0].enabled?'Mute':'Unmute'};
