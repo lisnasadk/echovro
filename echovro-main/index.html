@@ -542,8 +542,54 @@ async function connect(k){
 $$('[data-svc]').forEach(b=>b.onclick=()=>connect(b.dataset.svc));
 const finish3=()=>{onComplete({...state});go(4)};
 $('#b3').onclick=()=>state.music?finish3():toast('Link a music service to continue.');
-// Returning from the music service (?code=...&state=spotify|ytm|gaana): resume. Exchange the code for a token on your backend.
-(()=>{const q=new URLSearchParams(location.search);if(q.get('code')){try{Object.assign(state,JSON.parse(sessionStorage.getItem('echovro_state')||'{}'));state.music={service:q.get('state')||'spotify',code:q.get('code')};history.replaceState(null,'',location.pathname);if(state.avatar)setTimeout(()=>{linkedUI();finish3()},50)}catch(e){}}})();
+// Returning from the music service (?code=...&state=spotify|ytm|gaana): resume.
+(async ()=>{
+  const q=new URLSearchParams(location.search);
+  const code = q.get('code');
+  const service = q.get('state') || 'spotify';
+  if(code){
+    try{
+      Object.assign(state,JSON.parse(sessionStorage.getItem('echovro_state')||'{}'));
+      state.music={service,code};
+      history.replaceState(null,'',location.pathname);
+      
+      if(service==='spotify'){
+        const v=sessionStorage.getItem('mus_verifier');
+        if(v && CONFIG.SPOTIFY_CLIENT_ID){
+          try{
+            const tr=await fetch('https://accounts.spotify.com/api/token',{
+              method:'POST',
+              headers:{'Content-Type':'application/x-www-form-urlencoded'},
+              body:new URLSearchParams({
+                client_id:CONFIG.SPOTIFY_CLIENT_ID,
+                grant_type:'authorization_code',
+                code:code,
+                redirect_uri:CONFIG.REDIRECT_URI,
+                code_verifier:v
+              })
+            });
+            if(tr.ok){
+              const td=await tr.json();
+              if(td.access_token){
+                const mr=await fetch('https://api.spotify.com/v1/me/top/tracks?limit=25',{
+                  headers:{'Authorization':'Bearer '+td.access_token}
+                });
+                if(mr.ok){
+                  const md=await mr.json();
+                  if(md.items&&md.items.length){
+                    state.tracks=md.items.map(it=>[it.name,(it.artists&&it.artists[0])?it.artists[0].name:'']);
+                  }
+                }
+              }
+            }
+          }catch(e){console.warn('Spotify track fetch',e)}
+        }
+      }
+      
+      if(state.avatar)setTimeout(()=>{linkedUI();finish3()},50);
+    }catch(e){}
+  }
+})();
 
 /* ===== Step 4: choose a place ===== */
 function drawPlaces(){$('#places').innerHTML=Object.entries(PLACES).map(([k,p],i)=>`<button class="pc" style="--i:${i}" data-k="${k}"><em>${p.icon}</em><b>${p.name}</b><span>${p.blurb}</span></button>`).join('')+`<button class="pc" data-room="1"><em>🎧</em><b>Listening room</b><span>Listen together, chat live.</span></button>`;
@@ -662,20 +708,42 @@ function setupMe(w,H){if(!w)return;const inner=w.children[0],rot=((models[state.
  me={w,inner,H,j,rot,h:w.userData.ry-rot,ty:w.position.y,iy:inner.position.y,ph:0,a:0,s:0,sit:0,seat:0}}
 const shift=(x,y,z)=>{const v=new THREE.Vector3(x,y,z);cam5.position.add(v);ctl.target.add(v)};
 /* ===== Compatibility modal: appears when you walk up to someone (uses echovro-ml.js) ===== */
-const myTracks=()=>[...(state.tracks||[]),...state.history];
-const trackList=P=>P.me?myTracks():(P.t&&P.t.length?P.t:(P.s?[[P.s,'']]:[]));
+const myTracks=()=>{
+  const list=[...(state.tracks||[]),...(state.history||[])];
+  if(!list.length && state.song){
+    const q=state.song.split(/\s+[–-]\s+/);
+    list.push([q[0], q[1]||'']);
+  }
+  return list;
+};
+const parseSongStr=s=>{
+  if(!s)return null;
+  const q=String(s).split(/\s+[–-]\s+/);
+  return [q[0], q[1]||''];
+};
+const trackList=P=>{
+  if(P.me)return myTracks();
+  if(P.t && Array.isArray(P.t) && P.t.length)return P.t;
+  if(P.s){
+    const ps=parseSongStr(P.s);
+    if(ps)return [ps];
+  }
+  return [];
+};
 function showCompat(P){
- const key=P.u+'|'+myTracks().length;let r=cc[key];
- if(!r){const mine=ML.profile(myTracks()),profs=[mine];
+ const key=P.u+'|'+myTracks().length+'|'+(P.s||'');let r=cc[key];
+ if(!r){
+  const mine=ML.profile(myTracks()),profs=[mine];
   crowd.children.forEach(w=>{const q=w.userData.P;if(q&&!q.me)profs.push(q.prof||(q.prof=ML.profile(trackList(q))))});
   ML.fit(profs);                                       // TF-IDF weights from everyone in the room
-  r=cc[key]=ML.compat(mine,P.prof||(P.prof=ML.profile(trackList(P))))}
- const L=g=>ML.LABEL[g],my=SVC[state.music.service].n,th=SVC[P.m]?SVC[P.m].n:'';
+  r=cc[key]=ML.compat(mine,P.prof||(P.prof=ML.profile(trackList(P))));
+ }
+ const L=g=>ML.LABEL[g]||g,my=SVC[state.music&&state.music.service?state.music.service:'spotify'].n,th=SVC[P.m]?SVC[P.m].n:'';
  $('#cmav').innerHTML=pvw(avOf(P.av));$('#cmn').textContent=P.u;
  $('#cmsv').textContent=th?(th===my?'Also on '+th:my+' ↔ '+th):'';
  $('#cmpct').textContent=r.score==null?'—':r.score+'%';$('#cmlb').textContent=r.label;$('#cmfill').style.width=(r.score||0)+'%';
- $('#cmc').innerHTML=r.shared.map(g=>'<u>'+L(g)+'</u>').join('')||(r.score==null?'':'<u>No shared genres yet</u>');
- $('#cmt').textContent=(P.s?'Listening to: '+P.s+'. ':'')+(r.theirTop.length?'Their taste: '+r.theirTop.slice(0,3).map(L).join(', ')+'.':'')+(r.bridge?' They could introduce you to '+L(r.bridge)+'.':'');
+ $('#cmc').innerHTML=(r.shared&&r.shared.length)?r.shared.map(g=>'<u>'+L(g)+'</u>').join(''):(r.score==null?'':'<u>Similar music vibe</u>');
+ $('#cmt').textContent=(P.s?'Listening to: '+P.s+'. ':'')+(r.theirTop&&r.theirTop.length?'Their taste: '+r.theirTop.slice(0,3).map(L).join(', ')+'.':'')+(r.bridge?' They could introduce you to '+L(r.bridge)+'.':'');
  cmP=P;renderCmActions();$('#cm').classList.add('on')}
 function tickNear(n){if(!me||!crowd||n-nearT<200)return;nearT=n;const p=me.w.position,H=me.H;let best=null,bd=1e9;
  crowd.children.forEach(w=>{if(w===me.w||!w.userData.P)return;const d=Math.hypot(w.position.x-p.x,w.position.z-p.z)+Math.abs(w.position.y-p.y)*2;if(d<bd){bd=d;best=w}});

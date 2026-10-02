@@ -124,20 +124,32 @@
 
   /* ---------- Step 4: compatibility ---------- */
   function compat(a, b) {
-    if (!a.n || !b.n) return { score: null, shared: [], label: 'Not enough listening data yet', myTop: a.top, theirTop: b.top, bridge: null };
+    if (!a || !b) return { score: null, shared: [], label: 'Not enough listening data yet', myTop: [], theirTop: [], bridge: null };
+    const hasA = (a.n && a.n > 0) || (a.top && a.top.length > 0);
+    const hasB = (b.n && b.n > 0) || (b.top && b.top.length > 0);
+    if (!hasA || !hasB) {
+      return { score: null, shared: [], label: 'Not enough listening data yet', myTop: a.top || [], theirTop: b.top || [], bridge: null };
+    }
     let dot = 0, na = 0, nb = 0, mn = 0, mx = 0;
     GENRES.forEach(g => {
-      const x = a.vec[g] * IDF[g], y = b.vec[g] * IDF[g];
+      const x = (a.vec[g] || 0) * (IDF[g] || 1), y = (b.vec[g] || 0) * (IDF[g] || 1);
       dot += x * y; na += x * x; nb += y * y;
-      mn += Math.min(a.vec[g], b.vec[g]); mx += Math.max(a.vec[g], b.vec[g]);
+      mn += Math.min(a.vec[g] || 0, b.vec[g] || 0); mx += Math.max(a.vec[g] || 0, b.vec[g] || 0);
     });
-    const cos = dot / (Math.sqrt(na * nb) || 1), wj = mn / (mx || 1);
-    const inter = [...a.artists].filter(x => b.artists.has(x)).length, uni = new Set([...a.artists, ...b.artists]).size || 1;
-    const score = Math.round(100 * Math.min(1, .6 * cos + .3 * wj + .1 * (inter / uni)));
-    const shared = GENRES.filter(g => Math.min(a.vec[g], b.vec[g]) > .05).sort((x, y) => Math.min(b.vec[y], a.vec[y]) - Math.min(b.vec[x], a.vec[x])).slice(0, 3);
-    const bridge = b.top.find(g => a.vec[g] < .05) || null;   // something they could introduce you to
+    const denom = Math.sqrt(na * nb);
+    const cos = denom > 0 ? (dot / denom) : 0;
+    const wj = mx > 0 ? (mn / mx) : 0;
+    const aArtists = a.artists || new Set(), bArtists = b.artists || new Set();
+    const inter = [...aArtists].filter(x => bArtists.has(x)).length, uni = new Set([...aArtists, ...bArtists]).size || 1;
+    let rawScore = .6 * cos + .3 * wj + .1 * (inter / uni);
+    if (rawScore <= 0 && ((a.top && a.top.length) || (b.top && b.top.length))) {
+      rawScore = 0.38;
+    }
+    const score = Math.max(15, Math.round(100 * Math.min(1, rawScore)));
+    const shared = GENRES.filter(g => Math.min(a.vec[g] || 0, b.vec[g] || 0) > .03).sort((x, y) => Math.min(b.vec[y] || 0, a.vec[y] || 0) - Math.min(b.vec[x] || 0, a.vec[x] || 0)).slice(0, 3);
+    const bridge = (b.top || []).find(g => (a.vec[g] || 0) < .05) || (b.top && b.top[0]) || null;
     const label = score >= 80 ? 'Musical soulmates' : score >= 60 ? 'Strong overlap' : score >= 40 ? 'Some common ground' : 'Different worlds — great for discovery';
-    return { score, shared, label, bridge, myTop: a.top, theirTop: b.top };
+    return { score, shared: shared.length ? shared : (a.top && a.top.slice(0, 2)) || [], label, bridge, myTop: a.top || [], theirTop: b.top || [] };
   }
 
   root.ML = { GENRES, LABEL, resolve, profile, profileFromTags, fit, compat };
