@@ -677,7 +677,11 @@ function groundSpots(root,ray,b,H,n){
 async function spawnCrowd(root,fp,tok){
  const f=await fp;if(tok!==seq)return;
  root.updateMatrixWorld(true);
- const b=new THREE.Box3().setFromObject(root),sz=b.getSize(new THREE.Vector3()),r=Math.max(sz.x,sz.y,sz.z)||1,H=r*.05;   // avatar height = 5% of the place
+ const b=new THREE.Box3().setFromObject(root),sz=b.getSize(new THREE.Vector3()),r=Math.max(sz.x,sz.y,sz.z)||1;
+ let H=r*.05;
+ if(state.place==='city'){
+   H=r*0.015; // Scaled down in city so buildings and skyscrapers tower realistically
+ }
  const list=[{u:state.username,av:state.avatar,me:1,s:state.song},...((f&&f.people)||[]).map(p=>({u:p.u,av:p.av,s:p.s,m:p.m,t:p.t}))];
  const grp=new THREE.Group(),ray=new THREE.Raycaster(),n=list.length,R=H*1.5;
  const g0=PLACES[state.place].ground?groundSpots(root,ray,b,H,n):null,spots=[];
@@ -697,6 +701,82 @@ async function spawnCrowd(root,fp,tok){
  sc5.add(grp);crowd=grp;setupMe(grp.children.find(c=>c.userData.me),H);
  cam5.near=Math.min(r/1000,H/50);cam5.updateProjectionMatrix();
  ctl.target.set(cx,gy0+H*.55,cz);cam5.position.set(camX,gy0+H*1.7,camZ);ctl.minDistance=H*1.2;ctl.update()}
+
+async function syncCrowdPresences(newPeople){
+ if(!crowd || !me || !run) return;
+ const currentNames = new Set((newPeople||[]).map(p=>p.u));
+ 
+ // 1. Remove avatars for users who left
+ const toRemove = [];
+ crowd.children.forEach(c => {
+   if(c.userData.P && !c.userData.me && !currentNames.has(c.userData.P.u)){
+     toRemove.push(c);
+   }
+ });
+ toRemove.forEach(c => {
+   crowd.remove(c);
+   if(c.userData.st){
+     c.userData.st.material.map.dispose();
+     c.userData.st.material.dispose();
+   }
+   toast(c.userData.P.u + ' left the place');
+   if(nearU === c) {
+     nearU = null;
+     cmP = null;
+     $('#cm').classList.remove('on');
+   }
+ });
+
+ // 2. Add avatars for newly joined users
+ const existingNames = new Set(crowd.children.filter(c=>c.userData.P).map(c=>c.userData.P.u));
+ for(const p of (newPeople||[])){
+   if(p.u !== state.username && !existingNames.has(p.u)){
+     const pv = await avReady(p.av);
+     if(!pv || !crowd || !me) continue;
+     const H = me.H;
+     const inner = new THREE.Group();
+     inner.add(THREE.SkeletonUtils.clone(pv.children[0]));
+     inner.updateMatrixWorld(true);
+     let bb = new THREE.Box3().setFromObject(inner);
+     inner.scale.setScalar(H / ((bb.max.y - bb.min.y) || 1));
+     inner.updateMatrixWorld(true);
+     bb = new THREE.Box3().setFromObject(inner);
+     const cc = bb.getCenter(new THREE.Vector3());
+     inner.position.set(-cc.x, -bb.min.y, -cc.z);
+     
+     const w = new THREE.Group();
+     w.add(inner, nameTag(p.u, false, H));
+     if(p.s){
+       w.userData.st = songTag(p.s, H);
+       w.add(w.userData.st);
+     }
+     const ang = Math.random() * Math.PI * 2, dist = H * (1.8 + Math.random() * 2.5);
+     const px = me.w.position.x + Math.sin(ang) * dist;
+     const pz = me.w.position.z + Math.cos(ang) * dist;
+     w.position.set(px, me.w.position.y, pz);
+     w.userData.me = false;
+     w.userData.P = p;
+     w.userData.ry = w.rotation.y = Math.random() * Math.PI * 2;
+     crowd.add(w);
+     toast(p.u + ' entered the place');
+   } else if(p.u !== state.username) {
+     const child = crowd.children.find(c => c.userData.P && c.userData.P.u === p.u);
+     if(child && child.userData.P.s !== p.s){
+       child.userData.P.s = p.s;
+       if(child.userData.st){
+         child.remove(child.userData.st);
+         child.userData.st.material.map.dispose();
+         child.userData.st.material.dispose();
+         child.userData.st = null;
+       }
+       if(p.s){
+         child.userData.st = songTag(p.s, me.H);
+         child.add(child.userData.st);
+       }
+     }
+   }
+ }
+}
 (function loop5(){requestAnimationFrame(loop5);const n=performance.now(),dt=Math.min(.05,(n-(loop5.t||n))/1000);loop5.t=n;
  if(run){if(crowd){const t=n/1000;crowd.children.forEach((w,i)=>{if(me&&w===me.w)return;w.rotation.y=w.userData.ry+Math.sin(t*.8+i*1.7)*.18})}
   tickMe(dt);tickNear(n);ctl.update();R5.render(sc5,cam5)}})();
@@ -854,6 +934,7 @@ async function pollSyncEvents(){
       if(f && (!feed || JSON.stringify(f.people) !== JSON.stringify(feed.people))){
         feed = f;
         renderSheet();
+        syncCrowdPresences(f.people);
       }
     } catch(e){}
   }
@@ -1131,6 +1212,22 @@ function loop(now){requestAnimationFrame(loop);if(step===5)return;const t=(now-t
 requestAnimationFrame(loop);
 
 /* ===== Automatic session restore on startup ===== */
+function restoreLocalProfile(){
+  try {
+    const raw = localStorage.getItem('echovro_user_profile');
+    if(raw){
+      const p = JSON.parse(raw);
+      if(p.username) state.username = p.username;
+      if(p.email) state.email = p.email;
+      if(p.gender) state.gender = p.gender;
+      if(p.avatar) state.avatar = p.avatar;
+      if(p.music) state.music = p.music;
+      if(p.tracks) state.tracks = p.tracks;
+    }
+  } catch(e){}
+}
+restoreLocalProfile();
+
 async function initSession(){
   if(!CONFIG.USE_BACKEND || !getToken()) return;
   try {
@@ -1139,15 +1236,43 @@ async function initSession(){
       const p = await r.json();
       if(p && p.name){
         state.username = p.name;
-        state.email = p.email || '';
+        state.email = p.email || state.email || '';
         if(p.gender) state.gender = p.gender;
         if(p.avatar) state.avatar = p.avatar;
         if(p.musicService) state.music = { service: p.musicService };
-        if(p.tracks) state.tracks = p.tracks;
+        if(p.tracks && p.tracks.length) state.tracks = p.tracks;
+        
+        localStorage.setItem('echovro_user_profile', JSON.stringify({
+          username: state.username,
+          email: state.email,
+          gender: state.gender,
+          avatar: state.avatar,
+          music: state.music,
+          tracks: state.tracks
+        }));
+        
         loadConns();
+        if(step === 0 || step === 1){
+          if(state.avatar && state.music){
+            go(4);
+          } else if(state.avatar){
+            go(3);
+          } else {
+            go(2);
+          }
+        }
       }
     }
   } catch(e){}
 }
 initSession();
+
+window.addEventListener('beforeunload', () => {
+  if(CONFIG.USE_BACKEND && state.username && state.place){
+    navigator.sendBeacon('/api/places/leave?user=' + encodeURIComponent(state.username));
+  }
+  if(call){
+    endCall(false);
+  }
+});
 </script></body></html>
