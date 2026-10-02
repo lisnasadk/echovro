@@ -27,6 +27,6 @@ public class SyncWebSocketController {
     public SyncEventDto[] fetchSyncEvents(String username) {
         // The SyncService already provides a method to fetch undelivered events.
         // For simplicity we retrieve all pending events for the user and return them.
-        return syncService.getUndeliveredEvents(username).toArray(new SyncEventDto[0]);
+        return syncService.pollUndeliveredEvents(username).toArray(new SyncEventDto[0]);
     }
 }

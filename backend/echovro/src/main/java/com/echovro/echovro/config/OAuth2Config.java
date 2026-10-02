@@ -19,7 +19,7 @@ public class OAuth2Config {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             // Permit all static resources and the root UI
-            .csrf().disable()
+            .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/index.html", "/static/**", "/webjars/**").permitAll()
                 .anyRequest().authenticated()
