@@ -441,7 +441,7 @@ button, .btn, .av, .pc, #pad button {
 <div class="dots" id="dots"><i class="on"></i><i></i><i></i><i></i><i></i></div>
 <button id="pf" aria-label="Your profile"><div class="fa" id="pfa"></div><span id="pfb"></span></button>
 <aside id="pp"><div class="pph"><div class="fa" id="ppav"></div><div><b id="ppn"></b><i id="pps"></i></div><button class="btn g" id="ppx">✕</button></div><div id="ppb"></div></aside>
-<div id="call"><span id="cl"></span><button class="btn" id="cacc" style="display:none">Accept</button><button class="btn g" id="cmute">Mute</button><button class="btn" id="cend">End</button></div>
+<div id="call" style="display:none"></div>
 <div id="sr"><div class="card"><h2 id="srt"></h2><p class="sub">Pick a song you think they would love. They will see it with your request.</p>
 <div class="row" id="srs"></div>
 <label for="sri">Song</label><input id="sri" list="srl" placeholder="Song – artist"><datalist id="srl"></datalist>
@@ -1092,12 +1092,12 @@ function respond(u,ok){const c=conns[u];if(!c)return;onRespondSend({to:u,accept:
  if(ok){c.status='connected';toast('Connected with '+u)}else c.status='none';
  saveConns();refresh();if(ok)openPanel('thread',u)}
 function renderCmActions(){const P=cmP;if(!P)return;const c=conns[P.u],a=$('#cma');
- if(c&&c.status==='connected')a.innerHTML='<button class="btn" data-a="chat">Message</button><button class="btn" data-a="voice">Voice call</button>';
+ if(c&&c.status==='connected')a.innerHTML='<button class="btn" data-a="chat">Message</button>';
  else if(c&&c.status==='pending'&&c.dir==='in')a.innerHTML='<button class="btn" data-a="yes">Accept</button><button class="btn g" data-a="no">Decline</button>';
  else if(c&&c.status==='pending')a.innerHTML='<button class="btn" disabled>Request sent…</button>';
  else a.innerHTML='<button class="btn" data-a="connect">Connect through a song</button>';
  a.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const k=b.dataset.a;
-  if(k==='chat')openPanel('thread',P.u);else if(k==='voice')openVoice(conns[P.u]);else if(k==='connect')openSongPick(P);else respond(P.u,k==='yes')})}
+  if(k==='chat')openPanel('thread',P.u);else if(k==='connect')openSongPick(P);else respond(P.u,k==='yes')})}
 /* ---- profile panel with chat menu ---- */
 async function openPanel(view,u){
   ppThread=view==='thread'&&conns[u]&&conns[u].status==='connected'?u:null;
@@ -1123,8 +1123,8 @@ function renderPanel(){const p=$('#pp');if(!p.classList.contains('on'))return;co
  $('#ppav').innerHTML=a?pvw(a):'';$('#ppn').textContent=state.username;$('#pps').textContent=state.music?SVC[state.music.service].n+' linked':'';
  const body=$('#ppb'),list=Object.values(conns);
  if(ppThread&&conns[ppThread]&&conns[ppThread].status==='connected'){const c=conns[ppThread];
-  body.innerHTML=`<div class="thh"><button class="btn g" id="thb">←</button>${fa(c.av)}<b>${esc(c.u)}</b><button class="btn" id="thv">🎙 Voice</button></div><div id="thm">${(c.msgs||[]).map(bub).join('')||'<p class="emp">Say hi 👋</p>'}</div><div class="mine" style="margin:10px 0 0"><input id="thi" maxlength="300" placeholder="Message…"><button class="btn" id="ths">Send</button></div>`;
-  $('#thb').onclick=()=>{ppThread=null;renderPanel()};$('#thv').onclick=()=>openVoice(c);
+  body.innerHTML=`<div class="thh"><button class="btn g" id="thb">←</button>${fa(c.av)}<b>${esc(c.u)}</b></div><div id="thm">${(c.msgs||[]).map(bub).join('')||'<p class="emp">Say hi 👋</p>'}</div><div class="mine" style="margin:10px 0 0"><input id="thi" maxlength="300" placeholder="Message…"><button class="btn" id="ths">Send</button></div>`;
+  $('#thb').onclick=()=>{ppThread=null;renderPanel()};
   const send=()=>{const v=$('#thi').value.trim();if(v)sendMsg(c.u,v)};$('#ths').onclick=send;$('#thi').onkeydown=e=>{if(e.key==='Enter')send()};
   const m=$('#thm');m.scrollTop=m.scrollHeight;return}
  ppThread=null;
@@ -1234,8 +1234,9 @@ addEventListener('keyup',e=>{if(KM[e.code])keys[KM[e.code]]=0});
 const songLink=(m,s)=>SVC[m].q+encodeURIComponent(s[0]+' '+s[1]);
 async function enterPlace(k){
  const P=PLACES[k],tok=++seq;state.place=k;state.song='';feed=null;drop();go(5);
+ // IMPORTANT: await join so we are in the DB before the feed is fetched
  if(CONFIG.USE_BACKEND && state.username){
-   api('/api/places/'+encodeURIComponent(k)+'/join?user='+encodeURIComponent(state.username), {method:'POST'}).catch(()=>{});
+   try{ await api('/api/places/'+encodeURIComponent(k)+'/join?user='+encodeURIComponent(state.username),{method:'POST'}); }catch(e){}
  }
  $('#pn').textContent=P.name;$('#pb').textContent=P.blurb;$('#sheet').innerHTML='';$('#ld').style.display='';$('#bar').style.width='0';$('#lt').textContent='Loading '+P.name+'…';
  if(!state.tracks)fetchMyTracks(state).then(t=>{state.tracks=t||[]});
@@ -1252,6 +1253,8 @@ async function enterPlace(k){
   ctl.target.set(0,0,0);ctl.minDistance=r*.05;ctl.maxDistance=r*2.5;ctl.maxPolarAngle=Math.PI*.495;ctl.update();
   await spawnCrowd(root,fp,tok);if(tok!==seq)return;
   $('#ld').style.display='none';run=true;$('#pad').classList.add('rdy');
+  // Re-fetch after scene loads to pick up users who joined during the 3D load
+  try{const f2=await fetchPlaceFeed(k,state);if(tok===seq&&f2){feed=f2;renderSheet();syncCrowdPresences(f2.people);}}catch(e){}
  }catch(e){delete placeCache[k];console.error('Place load failed',P.url,e);if(tok===seq)$('#lt').textContent='Could not load '+P.url+' — '+((e&&e.message)||(e&&e.target&&('HTTP '+(e.target.status||'error')))||String(e))}}
 let sheetOpen=true;
 $('#shtog').onclick=()=>{

@@ -25,11 +25,7 @@ public class PlaceService {
     public PlaceFeedResponse getFeed(String placeKey, String currentUsername) {
         List<PlacePersonDto> people = new ArrayList<>();
         List<User> dbUsers = userRepository.findByCurrentPlace(placeKey);
-
         Set<String> seenUsernames = new HashSet<>();
-        if (currentUsername != null && !currentUsername.isBlank()) {
-            seenUsernames.add(currentUsername);
-        }
 
         for (User u : dbUsers) {
             if (seenUsernames.contains(u.getName())) continue;
