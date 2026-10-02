@@ -328,10 +328,10 @@ input:focus{border-color:#6f9bff;box-shadow:0 0 0 4px rgba(111,155,255,.18)}inpu
 <script src="echovro-ml.js"></script>
 <script>
 /* ============ CONFIG — the programmer fills these ============ */
-const isLocalBackend = window.location.port === '8080' || !window.location.port;
+const isLocalBackend = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const CONFIG={
   USE_BACKEND:true,                             // ← true = sign up / log in call your Java Spring Boot backend
-  API_BASE: isLocalBackend ? '' : 'http://localhost:8080', // ← backend URL
+  API_BASE: isLocalBackend ? 'http://localhost:8080' : '', // ← empty = use Vercel proxy /api/*
   EMAILJS_PUBLIC_KEY:'c4-pOoJtU-Uw8x7TZ',           // ← EmailJS: Account → API keys → Public Key
   EMAILJS_SERVICE_ID:'service_kcud9cp',               // ← EmailJS: Email Services → Service ID
   EMAILJS_TEMPLATE_ID:'template_ub25zoo',             // ← EmailJS: Email Templates → Template ID
