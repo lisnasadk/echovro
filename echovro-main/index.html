@@ -1187,8 +1187,7 @@ async function acceptCall(){const m=pendingOffer;if(!m)return;pendingOffer=null;
 function endCall(remote){if(pendingOffer){if(!remote)signal({to:pendingOffer.from,type:'hangup'});pendingOffer=null}
  if(call){clearInterval(call.iv);call.stream.getTracks().forEach(t=>t.stop());if(call.au)call.au.remove();if(call.pc)call.pc.close();if(!remote)signal({to:call.c.u,type:'hangup'});call=null}
  $('#call').classList.remove('on')}
-$('#cend').onclick=()=>endCall(false);$('#cacc').onclick=acceptCall;
-$('#cmute').onclick=()=>{if(!call)return;const t=call.stream.getAudioTracks();t.forEach(x=>x.enabled=!x.enabled);$('#cmute').textContent=t[0]&&t[0].enabled?'Mute':'Unmute'};
+
 function findSeat(){const m=me,o=m.w.position,H=m.H;
  for(let i=0;i<12;i++){const a=i/12*6.283,x=o.x+Math.sin(a)*H*.7,z=o.z+Math.cos(a)*H*.7;
   mray.set(new THREE.Vector3(x,o.y+H*.6,z),DOWN);const h=mray.intersectObject(cur,true)[0];
