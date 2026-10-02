@@ -779,6 +779,16 @@ async function pollSyncEvents(){
       }
     }
   } catch(e){}
+
+  if(state.place){
+    try {
+      const f = await fetchPlaceFeed(state.place, state);
+      if(f && (!feed || JSON.stringify(f.people) !== JSON.stringify(feed.people))){
+        feed = f;
+        renderSheet();
+      }
+    } catch(e){}
+  }
 }
 setInterval(pollSyncEvents, 2500);
 
@@ -910,6 +920,9 @@ addEventListener('keyup',e=>{if(KM[e.code])keys[KM[e.code]]=0});
 const songLink=(m,s)=>SVC[m].q+encodeURIComponent(s[0]+' '+s[1]);
 async function enterPlace(k){
  const P=PLACES[k],tok=++seq;state.place=k;state.song='';feed=null;drop();go(5);
+ if(CONFIG.USE_BACKEND && state.username){
+   api('/api/places/'+encodeURIComponent(k)+'/join?user='+encodeURIComponent(state.username), {method:'POST'}).catch(()=>{});
+ }
  $('#pn').textContent=P.name;$('#pb').textContent=P.blurb;$('#sheet').innerHTML='';$('#ld').style.display='';$('#bar').style.width='0';$('#lt').textContent='Loading '+P.name+'…';
  if(!state.tracks)fetchMyTracks(state).then(t=>{state.tracks=t||[]});
  const fp=fetchPlaceFeed(k,state);fp.then(f=>{if(tok!==seq||!f)return;feed=f;renderSheet()});
@@ -926,7 +939,14 @@ async function enterPlace(k){
   await spawnCrowd(root,fp,tok);if(tok!==seq)return;
   $('#ld').style.display='none';run=true;$('#pad').classList.add('rdy');
  }catch(e){delete placeCache[k];console.error('Place load failed',P.url,e);if(tok===seq)$('#lt').textContent='Could not load '+P.url+' — '+((e&&e.message)||(e&&e.target&&('HTTP '+(e.target.status||'error')))||String(e))}}
-$('#bk').onclick=()=>{seq++;drop();go(4)};
+$('#bk').onclick=()=>{
+ seq++;
+ if(CONFIG.USE_BACKEND && state.username){
+   api('/api/places/leave?user='+encodeURIComponent(state.username), {method:'POST'}).catch(()=>{});
+ }
+ drop();
+ go(4);
+};
 
 /* ===== Connect through a song: the only way to send a connection request ===== */
 let srP=null,srS='';

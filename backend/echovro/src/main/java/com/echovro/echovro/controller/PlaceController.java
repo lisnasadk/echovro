@@ -38,4 +38,10 @@ public class PlaceController {
         placeService.joinPlace(placeKey, user);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/leave")
+    public ResponseEntity<Void> leavePlace(@RequestParam("user") String user) {
+        placeService.leavePlace(user);
+        return ResponseEntity.ok().build();
+    }
 }
