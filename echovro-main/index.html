@@ -63,7 +63,7 @@ input:focus{border-color:var(--cream)}
 #ld{align-self:center;text-align:center;width:min(420px,100%)}
 .barw{height:3px;background:rgba(184,191,202,.3)}#bar{height:100%;width:0;background:var(--cream);transition:width .2s}
 #ld p{margin-top:12px;color:var(--silver);font-size:18px}
-#sheet{width:min(720px,100%);align-self:center;max-height:42vh;overflow-y:auto;padding:18px 20px;background:rgba(15,27,51,.84);border:1px solid rgba(184,191,202,.3);backdrop-filter:blur(10px)}
+#sheet{width:min(720px,100%);align-self:center;max-height:42vh;overflow-y:auto;padding:18px 20px;background:rgba(15,27,51,.84);border:1px solid rgba(184,191,202,.3);backdrop-filter:blur(10px);transition:all 0.3s ease}
 #sheet h3{font:500 20px 'Sora',serif;margin:6px 0 10px}
 .pr{display:flex;gap:16px;overflow-x:auto;padding-bottom:6px}.pp{width:84px;flex:none;text-align:center}.pp .pvw{width:56px;margin:0 auto 6px;border:1px solid var(--cream)}
 .pp b{display:block;font-size:16px;font-weight:500}.pp i{display:block;font-size:14px;color:var(--silver);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -214,6 +214,133 @@ input:focus{border-color:#6f9bff;box-shadow:0 0 0 4px rgba(111,155,255,.18)}inpu
 .emp{font-style:normal;font-size:14px}
 #toast{font:500 14px 'Inter',sans-serif;border-radius:999px;background:#eaf0ff;color:#0b1220;padding:10px 20px}
 #cmfill,#bar{background:var(--acc)}
+
+/* ===== Mobile-First Responsive Overhaul ===== */
+*{
+  -webkit-tap-highlight-color: transparent;
+}
+button, .btn, .av, .pc, #pad button {
+  touch-action: manipulation;
+  user-select: none;
+}
+.btn:active, .av:active, .pc:active {
+  transform: scale(0.97);
+}
+
+@media (max-width: 768px) {
+  .scr {
+    padding: max(16px, env(safe-area-inset-top, 0px)) 16px max(70px, env(safe-area-inset-bottom, 0px));
+  }
+  .card, .plate {
+    width: 100%;
+    max-width: min(440px, 94vw);
+    padding: 24px 18px;
+    border-radius: 24px;
+  }
+  .grid {
+    gap: 10px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    width: 100%;
+    max-width: 380px;
+  }
+  .av {
+    width: 100%;
+    padding: 10px 6px;
+    border-radius: 18px;
+  }
+  .av b {
+    font-size: 13px;
+    margin-top: 6px;
+  }
+  #places {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    width: 100%;
+    max-width: 380px;
+  }
+  .pc {
+    width: 100%;
+    padding: 16px 12px;
+    border-radius: 20px;
+  }
+  .pc em {
+    font-size: 28px;
+    margin-bottom: 4px;
+  }
+  .pc b {
+    font-size: 15px;
+  }
+  .pc span {
+    font-size: 12px;
+    margin-top: 4px;
+  }
+  /* Room sheet mobile bottom drawer */
+  #sheet {
+    width: 100%;
+    max-width: 100vw;
+    border-radius: 24px 24px 0 0;
+    max-height: 38vh;
+    padding: 12px 16px max(14px, env(safe-area-inset-bottom, 0px));
+    margin-bottom: 0;
+    border-bottom: none;
+  }
+  #sheet::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 2px;
+    margin: 0 auto 10px;
+  }
+  /* D-pad ergonomics on mobile */
+  #pad {
+    right: 12px;
+    bottom: calc(38vh + 14px);
+    grid-template-columns: repeat(3, 44px);
+    gap: 5px;
+  }
+  #pad button {
+    padding: 10px 0;
+    font-size: 11px;
+    border-radius: 10px;
+  }
+  /* Floating compatibility card on mobile */
+  #cm {
+    left: 12px;
+    right: 12px;
+    width: auto;
+    bottom: calc(38vh + 14px);
+    max-width: calc(100vw - 24px);
+    border-radius: 20px;
+    padding: 14px;
+  }
+  /* Chat profile drawer as mobile bottom sheet */
+  #pp {
+    width: 100vw;
+    border-radius: 24px 24px 0 0;
+    border-left: none;
+    border-top: 1px solid var(--line);
+    transform: translateY(100%);
+  }
+  #pp.on {
+    transform: translateY(0);
+  }
+  /* Mobile call bar */
+  #call {
+    width: min(92vw, 360px);
+    border-radius: 999px;
+    justify-content: space-between;
+    padding: 10px 16px;
+  }
+  /* Inputs: prevent 16px zoom trigger on iOS Safari */
+  input {
+    font-size: 16px !important;
+    padding: 12px 14px;
+  }
+}
 </style></head><body>
 <canvas id="c"></canvas><div class="vig"></div><canvas id="pl"></canvas>
 
@@ -282,7 +409,11 @@ input:focus{border-color:#6f9bff;box-shadow:0 0 0 4px rgba(111,155,255,.18)}inpu
 
 <!-- 5 · PLACE (3D scene + people + songs) -->
 <section class="scr" id="s5">
-  <div class="top"><button class="btn g" id="bk">Back</button><div><h2 id="pn"></h2><p class="sub" id="pb"></p></div></div>
+  <div class="top">
+    <button class="btn g" id="bk">Back</button>
+    <div><h2 id="pn"></h2><p class="sub" id="pb"></p></div>
+    <button class="btn" id="shtog" style="margin-left:auto;border-radius:20px;padding:8px 16px;">▼ Menu</button>
+  </div>
   <div id="ld"><div class="barw"><div id="bar"></div></div><p id="lt"></p></div>
   <div id="sheet"></div>
   <div id="cm"><div class="cmh"><div id="cmav"></div><div><b id="cmn"></b><i id="cmsv"></i></div></div><div class="cmp"><strong id="cmpct"></strong><span id="cmlb"></span></div><div class="cmbar"><div id="cmfill"></div></div><div class="cmc" id="cmc"></div><p id="cmt"></p><div class="cma" id="cma"></div></div>
@@ -1008,9 +1139,10 @@ function receiveMsg(u,text){const c=conns[u];if(!c||c.status!=='connected')retur
 $('#pf').onclick=()=>openPanel();$('#ppx').onclick=()=>$('#pp').classList.remove('on');
 /* ---- voice chat (WebRTC; signalling goes through signal()/EchoVroReceive.signal) ---- */
 function showCall(t,inc){$('#call').classList.add('on');$('#cl').textContent=t;$('#cacc').style.display=inc?'':'none';$('#cmute').style.display=inc?'none':'';$('#cmute').textContent='Mute'}
-function makePc(c,stream){const pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});   // add a TURN server for restrictive networks
+function makePc(c,stream){const pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
  stream.getTracks().forEach(t=>pc.addTrack(t,stream));
- const au=new Audio();au.autoplay=true;pc.ontrack=e=>{au.srcObject=e.streams[0]};
+ const au=new Audio();au.autoplay=true;
+ pc.ontrack=e=>{au.srcObject=e.streams[0]; if(call) call.au = au; $('#call').appendChild(au);};
  pc.onicecandidate=e=>e.candidate&&signal({to:c.u,type:'ice',data:e.candidate});
  pc.onconnectionstatechange=()=>{const s=pc.connectionState;if(s==='connected')callUp();if(s==='failed'||s==='closed')endCall(true)};
  return pc}
@@ -1029,7 +1161,7 @@ async function acceptCall(){const m=pendingOffer;if(!m)return;pendingOffer=null;
  for(const i of iceBuf)try{await pc.addIceCandidate(i)}catch(e){}iceBuf=[];
  const a=await pc.createAnswer();await pc.setLocalDescription(a);signal({to:c.u,type:'answer',data:a});showCall('Connecting…')}
 function endCall(remote){if(pendingOffer){if(!remote)signal({to:pendingOffer.from,type:'hangup'});pendingOffer=null}
- if(call){clearInterval(call.iv);call.stream.getTracks().forEach(t=>t.stop());if(call.pc)call.pc.close();if(!remote)signal({to:call.c.u,type:'hangup'});call=null}
+ if(call){clearInterval(call.iv);call.stream.getTracks().forEach(t=>t.stop());if(call.au)call.au.remove();if(call.pc)call.pc.close();if(!remote)signal({to:call.c.u,type:'hangup'});call=null}
  $('#call').classList.remove('on')}
 $('#cend').onclick=()=>endCall(false);$('#cacc').onclick=acceptCall;
 $('#cmute').onclick=()=>{if(!call)return;const t=call.stream.getAudioTracks();t.forEach(x=>x.enabled=!x.enabled);$('#cmute').textContent=t[0]&&t[0].enabled?'Mute':'Unmute'};
@@ -1088,6 +1220,17 @@ async function enterPlace(k){
   await spawnCrowd(root,fp,tok);if(tok!==seq)return;
   $('#ld').style.display='none';run=true;$('#pad').classList.add('rdy');
  }catch(e){delete placeCache[k];console.error('Place load failed',P.url,e);if(tok===seq)$('#lt').textContent='Could not load '+P.url+' — '+((e&&e.message)||(e&&e.target&&('HTTP '+(e.target.status||'error')))||String(e))}}
+let sheetOpen=true;
+$('#shtog').onclick=()=>{
+ sheetOpen=!sheetOpen;
+ const s=$('#sheet');
+ s.style.maxHeight=sheetOpen?'':'0';
+ s.style.padding=sheetOpen?'':'0';
+ s.style.opacity=sheetOpen?'1':'0';
+ s.style.borderWidth=sheetOpen?'':'0';
+ s.style.overflow=sheetOpen?'auto':'hidden';
+ $('#shtog').textContent=sheetOpen?'▼ Menu':'▲ Menu';
+};
 $('#bk').onclick=()=>{
  seq++;
  if(CONFIG.USE_BACKEND && state.username){
