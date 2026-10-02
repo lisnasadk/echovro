@@ -25,13 +25,18 @@ public class AuthService {
     }
 
     public AuthResponse register(RegisterRequest request) {
-        String email = request.getEmail() == null ? "" : request.getEmail().trim();
+        String email = request.getEmail() == null ? "" : request.getEmail().trim().toLowerCase();
+        String name = request.getName() == null ? "" : request.getName().trim();
+
         if (userRepository.existsByEmail(email)) {
-            throw new ApiException(HttpStatus.CONFLICT, "Email already registered");
+            throw new ApiException(HttpStatus.CONFLICT, "Email is already registered. Please click 'Log in' instead.");
+        }
+        if (userRepository.existsByName(name)) {
+            throw new ApiException(HttpStatus.CONFLICT, "Username is already taken. Please choose another username.");
         }
 
         User user = new User();
-        user.setName(request.getName().trim());
+        user.setName(name);
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
