@@ -37,25 +37,16 @@ public class PlaceService {
 
             List<List<String>> tracks = parseTracks(u.getTracksJson());
             if (tracks.isEmpty()) {
-                tracks = getDefaultTracksForPlace(placeKey);
+                tracks = new ArrayList<>(); // No mock tracks
             }
 
             people.add(new PlacePersonDto(
                     u.getName(),
                     u.getAvatar() != null ? u.getAvatar() : "male_avatar_1",
-                    u.getCurrentSong() != null ? u.getCurrentSong() : getDefaultSongForPlace(placeKey),
+                    u.getCurrentSong(), // No mock song
                     u.getMusicService() != null ? u.getMusicService() : "spotify",
                     tracks
             ));
-        }
-
-        // Add curated community bots if place has few people
-        List<PlacePersonDto> bots = getCuratedPeopleForPlace(placeKey);
-        for (PlacePersonDto bot : bots) {
-            if (!seenUsernames.contains(bot.getU())) {
-                people.add(bot);
-                seenUsernames.add(bot.getU());
-            }
         }
 
         List<List<String>> songs = getSongsForPlace(placeKey);
@@ -128,31 +119,7 @@ public class PlaceService {
     }
 
     public List<List<String>> getSongsForPlace(String placeKey) {
-        if ("city".equalsIgnoreCase(placeKey)) {
-            return List.of(
-                    List.of("Blinding Lights", "The Weeknd"),
-                    List.of("Nightcall", "Kavinsky"),
-                    List.of("Midnight City", "M83"),
-                    List.of("Starboy", "The Weeknd"),
-                    List.of("Instant Crush", "Daft Punk")
-            );
-        } else if ("cafe".equalsIgnoreCase(placeKey)) {
-            return List.of(
-                    List.of("Coffee", "beabadoobee"),
-                    List.of("Sunday Best", "Surfaces"),
-                    List.of("Banana Pancakes", "Jack Johnson"),
-                    List.of("Put Your Records On", "Corinne Bailey Rae"),
-                    List.of("Beyond", "Leon Bridges")
-            );
-        } else {
-            return List.of(
-                    List.of("Space Song", "Beach House"),
-                    List.of("Apocalypse", "Cigarettes After Sex"),
-                    List.of("Chamber of Reflection", "Mac DeMarco"),
-                    List.of("Resonance", "HOME"),
-                    List.of("Sunsetz", "Cigarettes After Sex")
-            );
-        }
+        return new ArrayList<>(); // No mock data
     }
 
     private List<PlacePersonDto> getCuratedPeopleForPlace(String placeKey) {
