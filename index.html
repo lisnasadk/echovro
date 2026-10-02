@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EchoVro — Music is better together.</title>
+<!-- Splash background image: ECHOVRO_SPLASH.jpg — upload it to the repo root next to index.html (file names are case-sensitive) -->
+<link rel="preload" as="image" href="ECHOVRO_SPLASH.jpg">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#0f1b33;--navy2:#16294a;--cream:#eaf0ff;--blue:#6f8bb0;--silver:#b8bfca;--sp:#1db954;box-sizing:border-box}
+*{box-sizing:inherit;margin:0}
+html,body{height:100%;overflow:hidden;background:radial-gradient(120% 90% at 65% 40%,#1d3358 0%,#0f1b33 55%,#08101f 100%);color:var(--cream);font-family:'Inter',Georgia,serif}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+#pl{opacity:0;pointer-events:none;transition:opacity .7s}#pl.on{opacity:1;pointer-events:auto}
+.vig{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 55%,rgba(5,9,18,.7) 100%)}
+.scr{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:calc(24px + env(safe-area-inset-top,0px)) 22px calc(60px + env(safe-area-inset-bottom,0px));opacity:0;pointer-events:none;transform:translateY(24px);transition:opacity .7s,transform .7s cubic-bezier(.2,.7,.2,1);overflow-y:auto}
+.scr.on{opacity:1;pointer-events:auto;transform:none}
+.logo{display:flex;align-items:center;gap:14px;justify-content:center}
+.logo svg{width:clamp(34px,5vw,52px)}
+h1{font:700 clamp(54px,12vw,110px)/1 'Sora',serif;letter-spacing:.02em;text-shadow:0 0 40px rgba(111,139,176,.5)}
+h1 span{color:var(--silver);font-weight:500;font-style:italic}
+h2{font:700 clamp(30px,5vw,44px)/1.1 'Sora',serif;margin-bottom:8px}
+.tag{margin-top:10px;font:italic 500 clamp(22px,3.4vw,32px) 'Inter',serif;color:var(--silver)}
+.desc{max-width:560px;margin:22px auto 30px;font-size:clamp(19px,2.4vw,23px);line-height:1.45;color:var(--cream);opacity:.9}
+.sub{color:var(--silver);font-style:italic;font-size:20px;margin-bottom:22px}
+.btn{all:unset;cursor:pointer;padding:14px 30px;background:var(--cream);color:var(--navy);font:12px ui-monospace,Menlo,monospace;letter-spacing:.2em;text-transform:uppercase;transition:transform .2s,opacity .2s}
+.btn:hover{transform:translateY(-2px)}.btn[disabled]{opacity:.35;pointer-events:none}
+.btn.g{background:none;color:var(--silver);border:1px solid rgba(184,191,202,.5)}
+.btn.sp{background:var(--sp);color:#04140a}.btn.yt{background:#ff4e45;color:#1a0505}.btn.ga{background:#ff7a33;color:#1a0a02}
+.btn.dim{opacity:.35}.btn.ok::after{content:" ✓"}
+.card{width:min(420px,100%);padding:30px 28px;background:rgba(22,41,74,.55);border:1px solid rgba(184,191,202,.3);backdrop-filter:blur(10px);box-shadow:0 30px 80px rgba(0,0,0,.45)}
+label{display:block;text-align:left;font:11px ui-monospace,Menlo,monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--silver);margin:16px 0 6px}
+input{width:100%;padding:12px 14px;background:rgba(8,16,31,.6);border:1px solid rgba(184,191,202,.35);color:var(--cream);font:20px 'Inter',serif;outline:none}
+input:focus{border-color:var(--cream)}
+.err{min-height:22px;margin:12px 0;color:#e8a08a;font-size:17px}
+.tabs{display:flex;gap:10px;margin-bottom:22px}
+.tabs button{all:unset;cursor:pointer;padding:9px 22px;border:1px solid rgba(184,191,202,.4);font:12px ui-monospace,monospace;letter-spacing:.2em;text-transform:uppercase;color:var(--silver)}
+.tabs button.on{background:var(--cream);color:var(--navy)}
+.grid{display:flex;gap:clamp(12px,3vw,28px);justify-content:center;flex-wrap:wrap;margin-bottom:26px}
+.av{all:unset;cursor:pointer;width:clamp(96px,26vw,170px);padding:12px 12px 14px;background:rgba(22,41,74,.55);border:1px solid rgba(184,191,202,.3);animation:pop .7s calc(var(--i)*.12s) both cubic-bezier(.2,.9,.3,1.3);transition:transform .25s,border-color .25s,background .25s}
+.av:hover{transform:translateY(-6px)}
+.av.sel{border-color:var(--cream);background:rgba(234,240,255,.14);box-shadow:0 0 40px rgba(111,139,176,.5)}
+.av{display:block}.pvw{position:relative;aspect-ratio:1;border-radius:50%;overflow:hidden;background:radial-gradient(circle at 50% 35%,#2a4470,#16294a)}.pvw .ph svg{width:100%;display:block}.pvw .pv{position:absolute;inset:0;width:100%;height:100%;display:none}.pvw.rdy .pv{display:block}.pvw.rdy .ph{display:none}
+.av b{display:block;margin-top:10px;font:500 20px 'Sora',serif}
+@keyframes pop{from{opacity:0;transform:translateY(40px) scale(.7)}to{opacity:1;transform:none}}
+.me{width:120px;margin:0 auto 14px}.me .pvw{border:2px solid var(--cream)}
+.row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:22px}
+.must{max-width:440px;font-size:18px;color:var(--silver);margin-bottom:24px}
+.pc{all:unset;cursor:pointer;display:block;width:clamp(140px,40vw,200px);padding:22px 16px;background:rgba(22,41,74,.55);border:1px solid rgba(184,191,202,.3);transition:transform .25s,border-color .25s}
+.pc:hover{transform:translateY(-6px);border-color:var(--cream)}
+.pc em{display:block;font-style:normal;font-size:34px;margin-bottom:8px}.pc b{display:block;font:500 22px 'Sora',serif}.pc span{display:block;margin-top:6px;font-style:italic;font-size:17px;color:var(--silver)}
+.dots{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(22px + env(safe-area-inset-bottom,0px));display:flex;gap:10px;z-index:3}
+.dots i{width:8px;height:8px;border:1px solid var(--cream);border-radius:50%;transition:background .3s}.dots i.on{background:var(--cream)}
+#toast{position:fixed;top:calc(18px + env(safe-area-inset-top,0px));left:50%;transform:translate(-50%,-80px);padding:10px 18px;background:var(--cream);color:var(--navy);font:12px ui-monospace,monospace;letter-spacing:.06em;transition:transform .4s;z-index:9;max-width:90vw}
+#toast.on{transform:translate(-50%,0)}
+.cr{font:11px/1.6 ui-monospace,monospace;color:var(--silver);opacity:.6;margin-top:18px;max-width:680px}.cr a{color:inherit}
+/* place view */
+#s5{justify-content:space-between;align-items:stretch;text-align:left;overflow:hidden;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+#s5.on{pointer-events:none}#s5 .top,#s5 #sheet{pointer-events:auto}
+.top{display:flex;gap:16px;align-items:center}.top h2{margin:0;font-size:clamp(24px,4vw,34px)}.top .sub{margin:0;font-size:18px}
+#ld{align-self:center;text-align:center;width:min(420px,100%)}
+.barw{height:3px;background:rgba(184,191,202,.3)}#bar{height:100%;width:0;background:var(--cream);transition:width .2s}
+#ld p{margin-top:12px;color:var(--silver);font-size:18px}
+#sheet{width:min(720px,100%);align-self:center;max-height:42vh;overflow-y:auto;padding:18px 20px;background:rgba(15,27,51,.84);border:1px solid rgba(184,191,202,.3);backdrop-filter:blur(10px)}
+#sheet h3{font:500 20px 'Sora',serif;margin:6px 0 10px}
+.pr{display:flex;gap:16px;overflow-x:auto;padding-bottom:6px}.pp{width:84px;flex:none;text-align:center}.pp .pvw{width:56px;margin:0 auto 6px;border:1px solid var(--cream)}
+.pp b{display:block;font-size:16px;font-weight:500}.pp i{display:block;font-size:14px;color:var(--silver);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sg{display:grid;grid-template-columns:1fr auto;column-gap:12px;padding:10px 0;border-top:1px solid rgba(184,191,202,.2);color:inherit;text-decoration:none}
+.sg b{font:500 19px 'Sora',serif}.sg span{grid-column:1;color:var(--silver);font-size:17px}
+.sg em{grid-row:1/3;grid-column:2;align-self:center;font:11px ui-monospace,monospace;font-style:normal;letter-spacing:.14em;text-transform:uppercase}
+body.in5 #c,body.in5 .vig{display:none}
+.mine{display:flex;gap:10px;margin-bottom:12px}.mine input{flex:1;min-width:0}.mine .btn{padding:12px 22px}
+#cm{position:fixed;left:16px;bottom:calc(42vh + 24px);width:min(300px,56vw);padding:16px;background:rgba(15,27,51,.92);border:1px solid rgba(184,191,202,.4);backdrop-filter:blur(10px);z-index:5;opacity:0;transform:translateY(12px);pointer-events:none;transition:opacity .35s,transform .35s;text-align:left}
+#cm.on{opacity:1;transform:none;pointer-events:auto}
+.cma{display:flex;gap:8px;margin-top:12px}.cma .btn{flex:1;text-align:center;padding:10px 8px}
+.cmh{display:flex;gap:12px;align-items:center;margin-bottom:12px}.cmh .pvw{width:52px;border:1px solid var(--cream)}.cmh b{display:block;font:500 20px 'Sora',serif}.cmh i{display:block;font-size:14px;color:var(--silver)}
+.cmp{display:flex;align-items:baseline;gap:10px}.cmp strong{font:700 40px/1 'Sora',serif}.cmp span{font-style:italic;color:var(--silver);font-size:17px}
+.cmbar{height:4px;background:rgba(184,191,202,.25);margin:10px 0}#cmfill{height:100%;width:0;background:var(--cream);transition:width .6s}
+.cmc{display:flex;gap:6px;flex-wrap:wrap}.cmc u{text-decoration:none;font:11px ui-monospace,monospace;letter-spacing:.08em;padding:4px 8px;border:1px solid rgba(184,191,202,.5)}
+#cm p{margin-top:10px;font-size:15px;color:var(--silver);line-height:1.35}
+#toast{z-index:40}
+.fa{width:40px;aspect-ratio:1;border-radius:50%;overflow:hidden;background:radial-gradient(circle at 50% 35%,#2a4470,#16294a);flex:none}.fa .pvw{width:100%}.fa .ph{visibility:hidden}.nogl .fa .ph{visibility:visible}.fa .ph svg{width:100%;display:block}
+#pf{display:none;position:fixed;top:calc(14px + env(safe-area-inset-top,0px));right:14px;z-index:6;width:46px;height:46px;padding:0;border-radius:50%;border:2px solid var(--cream);background:#16294a;cursor:pointer}#pf .fa{width:100%}
+#pfb{display:none;position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:#e8604a;color:#fff;font:11px/18px ui-monospace,monospace;justify-content:center}
+#pp{position:fixed;top:0;right:0;bottom:0;width:min(380px,100%);z-index:20;display:flex;flex-direction:column;padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px));background:rgba(15,27,51,.97);border-left:1px solid rgba(184,191,202,.3);backdrop-filter:blur(12px);transform:translateX(100%);transition:transform .35s;text-align:left}
+#pp.on{transform:none}
+.pph{display:flex;gap:12px;align-items:center;margin-bottom:16px}.pph .fa{width:52px}.pph>div{flex:1}.pph b{display:block;font:500 22px 'Sora',serif}.pph i{display:block;font-size:15px;color:var(--silver)}
+#pp .btn{padding:8px 12px}#ppb{flex:1;min-height:0;display:flex;flex-direction:column;overflow-y:auto}
+.crow{display:flex;gap:12px;align-items:center;padding:10px 0;border-top:1px solid rgba(184,191,202,.2);cursor:pointer}.crow>div{flex:1;min-width:0}.crow b{display:block;font:500 18px 'Sora',serif}.crow i{display:block;font-size:15px;color:var(--silver);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.crow em{font:11px ui-monospace,monospace;font-style:normal;background:var(--cream);color:var(--navy);padding:3px 7px;border-radius:10px}
+.thh{display:flex;gap:10px;align-items:center;margin-bottom:10px}.thh .fa{width:36px}.thh b{flex:1;font:500 19px 'Sora',serif}
+#thm{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:6px 0}
+.bub{max-width:80%;padding:8px 12px;background:rgba(111,139,176,.35);font-size:18px;line-height:1.3;align-self:flex-start;word-break:break-word}.bub.me{align-self:flex-end;background:var(--cream);color:var(--navy)}
+.emp{color:var(--silver);font-style:italic;font-size:17px;padding:14px 0}
+#call{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translate(-50%,160px);z-index:30;display:flex;gap:10px;align-items:center;padding:12px 16px;background:rgba(15,27,51,.95);border:1px solid var(--cream);transition:transform .35s;white-space:nowrap}#call.on{transform:translate(-50%,0)}#call span{font-size:18px;margin-right:6px}#call .btn{padding:10px 14px}
+#pad{display:none;position:fixed;right:16px;bottom:calc(42vh + 24px);grid-template-columns:repeat(3,52px);gap:6px;z-index:5}
+#s5.on #pad.rdy{display:grid;pointer-events:auto}
+#pad button{all:unset;cursor:pointer;text-align:center;padding:12px 0;background:rgba(15,27,51,.8);border:1px solid rgba(184,191,202,.4);color:var(--cream);font:12px ui-monospace,monospace;letter-spacing:.08em;touch-action:none;user-select:none}
+#pad button:active,#pad button.on{background:var(--cream);color:var(--navy)}
+#sr{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:rgba(5,9,18,.7);padding:20px;overflow-y:auto}#sr.on{display:flex}
+#sr .card{text-align:left}#sr .row{justify-content:flex-start;margin-bottom:6px}
+#s6{justify-content:flex-start;align-items:center;text-align:left;gap:16px}#s6 .top{width:min(720px,100%)}#s6 .card{width:min(720px,100%)}#s6 .row{justify-content:flex-start;margin-bottom:6px}
+#rch{max-height:24vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin:14px 0}
+#rpl iframe{display:block;margin-top:14px}
+.cdc{display:flex;gap:12px;margin:2px 0 12px}.cdc button{all:unset;cursor:pointer;width:28px;height:28px;border-radius:50%;transition:box-shadow .2s}
+.cdc button.on{box-shadow:0 0 0 2px var(--navy),0 0 0 4px var(--cream)}.cdc button:focus-visible{outline:2px solid var(--cream);outline-offset:3px}
+#rcd{display:flex;gap:18px;overflow-x:auto;padding:12px 4px 8px;min-height:150px}
+.cdw{all:unset;cursor:pointer;flex:none;width:112px;text-align:center}
+.cdw em{display:block;margin-top:8px;font:11px ui-monospace,monospace;font-style:normal;letter-spacing:.12em;color:var(--silver)}
+.cd{display:block;position:relative;width:112px;aspect-ratio:1;border-radius:50%;box-shadow:0 14px 30px rgba(0,0,0,.5);transition:transform .3s}
+.cdw:hover .cd{transform:scale(1.07) rotate(-6deg)}
+.disc{position:absolute;inset:0;border-radius:50%;background:conic-gradient(var(--g,#e9eefb,#9fb6dc,#f3e7cf,#c0a8e0,#8fd6e4,#f6f0e0,#9fb6dc,#e9eefb));animation:cdspin 7s linear infinite;animation-play-state:paused}
+.cdw:hover .disc,.cdw.fresh .disc{animation-play-state:running}
+.disc::before{content:"";position:absolute;inset:0;border-radius:50%;background:repeating-radial-gradient(circle,transparent 0 3px,rgba(15,27,51,.07) 3px 4px)}
+.disc::after{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 40deg,transparent 0 20%,rgba(255,255,255,.6) 25%,transparent 32% 70%,rgba(255,255,255,.4) 76%,transparent 83%)}
+.cdl{position:absolute;left:50%;top:50%;width:46%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,transparent 0 9%,var(--navy2) 10%);border:1px solid rgba(234,240,255,.6);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:12%;text-align:center}
+.cdl b{font:500 9px/1.1 'Sora',serif;color:var(--cream);max-height:2.2em;overflow:hidden}.cdl i{font-size:8px;color:var(--silver);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cdw.sent .cdl{background:radial-gradient(circle,transparent 0 9%,var(--cream) 10%)}.cdw.sent .cdl b{color:var(--navy)}.cdw.sent .cdl i{color:#4a5a78}
+.cdw.fresh .cd{animation:cdin .8s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes cdspin{to{transform:rotate(360deg)}}
+@keyframes cdin{from{opacity:0;transform:translateX(120px) rotate(300deg) scale(.4)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.disc{animation:none!important}.cdw.fresh .cd{animation:none}}
+
+/* ===== Elegance pass ===== */
+:root{--gold:#8fb4ff;--line:rgba(234,240,255,.16)}
+html,body{background:radial-gradient(90% 70% at 18% 12%,rgba(111,139,176,.22),transparent 60%),radial-gradient(80% 70% at 85% 90%,rgba(143,180,255,.08),transparent 60%),linear-gradient(180deg,#0e1a31,#08101f)}
+.vig{background:radial-gradient(1.2px 1.2px at 12% 22%,rgba(234,240,255,.55),transparent),radial-gradient(1px 1px at 68% 14%,rgba(234,240,255,.4),transparent),radial-gradient(1.4px 1.4px at 84% 62%,rgba(234,240,255,.5),transparent),radial-gradient(1px 1px at 30% 78%,rgba(234,240,255,.4),transparent),radial-gradient(1px 1px at 52% 40%,rgba(234,240,255,.3),transparent),radial-gradient(ellipse at center,transparent 50%,rgba(5,9,18,.75) 100%)}
+h1{font-weight:500;letter-spacing:.06em}
+h2{font-weight:500;letter-spacing:.01em}
+.sub{font:italic 500 clamp(19px,2.2vw,23px) 'Inter',serif;letter-spacing:.02em}
+#s0{overflow:hidden}
+.halo{position:absolute;left:50%;top:50%;width:0;height:0;pointer-events:none}
+.halo i{position:absolute;left:-210px;top:-210px;width:420px;height:420px;border:1px solid rgba(143,180,255,.2);border-radius:50%;animation:ring 7s ease-out infinite}
+.halo i:nth-child(2){animation-delay:2.3s}.halo i:nth-child(3){animation-delay:4.6s}
+@keyframes ring{from{transform:scale(.5);opacity:.9}to{transform:scale(2.1);opacity:0}}
+#s0>:not(.halo){position:relative}
+#s0 .orn{width:72px;height:1px;margin:28px auto 26px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.desc{max-width:600px;margin:0 auto;font-size:clamp(21px,2.6vw,26px);line-height:1.5}
+.desc p+p{margin-top:14px;font-style:italic;color:var(--silver)}
+#s0 .tag{margin:30px 0 32px;font:italic 500 clamp(23px,3.2vw,32px) 'Sora',serif;color:var(--gold)}
+.btn{padding:13px 34px;border-radius:999px;background:linear-gradient(180deg,#f6eddb,#e3d6b8);color:#0f1b33;font:600 19px/1 'Inter',serif;letter-spacing:.05em;text-transform:none;box-shadow:0 8px 24px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.6);transition:transform .25s,box-shadow .25s,opacity .2s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(143,180,255,.25),inset 0 1px 0 rgba(255,255,255,.6)}
+.btn:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.btn.g{background:rgba(255,255,255,.03);color:var(--cream);border:1px solid rgba(234,240,255,.32);box-shadow:none}
+.btn.g:hover{background:rgba(234,240,255,.1);box-shadow:none}
+.btn.sp,.btn.yt,.btn.ga{box-shadow:0 8px 24px rgba(0,0,0,.35)}
+label{font:italic 500 17px 'Inter',serif;letter-spacing:.03em;text-transform:none;color:var(--silver);margin:18px 0 6px}
+.tabs button{font:600 17px 'Inter',serif;letter-spacing:.04em;text-transform:none;border-radius:999px;padding:8px 24px;border-color:var(--line)}
+.card{border-radius:24px;background:linear-gradient(160deg,rgba(34,58,100,.6),rgba(14,26,49,.62));border:1px solid var(--line);box-shadow:0 40px 90px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.07)}
+input{border-radius:14px;background:rgba(8,16,31,.5);border:1px solid var(--line);padding:13px 16px}
+input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(143,180,255,.12)}
+.mine input{border-radius:999px;padding-left:22px}
+.av,.pc{border-radius:20px;border:1px solid var(--line);background:linear-gradient(170deg,rgba(34,58,100,.5),rgba(14,26,49,.55))}
+.pc{padding:26px 18px}.pc em{font-size:38px}
+.av:hover,.pc:hover{border-color:rgba(143,180,255,.55);box-shadow:0 18px 44px rgba(0,0,0,.4)}
+.av.sel{border-color:var(--gold);background:linear-gradient(170deg,rgba(143,180,255,.16),rgba(34,58,100,.5));box-shadow:0 0 0 1px var(--gold),0 18px 50px rgba(111,139,176,.35)}
+.me .pvw{border-color:var(--gold)}
+#sheet,#cm,#call{border-radius:20px;border-color:var(--line)}
+#sheet{background:linear-gradient(170deg,rgba(22,41,74,.88),rgba(10,19,37,.9))}
+#pp{border-left:1px solid var(--line)}
+.crow{border-top-color:var(--line)}
+.bub{border-radius:16px 16px 16px 4px}.bub.me{border-radius:16px 16px 4px 16px}
+#toast{border-radius:999px;font:600 17px 'Inter',serif;letter-spacing:.03em;padding:10px 24px;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.dots i{width:7px;height:7px;border-color:rgba(234,240,255,.6)}.dots i.on{background:var(--gold);border-color:var(--gold)}
+.cmc u{border-radius:999px}.cmbar{border-radius:4px;overflow:hidden}
+#cmfill,#bar{background:linear-gradient(90deg,var(--blue),var(--gold))}
+#pad button{border-radius:12px}
+@media (prefers-reduced-motion:reduce){.halo i{animation:none}}
+
+/* ===== Splash: photo background (ECHOVRO_SPLASH.jpg) over the elegant blue and black theme ===== */
+#s0{background:linear-gradient(rgba(8,16,31,.35),rgba(8,16,31,.55)),url('ECHOVRO_SPLASH.jpg') center/cover no-repeat;overflow:hidden}
+.halo{display:none}
+.plate{position:relative;max-width:660px;padding:clamp(28px,5vw,48px) clamp(22px,5vw,52px);background:linear-gradient(160deg,rgba(22,41,74,.88),rgba(8,16,31,.92));border:1px solid rgba(143,180,255,.35);border-radius:24px;backdrop-filter:blur(10px);box-shadow:0 40px 90px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.08)}
+
+/* ===== Modern pass: Sora + Inter, glass surfaces, gradient accents ===== */
+:root{--gold:#8fb4ff;--acc:linear-gradient(135deg,#6f9bff,#8b6bff);--line:rgba(255,255,255,.1);--glass:rgba(255,255,255,.05);--silver:#9aa7c2}
+html,body{font-family:'Inter',system-ui,sans-serif;background:radial-gradient(60% 50% at 15% 10%,rgba(91,140,255,.28),transparent 70%),radial-gradient(55% 50% at 90% 85%,rgba(139,107,255,.2),transparent 70%),#070b14}
+h1{font-weight:700;letter-spacing:-.035em}
+h1 span{font-style:normal;font-weight:700;background:var(--acc);-webkit-background-clip:text;background-clip:text;color:transparent}
+h2{font-weight:600;letter-spacing:-.02em}
+.sub{font:400 clamp(15px,1.8vw,17px)/1.5 'Inter',sans-serif;color:var(--silver);letter-spacing:0}
+#s0{background:linear-gradient(rgba(7,11,20,.5),rgba(7,11,20,.72)),url('ECHOVRO_SPLASH.jpg') center/cover no-repeat}
+.plate{max-width:600px;padding:clamp(30px,5vw,52px) clamp(22px,5vw,52px);border-radius:32px;background:rgba(10,16,30,.62);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(24px);box-shadow:0 40px 100px rgba(0,0,0,.6)}
+#s0 .orn{width:44px;height:3px;border-radius:2px;background:var(--acc);margin:26px auto 22px}
+.desc{max-width:500px;font-size:clamp(16px,2vw,18px);line-height:1.65;color:#dbe4f7}
+.desc p+p{font-style:normal;color:var(--silver)}
+#s0 .tag{display:inline-block;margin:28px 0;padding:9px 18px;border:1px solid var(--line);border-radius:999px;background:var(--glass);font:500 14px 'Inter',sans-serif;color:#cfdcff;letter-spacing:.01em}
+.btn{padding:14px 28px;border-radius:14px;background:var(--acc);color:#fff;font:600 15px/1 'Inter',sans-serif;letter-spacing:0;box-shadow:0 10px 30px rgba(91,120,255,.35),inset 0 1px 0 rgba(255,255,255,.25)}
+.btn:hover{box-shadow:0 14px 36px rgba(91,120,255,.5),inset 0 1px 0 rgba(255,255,255,.25)}
+.btn.g{background:var(--glass);color:#e8eeff;border:1px solid var(--line);box-shadow:none;backdrop-filter:blur(10px)}
+.btn.g:hover{background:rgba(255,255,255,.1);box-shadow:none}
+.btn.sp,.btn.yt,.btn.ga{box-shadow:0 10px 26px rgba(0,0,0,.35)}
+label{font:500 13px 'Inter',sans-serif;letter-spacing:.01em;color:var(--silver);margin:18px 0 6px}
+.tabs{display:inline-flex;gap:4px;padding:4px;background:var(--glass);border:1px solid var(--line);border-radius:999px}
+.tabs button{font:600 14px 'Inter',sans-serif;letter-spacing:0;padding:8px 22px;border:0;border-radius:999px;color:var(--silver)}
+.tabs button.on{background:var(--acc);color:#fff}
+.card{border-radius:28px;background:linear-gradient(160deg,rgba(255,255,255,.08),rgba(255,255,255,.03));border:1px solid var(--line);backdrop-filter:blur(24px);box-shadow:0 30px 80px rgba(0,0,0,.5)}
+input{border-radius:14px;background:rgba(255,255,255,.06);border:1px solid var(--line);color:#fff;font:400 16px 'Inter',sans-serif;padding:13px 16px}
+input:focus{border-color:#6f9bff;box-shadow:0 0 0 4px rgba(111,155,255,.18)}input::placeholder{color:#7d8aa6}
+.mine input{border-radius:14px;padding-left:16px}
+.av,.pc{background:var(--glass);border:1px solid var(--line);border-radius:24px;backdrop-filter:blur(14px)}
+.pc b{font:600 18px 'Sora',sans-serif}.pc span{font-style:normal;font-size:14px;color:var(--silver)}.av b{font:600 15px 'Sora',sans-serif}
+.av:hover,.pc:hover{border-color:rgba(143,180,255,.6);background:rgba(255,255,255,.08);box-shadow:0 20px 50px rgba(30,60,160,.35)}
+.av.sel{border-color:#6f9bff;background:rgba(111,155,255,.14);box-shadow:0 0 0 1px #6f9bff,0 20px 50px rgba(91,120,255,.35)}
+.dots i{width:7px;height:7px;border:0;background:rgba(255,255,255,.25);transition:width .3s,background .3s}
+.dots i.on{width:24px;border-radius:4px;background:var(--acc)}
+#sheet,#cm,#call,#pp{background:rgba(10,16,30,.78);backdrop-filter:blur(24px);border-color:var(--line)}
+#sheet,#cm,#call{border-radius:22px}
+#sheet h3{font:600 14px 'Sora',sans-serif;color:var(--silver)}
+.sg b{font:600 16px 'Sora',sans-serif}.sg span{font-size:14px}
+.bub{border-radius:18px 18px 18px 6px;background:rgba(255,255,255,.08);font-size:15px}
+.bub.me{border-radius:18px 18px 6px 18px;background:var(--acc);color:#fff}
+.emp{font-style:normal;font-size:14px}
+#toast{font:500 14px 'Inter',sans-serif;border-radius:999px;background:#eaf0ff;color:#0b1220;padding:10px 20px}
+#cmfill,#bar{background:var(--acc)}
+</style></head><body>
+<canvas id="c"></canvas><div class="vig"></div><canvas id="pl"></canvas>
+
+<!-- 0 · SPLASH -->
+<!-- 0 · SPLASH (background: ECHOVRO_SPLASH.jpg) -->
+<section class="scr on" id="s0">
+  <div class="halo"><i></i><i></i><i></i></div>
+  <div class="plate">
+  <div class="logo"><svg viewBox="0 0 48 48" fill="none" stroke="#eaf0ff" stroke-width="2" stroke-linecap="round"><circle cx="24" cy="24" r="4" fill="#eaf0ff"/><path d="M14 24a10 10 0 0 1 10-10M34 24a10 10 0 0 1-10 10"/><path d="M7 24A17 17 0 0 1 24 7M41 24a17 17 0 0 1-17 17" stroke="#b8bfca" opacity=".7"/></svg><h1>Echo<span>Vro</span></h1></div>
+  <div class="orn"></div>
+  <div class="desc"><p>EchoVro is more than a place to discover music. It's a place to discover the people who feel it the way you do.</p><p>Because sometimes, all it takes to find someone who understands you is a song.</p></div>
+  <p class="tag">EchoVro — Music is better together.</p>
+  <button class="btn" data-go="1">Get started</button>
+  </div>
+</section>
+
+<!-- 1 · LOGIN / SIGN UP -->
+<section class="scr" id="s1">
+  <div class="card" id="acard">
+    <h2 id="h1t">Join the universe</h2>
+    <p class="sub" id="s1s">Create your account with an email, username and password.</p>
+    <div class="tabs" id="atabs" style="margin-top:6px"><button data-a="signup" class="on">Sign up</button><button data-a="login">Log in</button></div>
+    <label for="em">Email</label><input id="em" type="email" autocomplete="email" placeholder="you@example.com">
+    <div id="unw"><label for="un">Username</label><input id="un" type="text" autocomplete="username" placeholder="e.g. moon.walker" maxlength="20"></div>
+    <label for="pw">Password</label>
+    <div class="mine" style="margin:0"><input id="pw" type="password" autocomplete="new-password" placeholder="At least 8 characters" maxlength="72"><button class="btn g" id="pwt" type="button" style="padding:12px 16px">Show</button></div>
+    <div id="pcw"><label for="pc">Confirm password</label><input id="pc" type="password" autocomplete="new-password" placeholder="Repeat your password" maxlength="72"></div>
+    <div class="err" id="err"></div>
+    <button class="btn" id="b1">Continue</button>
+  </div>
+  <div class="card" id="vcard" style="display:none">
+    <h2>Verify your email</h2>
+    <p class="sub">We sent a 6-digit code to <b id="vem"></b>. It expires in 10 minutes.</p>
+    <label for="vc">Verification code</label>
+    <input id="vc" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456">
+    <div class="err" id="verr"></div>
+    <button class="btn" id="vgo">Verify</button>
+    <div class="cma"><button class="btn g" id="vre" type="button">Resend code</button><button class="btn g" id="vbk" type="button">Wrong email?</button></div>
+  </div>
+</section>
+
+<!-- 2 · AVATARS -->
+<section class="scr" id="s2">
+  <h2>Choose your avatar</h2><p class="sub">This is how your people will see you.</p>
+  <div class="tabs"><button data-g="male" class="on">Male</button><button data-g="female">Female</button></div>
+  <div class="grid" id="grid"></div>
+  <button class="btn" id="b2" disabled>Continue</button>
+  <p class="cr" id="cr"></p>
+</section>
+
+<!-- 3 · LINK MUSIC (required) -->
+<section class="scr" id="s3">
+  <div class="me" id="me3"></div>
+  <h2 id="hi">Hi!</h2><p class="sub">Link your music to continue.</p>
+  <p class="must">This step is required. Pick the service you listen on, so people at each place can hear what moves you.</p>
+  <div class="row"><button class="btn sp" data-svc="spotify">Spotify</button><button class="btn yt" data-svc="ytm">YouTube Music</button><button class="btn ga" data-svc="gaana">Gaana</button></div>
+  <button class="btn" id="b3" disabled>Continue</button>
+</section>
+
+<!-- 4 · CHOOSE A PLACE -->
+<section class="scr" id="s4">
+  <div class="me" id="me4"></div>
+  <h2 id="done">Where shall we meet?</h2><p class="sub">Pick a place to meet people and get song recommendations.</p>
+  <div class="grid" id="places"></div>
+</section>
+
+<!-- 5 · PLACE (3D scene + people + songs) -->
+<section class="scr" id="s5">
+  <div class="top"><button class="btn g" id="bk">Back</button><div><h2 id="pn"></h2><p class="sub" id="pb"></p></div></div>
+  <div id="ld"><div class="barw"><div id="bar"></div></div><p id="lt"></p></div>
+  <div id="sheet"></div>
+  <div id="cm"><div class="cmh"><div id="cmav"></div><div><b id="cmn"></b><i id="cmsv"></i></div></div><div class="cmp"><strong id="cmpct"></strong><span id="cmlb"></span></div><div class="cmbar"><div id="cmfill"></div></div><div class="cmc" id="cmc"></div><p id="cmt"></p><div class="cma" id="cma"></div></div>
+  <div id="pad"><button data-k="f" style="grid-column:2">▲</button><button data-k="l">◀</button><button data-k="b">▼</button><button data-k="r">▶</button><button id="bc" style="grid-column:1/3">CLIMB</button><button id="bs">SIT</button></div>
+</section>
+
+<!-- 6 · LISTENING ROOM -->
+<section class="scr" id="s6">
+  <div class="top"><button class="btn g" id="rbk">Back</button><div><h2>Listening room</h2><p class="sub">Listen to the same song together and chat as you go.</p></div></div>
+  <div class="card">
+    <label>Listening with</label><div class="row" id="rwho"></div>
+    <label>Song link (Spotify, YouTube Music or Gaana)</label>
+    <div class="mine"><input id="rlk" placeholder="Paste a song link"><button class="btn" id="rgo">Load</button></div>
+    <div id="rpl"></div>
+    <label>Send a song as a CD</label>
+    <div class="cdc" id="rcc"></div>
+    <div class="mine"><input id="rcdi" placeholder="Song – artist, or paste a link"><button class="btn" id="rcdb">Send CD</button></div>
+    <div id="rcd"></div>
+    <div class="row" style="margin:14px 0 0"><button class="btn" id="rsync">Play together</button></div>
+    <div id="rch"></div>
+    <div class="mine" style="margin:0"><input id="rci" maxlength="300" placeholder="Message…"><button class="btn" id="rcs">Send</button></div>
+  </div>
+</section>
+
+<div class="dots" id="dots"><i class="on"></i><i></i><i></i><i></i><i></i></div>
+<button id="pf" aria-label="Your profile"><div class="fa" id="pfa"></div><span id="pfb"></span></button>
+<aside id="pp"><div class="pph"><div class="fa" id="ppav"></div><div><b id="ppn"></b><i id="pps"></i></div><button class="btn g" id="ppx">✕</button></div><div id="ppb"></div></aside>
+<div id="call"><span id="cl"></span><button class="btn" id="cacc" style="display:none">Accept</button><button class="btn g" id="cmute">Mute</button><button class="btn" id="cend">End</button></div>
+<div id="sr"><div class="card"><h2 id="srt"></h2><p class="sub">Pick a song you think they would love. They will see it with your request.</p>
+<div class="row" id="srs"></div>
+<label for="sri">Song</label><input id="sri" list="srl" placeholder="Song – artist"><datalist id="srl"></datalist>
+<label for="srk">Or paste a song link (optional)</label><input id="srk" placeholder="https://…">
+<div class="cma"><a class="btn g" id="sro" target="_blank" rel="noopener">Find in app</a><button class="btn" id="srsend">Send song</button></div>
+<div class="cma"><button class="btn g" id="srx">Cancel</button></div></div></div>
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/SkeletonUtils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="echovro-ml.js"></script>
+<script>
+/* ============ CONFIG — the programmer fills these ============ */
+const CONFIG={
+  USE_BACKEND:true,                             // ← true = sign up / log in call your Java Spring Boot backend
+  API_BASE:'http://localhost:8080',             // ← backend URL (change to your deployed backend URL later)
+  EMAILJS_PUBLIC_KEY:'',                        // ← EmailJS: Account → API keys → Public Key
+  EMAILJS_SERVICE_ID:'',                        // ← EmailJS: Email Services → Service ID
+  EMAILJS_TEMPLATE_ID:'',                       // ← EmailJS: Email Templates → Template ID (uses {{to_email}}, {{to_name}}, {{passcode}}, {{time}})
+  DEMO_MODE:true,                               // ← true = "linking" is simulated so you can test the flow. Set to false in production.
+  SPOTIFY_CLIENT_ID:'',                         // ← Spotify client id
+  YT_CLIENT_ID:'',                              // ← Google OAuth client id (YouTube Music uses Google sign-in)
+  YT_SCOPES:'https://www.googleapis.com/auth/youtube.readonly',
+  GAANA_AUTH_URL:'',                            // ← Gaana has no public login API; put your partner/auth URL here
+  REDIRECT_URI:location.origin+location.pathname,
+  SPOTIFY_SCOPES:'user-read-email user-read-private user-top-read user-read-currently-playing user-read-playback-state playlist-read-private'
+};
+
+/* ============ 3D PLACES ============
+   All places live in the repo's /places folder as .glb files (names are case-sensitive):
+     places/city.glb, places/cafe.glb, places/gallery.glb
+   Places are fetched in the background once the user reaches the "link music" step (warmPlaces), then cached in memory.
+   The files are Draco-compressed with WebP textures, so DRACOLoader is required (see loadGLTF below).
+   Serve the site over http/https (e.g. GitHub Pages); opening the file from disk will not work. */
+const PLACES={
+ city:{icon:'🏙️',name:'The City',blurb:'Lights, traffic, late nights.',url:'places/city.glb',ground:true,
+  credit:'“City Scene” by <a href="https://sketchfab.com/mortalityrexotable" target="_blank" rel="noopener">golukumar</a> · Sketchfab Standard license'},
+ cafe:{icon:'☕',name:'The Café',blurb:'Warm corners, quiet talk.',url:'places/cafe.glb',
+  credit:'“Cafe-Misti” by <a href="https://sketchfab.com/asimitree" target="_blank" rel="noopener">Simit Rajwadi</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>'},
+ gallery:{icon:'🖼️',name:'Picture Gallery',blurb:'Hushed rooms, long looks.',url:'places/gallery.glb',
+  credit:'“The Picture Gallery [Low Poly] | VR” by <a href="https://sketchfab.com/abhayexe" target="_blank" rel="noopener">abhayexe</a> · Sketchfab Standard license'}
+};
+
+// Music services. `q` builds a search link that opens the song in the person's own app.
+const SVC={spotify:{n:'Spotify',q:'https://open.spotify.com/search/'},ytm:{n:'YouTube Music',q:'https://music.youtube.com/search?q='},gaana:{n:'Gaana',q:'https://gaana.com/search/'}};
+
+// Hook: who is at a place + songs for it. Return {people:[{u,av,s,m,t:[[title,artist],...]}],songs:[[title,artist],...]}
+async function fetchPlaceFeed(key,profile){ return {people:[],songs:[]}; /* return (await fetch('/api/places/'+key+'/feed?user='+profile.username)).json() */ }
+// Hook: the user's own listening data from their linked service, as [[title,artist],...]. In production return it from your backend
+// (Spotify top tracks / YouTube Music liked videos / Gaana history). Demo mode uses a small sample so the matcher works out of the box.
+async function fetchMyTracks(profile){ return []; /* await fetch('/api/me/tracks?service='+profile.music.service) */ }
+
+// Avatars: 3D files live in /avatars. `rot` (radians) turns a model if it faces the wrong way; `look` is the fallback illustration.
+const SK='https://sketchfab.com/3d-models/';
+const AVATARS={
+ male:[
+  {id:'male_avatar_1',label:'Avatar 1',model:'avatars/male_avatar_1.glb',title:'Free Avatar for iClone,',author:'Asfandyar Hesami',src:SK+'free-avatar-for-iclone-4908979179aa43d5835a0509f1519e3b',look:{skin:'#e0b48f',hair:'#2a1c14',shirt:'#6f8bb0',style:'short'}},
+  {id:'male_avatar_2',label:'Avatar 2',model:'avatars/male_avatar_2.glb',title:'AVATAR METAVERSO',author:'@METAVERSO',src:SK+'avatar-metaverso-48bcd1c0b664483890530a6be225a444',look:{skin:'#a8704c',hair:'#1a1210',shirt:'#c9703f',style:'curly'}},
+  {id:'male_avatar_3',label:'Avatar 3',model:'avatars/male_avatar_3.glb',title:'boy sherry arian',author:'sherry_arian',src:SK+'boy-sherry-arian-ee590dfec61f40f3b2c1ca33819257b0',look:{skin:'#f1cfb0',hair:'#8a6a3f',shirt:'#3b5273',style:'short'}}],
+ female:[
+  {id:'female_avatar_1',label:'Avatar 1',model:'avatars/female_avatar_1.glb',title:'Girl Avatar - Ready Player Me',author:'Hellencam',src:SK+'girl-avatar-ready-player-me-087b7514d9d54bc689b2ca220f7e74f7',look:{skin:'#f1cfb0',hair:'#5a3a22',shirt:'#eaf0ff',style:'long'}},
+  {id:'female_avatar_2',label:'Avatar 2',model:'avatars/female_avatar_2.glb',title:'Sophia Metzger, business-casual attire',author:'XRProfXR',src:SK+'sophia-metzger-business-casual-attire-a1d68ab1c7304a3babfc76517a1adac7',look:{skin:'#c68a62',hair:'#1a1210',shirt:'#8fa8cc',style:'bun'}},
+  {id:'female_avatar_3',label:'Avatar 3',model:'avatars/female_avatar_3.glb',title:'Avatar 1',author:'archaosnihilist',src:SK+'avatar-1-34803472a019430fb18694bdbded433d',look:{skin:'#e0b48f',hair:'#8a3b2e',shirt:'#d9a441',style:'long'}}]
+};
+// Hook: send the finished profile (incl. linked music service + auth code) to your backend here. Called once music is linked.
+async function onComplete(profile){ console.log('EchoVro profile',profile); /* await fetch('/api/signup',{method:'POST',body:JSON.stringify(profile)}); */ }
+/* ============================================================= */
+
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const state={email:'',username:'',gender:'male',avatar:null,music:null,place:null,tracks:null,history:[]};
+let step=0;
+const avOf=id=>[...AVATARS.male,...AVATARS.female].find(a=>a.id===id),findAv=()=>avOf(state.avatar);
+function go(n){
+ if(n>=4&&!state.music){toast('Link a music service to continue.');n=3}   // music linking is mandatory
+ step=n;$$('.scr').forEach((s,i)=>s.classList.toggle('on',i===n));$$('#dots i').forEach((d,i)=>d.classList.toggle('on',i===Math.min(n,4)));$('#dots').style.display=n>=5?'none':'';
+ $('#pl').classList.toggle('on',n===5);
+ document.body.classList.toggle('in5',n===5);
+ if(n===1)ensure('male');if(n===2){drawAvatars();ensure(state.gender)}
+ if(n===3)warmPlaces();   // start downloading the place models in the background
+ if(n===3||n===4){const h=pvw(findAv());$('#me3').innerHTML=$('#me4').innerHTML=h;$('#hi').textContent='Hi, '+state.username+'!';$('#done').textContent='Where shall we meet, '+state.username+'?'}
+ if(n===4){ensure('male');ensure('female');drawPlaces()}
+ if(n===6)renderRoom();
+ $('#pf').style.display=n>=3?'block':'none';
+ if(n>=3){if(connsFor!==state.username)loadConns();const a=findAv();$('#pfa').innerHTML=a?pvw(a):'';badge()}}
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),3200)}
+
+function face(l){let back='',top='';const h=l.hair;
+ if(l.style==='long')back=`<path d="M26 52Q24 22 50 20Q76 22 74 52L77 82L23 82Z" fill="${h}"/>`;
+ if(l.style==='curly')top=[[30,38],[38,28],[50,25],[62,28],[70,38]].map(([a,b])=>`<circle cx="${a}" cy="${b}" r="9" fill="${h}"/>`).join('');
+ else if(l.style==='bun')top=`<circle cx="50" cy="15" r="9" fill="${h}"/><path d="M31 44Q32 24 50 24Q68 24 69 44Q60 33 50 34Q40 33 31 44Z" fill="${h}"/>`;
+ else top=`<path d="M31 44Q30 22 50 22Q70 22 69 44Q62 34 50 35Q38 34 31 44Z" fill="${h}"/>`;
+ return `<svg viewBox="0 0 100 100">${back}<path d="M14 100Q16 72 50 70Q84 72 86 100Z" fill="${l.shirt}"/><rect x="44" y="58" width="12" height="14" fill="${l.skin}"/><ellipse cx="50" cy="45" rx="19" ry="22" fill="${l.skin}"/>${top}<circle cx="43" cy="47" r="1.8" fill="#0f1b33"/><circle cx="57" cy="47" r="1.8" fill="#0f1b33"/><path d="M44 56Q50 60 56 56" stroke="#0f1b33" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>`}
+
+function drawAvatars(){$('#cr').innerHTML=AVATARS[state.gender].map(a=>`${a.label}: “${a.title}” by <a href="${a.src}" target="_blank" rel="noopener">${a.author}</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>`).join('<br>');$('#grid').innerHTML=AVATARS[state.gender].map((a,i)=>`<button class="av${state.avatar===a.id?' sel':''}" style="--i:${i}" data-id="${a.id}">${pvw(a)}<b>${a.label}</b></button>`).join('');
+ $$('.av').forEach(b=>b.onclick=()=>{state.avatar=b.dataset.id;$$('.av').forEach(x=>x.classList.toggle('sel',x===b));$('#b2').disabled=false})}
+$$('#s2 .tabs button').forEach(b=>b.onclick=()=>{state.gender=b.dataset.g;state.avatar=null;ensure(state.gender);$('#b2').disabled=true;$$('#s2 .tabs button').forEach(x=>x.classList.toggle('on',x===b));drawAvatars()});
+
+$$('[data-go]').forEach(b=>b.onclick=()=>go(+b.dataset.go));
+/* ===== Step 1: sign up / log in with password ===== */
+let authMode='signup';
+function setAuth(m){authMode=m;const su=m==='signup';
+ $$('#atabs button').forEach(b=>b.classList.toggle('on',b.dataset.a===m));
+ $('#unw').style.display=$('#pcw').style.display=su?'':'none';
+ $('#h1t').textContent=su?'Join the universe':'Welcome back';
+ $('#s1s').textContent=su?'Create your account with an email, username and password.':'Log in with your email and password.';
+ $('#pw').autocomplete=su?'new-password':'current-password';$('#pw').placeholder=su?'At least 8 characters':'Your password';
+ $('#err').textContent='';$('#pw').value=$('#pc').value='';$('#vcard').style.display='none';$('#acard').style.display=''}
+$$('#atabs button').forEach(b=>b.onclick=()=>setAuth(b.dataset.a));
+$('#pwt').onclick=()=>{const h=$('#pw').type==='password';$('#pw').type=$('#pc').type=h?'text':'password';$('#pwt').textContent=h?'Hide':'Show'};
+['em','un','pw','pc'].forEach(i=>$('#'+i).onkeydown=e=>{if(e.key==='Enter')$('#b1').click()});
+setAuth('signup');
+
+// Hook: your backend does the real auth. Hash passwords SERVER-SIDE (bcrypt/argon2); with Supabase use
+//   signup: supabase.auth.signUp({email,password,options:{data:{username}}})
+//   login:  supabase.auth.signInWithPassword({email,password})
+// Return {ok:true,username} or {ok:false,error:'message'}.
+// Login token (JWT) from the backend. Sent as "Authorization: Bearer ..." on every protected request.
+const TOKEN_KEY='echovro_token';
+const getToken=()=>{try{return localStorage.getItem(TOKEN_KEY)||''}catch(e){return ''}};
+const setToken=t=>{try{t?localStorage.setItem(TOKEN_KEY,t):localStorage.removeItem(TOKEN_KEY)}catch(e){}};
+async function api(path,opts={}){const h={'Content-Type':'application/json',...(opts.headers||{})},t=getToken();if(t)h.Authorization='Bearer '+t;
+ return fetch(CONFIG.API_BASE+path,{...opts,headers:h})}
+async function authRequest(p){
+ if(!CONFIG.USE_BACKEND)return{ok:true,username:p.username||(p.email.split('@')[0].replace(/[^a-zA-Z0-9_.]/g,'').slice(0,20)||'guest')};
+ const su=p.mode==='signup';
+ const body=su?{name:p.username,email:p.email,password:p.password}:{email:p.email,password:p.password};
+ try{
+  const r=await api(su?'/api/auth/register':'/api/auth/login',{method:'POST',body:JSON.stringify(body)});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok)return{ok:false,error:d.message||d.error||(r.status===401?'Wrong email or password.':'Something went wrong.')};
+  setToken(d.token||'');
+  return{ok:true,username:d.name||d.username||p.username}}
+ catch(e){return{ok:false,error:'Cannot reach the server. Is the backend running?'}}}
+
+$('#b1').onclick=async()=>{const e=$('#em').value.trim(),u=$('#un').value.trim(),pw=$('#pw').value,er=$('#err'),su=authMode==='signup';
+ if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e))return er.textContent='Please enter a valid email address.';
+ if(su&&!/^[a-zA-Z0-9_.]{3,20}$/.test(u))return er.textContent='Username: 3–20 letters, numbers, dots or underscores.';
+ if(su){if(pw.length<8)return er.textContent='Password must be at least 8 characters.';
+  if(!/[A-Za-z]/.test(pw)||!/\d/.test(pw))return er.textContent='Password needs at least one letter and one number.';
+  if(pw!==$('#pc').value)return er.textContent='Passwords do not match.'}
+ else if(!pw)return er.textContent='Please enter your password.';
+ er.textContent='';const b=$('#b1');b.disabled=true;b.textContent='Please wait…';
+ const r=await authRequest({mode:authMode,email:e,username:su?u:undefined,password:pw});
+ b.disabled=false;b.textContent='Continue';
+ if(!r||!r.ok)return er.textContent=(r&&r.error)||'Something went wrong. Please try again.';
+ $('#pw').value=$('#pc').value='';
+ state.email=e;state.username=r.username||u;
+ if(su)startVerify();else go(2)};
+
+/* ===== Email verification (EmailJS) — sends a 6-digit code after sign up ===== */
+let vc=null,vcool=0;
+const ejReady=()=>CONFIG.EMAILJS_PUBLIC_KEY&&CONFIG.EMAILJS_SERVICE_ID&&CONFIG.EMAILJS_TEMPLATE_ID&&window.emailjs;
+async function sendCode(){
+ const code=String(crypto.getRandomValues(new Uint32Array(1))[0]%1000000).padStart(6,'0');
+ vc={code,exp:Date.now()+10*60*1000,tries:0};
+ if(!ejReady()){
+  if(CONFIG.DEMO_MODE){toast('Test mode (EmailJS keys not set) — your code is '+code);return true}
+  $('#verr').textContent='Email service is not set up yet.';vc=null;return false}
+ try{await emailjs.send(CONFIG.EMAILJS_SERVICE_ID,CONFIG.EMAILJS_TEMPLATE_ID,{to_email:state.email,to_name:state.username,passcode:code,time:'10 minutes'},{publicKey:CONFIG.EMAILJS_PUBLIC_KEY});return true}
+ catch(e){console.error('EmailJS',e);$('#verr').textContent='Could not send the email. Check the address and try again.';vc=null;return false}}
+async function startVerify(){
+ $('#acard').style.display='none';$('#vcard').style.display='';$('#vem').textContent=state.email;$('#vc').value='';$('#verr').textContent='';
+ if(await sendCode()){toast('Code sent to '+state.email);vcool=Date.now()+30000;$('#vc').focus()}}
+$('#vgo').onclick=()=>{const v=$('#vc').value.trim(),er=$('#verr');
+ if(!vc)return er.textContent='Tap Resend to get a new code.';
+ if(Date.now()>vc.exp){vc=null;return er.textContent='That code expired. Tap Resend.'}
+ if(++vc.tries>5){vc=null;return er.textContent='Too many attempts. Tap Resend for a new code.'}
+ if(!/^\d{6}$/.test(v)||v!==vc.code)return er.textContent='Incorrect code.';
+ vc=null;er.textContent='';go(2)};
+$('#vre').onclick=async()=>{const w=Math.ceil((vcool-Date.now())/1000);if(w>0)return toast('Please wait '+w+'s before resending.');
+ $('#verr').textContent='';if(await sendCode()){vcool=Date.now()+30000;toast('New code sent')}};
+$('#vbk').onclick=()=>{vc=null;setAuth('signup')};
+$('#vc').onkeydown=e=>{if(e.key==='Enter')$('#vgo').click()};
+$('#b2').onclick=()=>go(3);
+
+/* ===== Step 3: link a music service (mandatory) — Spotify / YouTube Music / Gaana ===== */
+function linkedUI(){const m=state.music&&state.music.service;$$('[data-svc]').forEach(b=>{b.classList.toggle('ok',b.dataset.svc===m);b.classList.toggle('dim',!!m&&b.dataset.svc!==m)});$('#b3').disabled=!m}
+function linked(service,code){state.music={service,code};linkedUI();toast(SVC[service].n+' linked.')}
+async function connect(k){
+ if(CONFIG.DEMO_MODE)return linked(k,'demo');
+ const q=new URLSearchParams({redirect_uri:CONFIG.REDIRECT_URI,state:k});
+ try{sessionStorage.setItem('echovro_state',JSON.stringify(state))}catch(e){}
+ if(k==='gaana'){if(!CONFIG.GAANA_AUTH_URL)return toast('Gaana auth URL not set yet — add it in CONFIG.');
+  return location.href=CONFIG.GAANA_AUTH_URL+(CONFIG.GAANA_AUTH_URL.includes('?')?'&':'?')+q}
+ const id=k==='spotify'?CONFIG.SPOTIFY_CLIENT_ID:CONFIG.YT_CLIENT_ID;
+ if(!id)return toast(SVC[k].n+' client ID not set yet — add it in CONFIG.');
+ // Authorization Code + PKCE (no secret in the browser)
+ const A='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+ const v=[...crypto.getRandomValues(new Uint8Array(64))].map(b=>A[b%62]).join('');
+ const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v));
+ const c=btoa(String.fromCharCode(...new Uint8Array(d))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+ try{sessionStorage.setItem('mus_verifier',v)}catch(e){}
+ q.set('client_id',id);q.set('response_type','code');q.set('code_challenge_method','S256');q.set('code_challenge',c);
+ if(k==='spotify'){q.set('scope',CONFIG.SPOTIFY_SCOPES);location.href='https://accounts.spotify.com/authorize?'+q}
+ else{q.set('scope',CONFIG.YT_SCOPES);q.set('access_type','offline');location.href='https://accounts.google.com/o/oauth2/v2/auth?'+q}}
+$$('[data-svc]').forEach(b=>b.onclick=()=>connect(b.dataset.svc));
+const finish3=()=>{onComplete({...state});go(4)};
+$('#b3').onclick=()=>state.music?finish3():toast('Link a music service to continue.');
+// Returning from the music service (?code=...&state=spotify|ytm|gaana): resume. Exchange the code for a token on your backend.
+(()=>{const q=new URLSearchParams(location.search);if(q.get('code')){try{Object.assign(state,JSON.parse(sessionStorage.getItem('echovro_state')||'{}'));state.music={service:q.get('state')||'spotify',code:q.get('code')};history.replaceState(null,'',location.pathname);if(state.avatar)setTimeout(()=>{linkedUI();finish3()},50)}catch(e){}}})();
+
+/* ===== Step 4: choose a place ===== */
+function drawPlaces(){$('#places').innerHTML=Object.entries(PLACES).map(([k,p],i)=>`<button class="pc" style="--i:${i}" data-k="${k}"><em>${p.icon}</em><b>${p.name}</b><span>${p.blurb}</span></button>`).join('')+`<button class="pc" data-room="1"><em>🎧</em><b>Listening room</b><span>Listen together, chat live.</span></button>`;
+ $$('.pc[data-k]').forEach(b=>b.onclick=()=>enterPlace(b.dataset.k));$('.pc[data-room]').onclick=()=>go(6)}
+
+/* ===== Step 5: the place — scenes are loaded once, cached, and warmed in the background ===== */
+let R5=null,ctl=null,cur=null,run=false,seq=0;const sc5=new THREE.Scene(),cam5=new THREE.PerspectiveCamera(50,1,.1,1000);
+/* ===== Backdrop: opaque sky "wall" + ground disc so the app UI never shows behind a place ===== */
+const SKY={city:['#0b1226','#3a4f7a'],cafe:['#2a1c14','#7a5a40'],gallery:['#16294a','#9db3d3']};
+const skyTex={};let floor=null;
+function skyFor(k){if(skyTex[k])return skyTex[k];
+ const c=document.createElement('canvas');c.width=2;c.height=512;const g=c.getContext('2d'),gr=g.createLinearGradient(0,0,0,512),s=SKY[k]||SKY.gallery;
+ gr.addColorStop(0,s[0]);gr.addColorStop(1,s[1]);g.fillStyle=gr;g.fillRect(0,0,2,512);
+ const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;return skyTex[k]=t}
+function setBackdrop(k,b,r){   // b = place bounding box AFTER it was centered, r = its largest dimension
+ sc5.background=skyFor(k);
+ if(floor){sc5.remove(floor);floor.geometry.dispose();floor.material.dispose()}
+ floor=new THREE.Mesh(new THREE.CircleGeometry(r*12,64),new THREE.MeshBasicMaterial({color:(SKY[k]||SKY.gallery)[1]}));
+ floor.rotation.x=-Math.PI/2;floor.position.y=b.min.y-r*.004;sc5.add(floor)}   // just under the model so it never z-fights
+function init5(){if(R5)return;
+ R5=new THREE.WebGLRenderer({canvas:$('#pl'),alpha:true,antialias:true});R5.setPixelRatio(Math.min(devicePixelRatio||1,2));R5.outputEncoding=THREE.sRGBEncoding;
+ const d=new THREE.DirectionalLight(0xfff1d6,1.4);d.position.set(5,10,6);sc5.add(new THREE.HemisphereLight(0xffffff,0x445577,1.1),d);
+ ctl=new THREE.OrbitControls(cam5,R5.domElement);ctl.enableDamping=true;ctl.autoRotate=true;ctl.autoRotateSpeed=.6;
+ addEventListener('resize',fit5);fit5()}
+function fit5(){if(!R5)return;R5.setSize(innerWidth,innerHeight,false);cam5.aspect=innerWidth/innerHeight;cam5.updateProjectionMatrix()}
+// The place files are Draco-compressed, so the loader needs a DRACOLoader with its decoder path.
+const draco=new THREE.DRACOLoader();
+draco.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/draco/gltf/');
+draco.preload();   // fetch the decoder now instead of on first model
+const loadGLTF=(u,pr)=>new Promise((ok,no)=>{
+ const l=new THREE.GLTFLoader();l.setDRACOLoader(draco);
+ l.load(u,g=>ok(g.scene),e=>e.total&&pr(e.loaded/e.total),no)});
+// Cache: each place is downloaded/parsed once. Progress callbacks go to whoever is waiting (prog[k]).
+const placeCache={},prog={};
+const getPlace=k=>placeCache[k]||(placeCache[k]=loadGLTF(PLACES[k].url,p=>prog[k]&&prog[k](p)));
+let warmed=0;
+async function warmPlaces(){if(warmed)return;warmed=1;
+ for(const k in PLACES){try{await getPlace(k)}catch(e){delete placeCache[k]}}}   // one at a time so bandwidth isn't split
+// Detach only — the cached scene keeps its GPU data so re-entering a place is instant.
+function drop(){run=false;me=null;nearU=null;cmP=null;$('#cm').classList.remove('on');$('#pad').classList.remove('rdy');if(cur){sc5.remove(cur);cur=null}if(floor){sc5.remove(floor);floor=null}
+ if(crowd){sc5.remove(crowd);crowd.traverse(o=>{if(o.isSprite){o.material.map.dispose();o.material.dispose()}});crowd=null}}   // avatar geometry is shared with the previews, so it is not disposed
+/* ===== People physically in the place: your avatar + everyone from the feed, standing on the floor ===== */
+let crowd=null,me=null,climb=false,nearU=null,nearT=0;const cc={};let cmP=null;const keys={},mray=new THREE.Raycaster(),DOWN=new THREE.Vector3(0,-1,0),LEG=-1;   // LEG: flip to 1 if legs swing backwards
+const avReady=id=>new Promise(ok=>{let n=0;(function w(){if(models[id]||++n>80)return ok(models[id]);setTimeout(w,100)})()});   // wait (≤8s) for the avatar file
+function nameTag(txt,me,H){const c=document.createElement('canvas');c.width=256;c.height=64;const g=c.getContext('2d');
+ g.fillStyle=me?'rgba(234,240,255,.95)':'rgba(15,27,51,.82)';g.fillRect(0,8,256,48);g.fillStyle=me?'#0f1b33':'#eaf0ff';g.font='26px ui-monospace,monospace';g.textAlign='center';g.textBaseline='middle';g.fillText(txt,128,32);
+ const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthTest:false}));sp.scale.set(H*.9,H*.225,1);sp.position.y=H*1.15;sp.renderOrder=9;return sp}
+function songTag(txt,H){const c=document.createElement('canvas');c.width=512;c.height=64;const g=c.getContext('2d');
+ g.fillStyle='rgba(111,139,176,.92)';g.fillRect(0,8,512,48);g.fillStyle='#fff';g.font='26px ui-monospace,monospace';g.textAlign='center';g.textBaseline='middle';g.fillText('♪ '+(txt.length>34?txt.slice(0,33)+'…':txt),256,32);
+ const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthTest:false}));sp.scale.set(H*1.8,H*.225,1);sp.position.y=H*1.4;sp.renderOrder=9;return sp}
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let feed=null;
+// Hook: tell your backend what this user is playing at this place so others see it.
+async function onSongSet(p){console.log('EchoVro song',p);/* await fetch('/api/places/'+p.place+'/song',{method:'POST',body:JSON.stringify(p)}); */}
+function setMyTag(){if(!me)return;const w=me.w,o=w.userData.st;
+ if(o){w.remove(o);o.material.map.dispose();o.material.dispose();w.userData.st=null}
+ if(state.song){w.userData.st=songTag(state.song,me.H);w.add(w.userData.st)}}
+function setSong(){const v=$('#sgi').value.trim().slice(0,60);state.song=v;if(v){const q=v.split(/\s+[–-]\s+/);state.history.push([q[0],q[1]||'']);if(state.history.length>20)state.history.shift()}nearU=null;onSongSet({place:state.place,username:state.username,song:v});setMyTag();renderSheet();toast(v?'Now playing: '+v:'Song cleared.')}
+function renderSheet(){const f=feed;if(!f||!state.place||!state.music)return;const m=state.music.service,P=PLACES[state.place],mine={u:state.username,av:state.avatar,s:state.song||'—'};
+ $('#sheet').innerHTML=`<h3>Your song here</h3><div class="mine"><input id="sgi" list="sgl" maxlength="60" placeholder="Song – artist" value="${esc(state.song||'')}"><button class="btn" id="sgb">Set</button></div><datalist id="sgl">${f.songs.map(x=>`<option value="${esc(x[0]+' – '+x[1])}">`).join('')}</datalist><h3>Here now</h3><div class="pr">${[mine,...f.people].map(p=>`<div class="pp">${pvw(avOf(p.av))}<b>${p.u}</b><i>♪ ${esc(p.s)}</i></div>`).join('')}</div><h3>Songs for this place</h3>${f.songs.map(x=>`<a class="sg" href="${songLink(m,x)}" target="_blank" rel="noopener"><b>${x[0]}</b><span>${x[1]}</span><em>Open in ${SVC[m].n}</em></a>`).join('')}<p class="cr">${P.credit}</p>`;
+ $('#sgb').onclick=setSong;$('#sgi').onkeydown=e=>{if(e.key==='Enter')setSong()}}
+// Outdoor scenes (ground:true): find the real street level, then keep only flat spots at that level (no rooftops, no raised ledges).
+function groundSpots(root,ray,b,H,n){
+ const down=new THREE.Vector3(0,-1,0),pts=[];
+ for(let rr=0;rr<=H*10;rr+=H*1.4)for(let k=0;k<(rr?14:1);k++){const a=k/14*6.283,x=Math.cos(a)*rr,z=Math.sin(a)*rr;
+  ray.set(new THREE.Vector3(x,b.max.y+1,z),down);const h=ray.intersectObject(root,true)[0];   // first surface seen from above
+  if(h&&h.face&&h.face.normal.clone().transformDirection(h.object.matrixWorld).y>.85)pts.push({x,z,y:h.point.y})}
+ if(pts.length<n)return null;
+ const ys=pts.map(q=>q.y).sort((a,c)=>a-c),g=ys[Math.floor(ys.length*.2)],out=[];   // street level = low percentile
+ for(const q of pts){if(Math.abs(q.y-g)>H*.15)continue;if(out.every(o=>Math.hypot(o.x-q.x,o.z-q.z)>H*1.1))out.push(q);if(out.length===n)break}
+ return out.length===n?out:null}
+async function spawnCrowd(root,fp,tok){
+ const f=await fp;if(tok!==seq)return;
+ root.updateMatrixWorld(true);
+ const b=new THREE.Box3().setFromObject(root),sz=b.getSize(new THREE.Vector3()),r=Math.max(sz.x,sz.y,sz.z)||1,H=r*.05;   // avatar height = 5% of the place
+ const list=[{u:state.username,av:state.avatar,me:1,s:state.song},...((f&&f.people)||[]).map(p=>({u:p.u,av:p.av,s:p.s,m:p.m,t:p.t}))];
+ const grp=new THREE.Group(),ray=new THREE.Raycaster(),n=list.length,R=H*1.5;
+ const g0=PLACES[state.place].ground?groundSpots(root,ray,b,H,n):null,spots=[];
+ for(let i=0;i<n;i++){if(g0){spots.push(g0[i]);continue}
+  const ang=n===1?0:(i/(n-1)-.5)*Math.PI*.9+Math.PI/4,px=Math.sin(ang)*R,pz=Math.cos(ang)*R;   // fan of people in front of the camera
+  ray.set(new THREE.Vector3(px,b.min.y+sz.y*.4,pz),new THREE.Vector3(0,-1,0));
+  const hit=ray.intersectObject(root,true)[0];spots.push({x:px,z:pz,y:hit?hit.point.y:b.min.y})}
+ const cx=spots.reduce((a,q)=>a+q.x,0)/n,cz=spots.reduce((a,q)=>a+q.z,0)/n,gy0=spots[0].y,camX=cx+H*3.4,camZ=cz+H*3.4;
+ for(let i=0;i<n;i++){const P=list[i],pv=await avReady(P.av);if(tok!==seq)return;if(!pv)continue;
+  const {x:px,z:pz,y:gy}=spots[i];
+  const inner=new THREE.Group();inner.add(THREE.SkeletonUtils.clone(pv.children[0]));inner.updateMatrixWorld(true);
+  let bb=new THREE.Box3().setFromObject(inner);inner.scale.setScalar(H/((bb.max.y-bb.min.y)||1));inner.updateMatrixWorld(true);
+  bb=new THREE.Box3().setFromObject(inner);const cc=bb.getCenter(new THREE.Vector3());inner.position.set(-cc.x,-bb.min.y,-cc.z);
+  const w=new THREE.Group();w.add(inner,nameTag(P.u,P.me,H));if(P.s){w.userData.st=songTag(P.s,H);w.add(w.userData.st)}w.position.set(px,gy,pz);
+  w.userData.me=P.me;w.userData.P=P;w.userData.ry=w.rotation.y=Math.atan2(camX-px,camZ-pz)+(pv.userData.rot||0);grp.add(w)}
+ if(tok!==seq)return;if(!grp.children.length)return;
+ sc5.add(grp);crowd=grp;setupMe(grp.children.find(c=>c.userData.me),H);
+ cam5.near=Math.min(r/1000,H/50);cam5.updateProjectionMatrix();
+ ctl.target.set(cx,gy0+H*.55,cz);cam5.position.set(camX,gy0+H*1.7,camZ);ctl.minDistance=H*1.2;ctl.update()}
+(function loop5(){requestAnimationFrame(loop5);const n=performance.now(),dt=Math.min(.05,(n-(loop5.t||n))/1000);loop5.t=n;
+ if(run){if(crowd){const t=n/1000;crowd.children.forEach((w,i)=>{if(me&&w===me.w)return;w.rotation.y=w.userData.ry+Math.sin(t*.8+i*1.7)*.18})}
+  tickMe(dt);tickNear(n);ctl.update();R5.render(sc5,cam5)}})();
+/* ===== Controls for your avatar: walk, climb stairs, sit ===== */
+function setupMe(w,H){if(!w)return;const inner=w.children[0],rot=((models[state.avatar]||{}).userData||{}).rot||0;
+ const bn=(p,s)=>{let r=null;inner.traverse(o=>{if(!r&&o.isBone&&p.test(o.name)&&s.test(o.name))r=o});return r},
+  L=/left|[._]l(_|$)/i,R=/right|[._]r(_|$)/i,TH=/up.?leg|thigh/i,KN=/^(?!.*up)(?!.*foot)(?!.*toe).*(leg|calf|shin)$/i;
+ const j=[bn(TH,L),bn(TH,R),bn(KN,L),bn(KN,R)].map(b=>b&&{b,r:b.rotation.x});
+ me={w,inner,H,j,rot,h:w.userData.ry-rot,ty:w.position.y,iy:inner.position.y,ph:0,a:0,s:0,sit:0,seat:0}}
+const shift=(x,y,z)=>{const v=new THREE.Vector3(x,y,z);cam5.position.add(v);ctl.target.add(v)};
+/* ===== Compatibility modal: appears when you walk up to someone (uses echovro-ml.js) ===== */
+const myTracks=()=>[...(state.tracks||[]),...state.history];
+const trackList=P=>P.me?myTracks():(P.t&&P.t.length?P.t:(P.s?[[P.s,'']]:[]));
+function showCompat(P){
+ const key=P.u+'|'+myTracks().length;let r=cc[key];
+ if(!r){const mine=ML.profile(myTracks()),profs=[mine];
+  crowd.children.forEach(w=>{const q=w.userData.P;if(q&&!q.me)profs.push(q.prof||(q.prof=ML.profile(trackList(q))))});
+  ML.fit(profs);                                       // TF-IDF weights from everyone in the room
+  r=cc[key]=ML.compat(mine,P.prof||(P.prof=ML.profile(trackList(P))))}
+ const L=g=>ML.LABEL[g],my=SVC[state.music.service].n,th=SVC[P.m]?SVC[P.m].n:'';
+ $('#cmav').innerHTML=pvw(avOf(P.av));$('#cmn').textContent=P.u;
+ $('#cmsv').textContent=th?(th===my?'Also on '+th:my+' ↔ '+th):'';
+ $('#cmpct').textContent=r.score==null?'—':r.score+'%';$('#cmlb').textContent=r.label;$('#cmfill').style.width=(r.score||0)+'%';
+ $('#cmc').innerHTML=r.shared.map(g=>'<u>'+L(g)+'</u>').join('')||(r.score==null?'':'<u>No shared genres yet</u>');
+ $('#cmt').textContent=(P.s?'Listening to: '+P.s+'. ':'')+(r.theirTop.length?'Their taste: '+r.theirTop.slice(0,3).map(L).join(', ')+'.':'')+(r.bridge?' They could introduce you to '+L(r.bridge)+'.':'');
+ cmP=P;renderCmActions();$('#cm').classList.add('on')}
+function tickNear(n){if(!me||!crowd||n-nearT<200)return;nearT=n;const p=me.w.position,H=me.H;let best=null,bd=1e9;
+ crowd.children.forEach(w=>{if(w===me.w||!w.userData.P)return;const d=Math.hypot(w.position.x-p.x,w.position.z-p.z)+Math.abs(w.position.y-p.y)*2;if(d<bd){bd=d;best=w}});
+ if(best&&bd<(nearU?H*1.7:H*1.1)){if(nearU!==best){nearU=best;showCompat(best.userData.P)}}
+ else if(nearU){nearU=null;cmP=null;$('#cm').classList.remove('on')}}
+/* ===== Connections: text / voice requests + chat inbox in your profile ===== */
+let conns={},connsFor='',ppTab='chats',ppThread=null,call=null,pendingOffer=null,iceBuf=[];
+const ckey=()=>'echovro_conns_'+state.username;
+function loadConns(){connsFor=state.username;try{conns=JSON.parse(localStorage.getItem(ckey())||'{}')}catch(e){conns={}}}
+function saveConns(){try{localStorage.setItem(ckey(),JSON.stringify(conns))}catch(e){}}
+// ---- Hooks → your backend (WebSocket/REST). ----
+async function onRequestSend(p){console.log('EchoVro request',p)}   // {to} — a connection request; chat and calls unlock only after it is accepted
+async function onRespondSend(p){console.log('EchoVro respond',p)}   // {to,accept}
+async function onChatSend(p){console.log('EchoVro message',p)}      // {to,text}
+async function signal(m){console.log('EchoVro signal',m)}           // WebRTC offer/answer/ice/hangup → deliver to m.to
+// Call these when your backend pushes something to this user:
+window.EchoVroReceive={request:P=>incoming(P),accepted:u=>accepted(u),message:(u,t)=>receiveMsg(u,t),signal:m=>onSignal(m)};
+const fa=av=>{const a=avOf(av);return `<div class="fa">${a?pvw(a):''}</div>`};   // real 3D avatar (.glb) rendered by the shared preview renderer
+const bub=m=>`<div class="bub${m.me?' me':''}">${esc(m.t)}</div>`;
+function badge(){const n=Object.values(conns).reduce((s,c)=>s+(c.unread||0)+(c.status==='pending'&&c.dir==='in'?1:0),0),b=$('#pfb');b.textContent=n||'';b.style.display=n?'flex':'none'}
+function refresh(){badge();renderPanel();renderCmActions()}
+function getConn(P){return conns[P.u]||(conns[P.u]={u:P.u,av:P.av,m:P.m,status:'none',msgs:[],unread:0})}
+function request(P,song){const c=getConn(P);   // step 1 of everything: a connection request
+ if(c.status!=='none')return;
+ c.status='pending';c.dir='out';c.song=song;saveConns();onRequestSend({to:P.u,song});refresh();toast('Song sent to '+P.u);}
+function accepted(u){const c=conns[u];if(!c||c.status!=='pending')return;c.status='connected';saveConns();refresh();toast(u+' accepted — you are connected');
+ openPanel('thread',u)}
+function incoming(P){const c=getConn(P);if(c.status!=='none')return;c.status='pending';c.dir='in';c.song=P.song||{t:P.s,svc:P.m};saveConns();refresh();
+ toast(P.u+' sent you a song to connect — open Requests in your profile')}
+function respond(u,ok){const c=conns[u];if(!c)return;onRespondSend({to:u,accept:ok});
+ if(ok){c.status='connected';toast('Connected with '+u)}else c.status='none';
+ saveConns();refresh();if(ok)openPanel('thread',u)}
+function renderCmActions(){const P=cmP;if(!P)return;const c=conns[P.u],a=$('#cma');
+ if(c&&c.status==='connected')a.innerHTML='<button class="btn" data-a="chat">Message</button><button class="btn" data-a="voice">Voice call</button>';
+ else if(c&&c.status==='pending'&&c.dir==='in')a.innerHTML='<button class="btn" data-a="yes">Accept</button><button class="btn g" data-a="no">Decline</button>';
+ else if(c&&c.status==='pending')a.innerHTML='<button class="btn" disabled>Request sent…</button>';
+ else a.innerHTML='<button class="btn" data-a="connect">Connect through a song</button>';
+ a.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const k=b.dataset.a;
+  if(k==='chat')openPanel('thread',P.u);else if(k==='voice')openVoice(conns[P.u]);else if(k==='connect')openSongPick(P);else respond(P.u,k==='yes')})}
+/* ---- profile panel with chat menu ---- */
+function openPanel(view,u){ppThread=view==='thread'&&conns[u]&&conns[u].status==='connected'?u:null;if(ppThread&&conns[u]){conns[u].unread=0;saveConns()}$('#pp').classList.add('on');renderPanel();badge()}
+function renderPanel(){const p=$('#pp');if(!p.classList.contains('on'))return;const a=findAv();
+ $('#ppav').innerHTML=a?pvw(a):'';$('#ppn').textContent=state.username;$('#pps').textContent=state.music?SVC[state.music.service].n+' linked':'';
+ const body=$('#ppb'),list=Object.values(conns);
+ if(ppThread&&conns[ppThread]&&conns[ppThread].status==='connected'){const c=conns[ppThread];
+  body.innerHTML=`<div class="thh"><button class="btn g" id="thb">←</button>${fa(c.av)}<b>${esc(c.u)}</b><button class="btn" id="thv">🎙 Voice</button></div><div id="thm">${(c.msgs||[]).map(bub).join('')||'<p class="emp">Say hi 👋</p>'}</div><div class="mine" style="margin:10px 0 0"><input id="thi" maxlength="300" placeholder="Message…"><button class="btn" id="ths">Send</button></div>`;
+  $('#thb').onclick=()=>{ppThread=null;renderPanel()};$('#thv').onclick=()=>openVoice(c);
+  const send=()=>{const v=$('#thi').value.trim();if(v)sendMsg(c.u,v)};$('#ths').onclick=send;$('#thi').onkeydown=e=>{if(e.key==='Enter')send()};
+  const m=$('#thm');m.scrollTop=m.scrollHeight;return}
+ ppThread=null;
+ const chats=list.filter(c=>c.status==='connected'),rin=list.filter(c=>c.status==='pending'&&c.dir==='in'),rout=list.filter(c=>c.status==='pending'&&c.dir==='out'),un=chats.reduce((s,c)=>s+(c.unread||0),0);
+ body.innerHTML=`<div class="tabs"><button data-t="chats" class="${ppTab==='chats'?'on':''}">Chats${un?' ('+un+')':''}</button><button data-t="req" class="${ppTab==='req'?'on':''}">Requests${rin.length?' ('+rin.length+')':''}</button></div>`+
+  (ppTab==='chats'?(chats.map(c=>{const l=(c.msgs||[]).slice(-1)[0];return `<div class="crow" data-u="${esc(c.u)}">${fa(c.av)}<div><b>${esc(c.u)}</b><i>${l?esc((l.me?'You: ':'')+l.t):'Connected'}</i></div>${c.unread?'<em>'+c.unread+'</em>':''}</div>`}).join('')||'<p class="emp">No connections yet. Walk up to someone and send a text or voice request.</p>')
+  :(rin.map(c=>`<div class="crow">${fa(c.av)}<div><b>${esc(c.u)}</b><i>♪ ${esc((c.song&&c.song.t)||'a song')}${c.song&&SVC[c.song.svc]?' · '+SVC[c.song.svc].n:''}</i></div><button class="btn" data-y="${esc(c.u)}">✓</button><button class="btn g" data-n="${esc(c.u)}">✕</button></div>`).join('')+rout.map(c=>`<div class="crow">${fa(c.av)}<div><b>${esc(c.u)}</b><i>request sent…</i></div></div>`).join('')||'<p class="emp">No pending requests.</p>'));
+ body.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{ppTab=b.dataset.t;renderPanel()});
+ body.querySelectorAll('.crow[data-u]').forEach(r=>r.onclick=()=>openPanel('thread',r.dataset.u));
+ body.querySelectorAll('[data-y]').forEach(b=>b.onclick=()=>respond(b.dataset.y,true));
+ body.querySelectorAll('[data-n]').forEach(b=>b.onclick=()=>respond(b.dataset.n,false))}
+function pushBubble(m){const el=$('#thm');if(!el)return;const e=el.querySelector('.emp');if(e)e.remove();el.insertAdjacentHTML('beforeend',bub(m));el.scrollTop=el.scrollHeight}
+function sendMsg(u,text){const c=conns[u];if(!c||c.status!=='connected')return;const m={me:1,t:text};c.msgs.push(m);saveConns();onChatSend({to:u,text});$('#thi').value='';pushBubble(m)}
+function receiveMsg(u,text){const c=conns[u];if(!c||c.status!=='connected')return;const m={t:text};c.msgs.push(m);
+ if($('#pp').classList.contains('on')&&ppThread===u)pushBubble(m);else{c.unread=(c.unread||0)+1;if(!ppThread)renderPanel();toast(u+': '+text.slice(0,40))}saveConns();badge()}
+$('#pf').onclick=()=>openPanel();$('#ppx').onclick=()=>$('#pp').classList.remove('on');
+/* ---- voice chat (WebRTC; signalling goes through signal()/EchoVroReceive.signal) ---- */
+function showCall(t,inc){$('#call').classList.add('on');$('#cl').textContent=t;$('#cacc').style.display=inc?'':'none';$('#cmute').style.display=inc?'none':'';$('#cmute').textContent='Mute'}
+function makePc(c,stream){const pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});   // add a TURN server for restrictive networks
+ stream.getTracks().forEach(t=>pc.addTrack(t,stream));
+ const au=new Audio();au.autoplay=true;pc.ontrack=e=>{au.srcObject=e.streams[0]};
+ pc.onicecandidate=e=>e.candidate&&signal({to:c.u,type:'ice',data:e.candidate});
+ pc.onconnectionstatechange=()=>{const s=pc.connectionState;if(s==='connected')callUp();if(s==='failed'||s==='closed')endCall(true)};
+ return pc}
+async function mic(){try{return await navigator.mediaDevices.getUserMedia({audio:true})}catch(e){toast('Microphone access is needed for voice chat.');return null}}
+async function openVoice(c){if(!c||c.status!=='connected')return toast('Connect with them first.');if(call)return toast('Already in a call.');const stream=await mic();if(!stream)return;
+ call={c,stream,pc:null,t0:0,iv:0};showCall('Calling '+c.u+'…');
+ const pc=call.pc=makePc(c,stream),o=await pc.createOffer();await pc.setLocalDescription(o);signal({to:c.u,type:'offer',data:o})}
+function callUp(){if(!call||call.t0)return;call.t0=Date.now();const tick=()=>{const s=Math.floor((Date.now()-call.t0)/1000);$('#cl').textContent='🎙 '+call.c.u+' · '+String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')};tick();call.iv=setInterval(tick,500)}
+async function onSignal(m){const c=conns[m.from];if(!c||c.status!=='connected')return;
+ if(m.type==='offer'){if(call)return signal({to:m.from,type:'hangup'});pendingOffer=m;iceBuf=[];showCall(c.u+' is calling…',true)}
+ else if(m.type==='hangup')endCall(true);
+ else if(m.type==='ice'){if(call&&call.pc)try{await call.pc.addIceCandidate(m.data)}catch(e){}else iceBuf.push(m.data)}
+ else if(m.type==='answer'&&call&&call.pc)await call.pc.setRemoteDescription(m.data)}
+async function acceptCall(){const m=pendingOffer;if(!m)return;pendingOffer=null;const c=conns[m.from],stream=await mic();if(!stream){signal({to:m.from,type:'hangup'});return endCall(true)}
+ call={c,stream,pc:null,t0:0,iv:0};const pc=call.pc=makePc(c,stream);await pc.setRemoteDescription(m.data);
+ for(const i of iceBuf)try{await pc.addIceCandidate(i)}catch(e){}iceBuf=[];
+ const a=await pc.createAnswer();await pc.setLocalDescription(a);signal({to:c.u,type:'answer',data:a});showCall('Connecting…')}
+function endCall(remote){if(pendingOffer){if(!remote)signal({to:pendingOffer.from,type:'hangup'});pendingOffer=null}
+ if(call){clearInterval(call.iv);call.stream.getTracks().forEach(t=>t.stop());if(call.pc)call.pc.close();if(!remote)signal({to:call.c.u,type:'hangup'});call=null}
+ $('#call').classList.remove('on')}
+$('#cend').onclick=()=>endCall(false);$('#cacc').onclick=acceptCall;
+$('#cmute').onclick=()=>{if(!call)return;const t=call.stream.getAudioTracks();t.forEach(x=>x.enabled=!x.enabled);$('#cmute').textContent=t[0]&&t[0].enabled?'Mute':'Unmute'};
+function findSeat(){const m=me,o=m.w.position,H=m.H;
+ for(let i=0;i<12;i++){const a=i/12*6.283,x=o.x+Math.sin(a)*H*.7,z=o.z+Math.cos(a)*H*.7;
+  mray.set(new THREE.Vector3(x,o.y+H*.6,z),DOWN);const h=mray.intersectObject(cur,true)[0];
+  if(h&&h.face){const d=h.point.y-o.y;if(d>H*.15&&d<H*.4&&h.face.normal.clone().transformDirection(h.object.matrixWorld).y>.8)return{x,z,a}}}
+ return null}
+function toggleSit(){if(!me)return;const m=me;
+ if(m.sit){m.sit=0;m.seat=0}
+ else{const s=findSeat();if(s){shift(s.x-m.w.position.x,0,s.z-m.w.position.z);m.w.position.x=s.x;m.w.position.z=s.z;m.h=s.a}m.seat=s?1:0;m.sit=1;ctl.autoRotate=false}
+ $('#bs').textContent=m.sit?'STAND':'SIT'}
+function tickMe(dt){const m=me;if(!m||!cur)return;const w=m.w,H=m.H,k=keys,dx=(k.r?1:0)-(k.l?1:0),dz=(k.f?1:0)-(k.b?1:0);let go=0;
+ if((dx||dz)&&m.sit){m.sit=0;m.seat=0;$('#bs').textContent='SIT'}
+ if((dx||dz)&&!m.sit){const t=ctl.target,c=cam5.position;let fx=t.x-c.x,fz=t.z-c.z;const fl=Math.hypot(fx,fz)||1;fx/=fl;fz/=fl;
+  let vx=fx*dz-fz*dx,vz=fz*dz+fx*dx;const vl=Math.hypot(vx,vz)||1;vx/=vl;vz/=vl;
+  const sp=H*(climb?.7:1.4)*dt,nx=w.position.x+vx*sp,nz=w.position.z+vz*sp,st=H*(climb?.45:.12),ta=Math.atan2(vx,vz);
+  m.h+=Math.atan2(Math.sin(ta-m.h),Math.cos(ta-m.h))*Math.min(1,dt*10);
+  mray.far=H*.4;mray.set(new THREE.Vector3(w.position.x,w.position.y+st+H*.1,w.position.z),new THREE.Vector3(vx,0,vz));const wall=mray.intersectObject(cur,true).length>0;mray.far=Infinity;   // solid obstacle above step height
+  mray.set(new THREE.Vector3(nx,w.position.y+st+H*.3,nz),DOWN);const h=wall?null:mray.intersectObject(cur,true).find(q=>q.point.y-w.position.y<=st&&w.position.y-q.point.y<H*.6);   // highest surface we can step onto (skips rails/slabs above reach)
+  if(h){const ox=w.position.x,oz=w.position.z;w.position.x=nx;w.position.z=nz;m.ty=h.point.y;shift(nx-ox,0,nz-oz);go=1}}
+ const oy=w.position.y;w.position.y+=(m.ty-oy)*Math.min(1,dt*12);shift(0,w.position.y-oy,0);
+ m.a+=((go?(climb?.9:.6):0)-m.a)*Math.min(1,dt*8);m.ph+=dt*(climb?7:9);m.s+=(m.sit-m.s)*Math.min(1,dt*6);
+ const s=m.s,sw=Math.sin(m.ph)*m.a*(1-s),A=1.5*s,[tl,tr,kl,kr]=m.j,kn=(m.seat?1.5:.2)*s;
+ if(tl)tl.b.rotation.x=tl.r+LEG*(sw+A);if(tr)tr.b.rotation.x=tr.r+LEG*(-sw+A);
+ if(kl)kl.b.rotation.x=kl.r-LEG*(Math.max(0,-sw)*1.2+kn);if(kr)kr.b.rotation.x=kr.r-LEG*(Math.max(0,sw)*1.2+kn);
+ m.inner.position.y=m.iy-(m.seat?.23:.46)*H*s+Math.abs(Math.sin(m.ph))*H*.015*m.a;
+ w.rotation.y=m.h+m.rot}
+$$('#pad [data-k]').forEach(b=>{const k=b.dataset.k,f=v=>e=>{e.preventDefault();keys[k]=v;if(v&&ctl)ctl.autoRotate=false};
+ b.onpointerdown=f(1);['onpointerup','onpointerleave','onpointercancel'].forEach(ev=>b[ev]=f(0))});
+$('#bc').onclick=()=>{climb=!climb;$('#bc').classList.toggle('on',climb)};
+$('#bs').onclick=toggleSit;
+const KM={KeyW:'f',ArrowUp:'f',KeyS:'b',ArrowDown:'b',KeyA:'l',ArrowLeft:'l',KeyD:'r',ArrowRight:'r'};
+addEventListener('keydown',e=>{if(step!==5||e.target.tagName==='INPUT')return;if(KM[e.code]){keys[KM[e.code]]=1;e.preventDefault()}
+ if(e.code==='KeyE')toggleSit();if(e.code==='KeyC')$('#bc').click()});
+addEventListener('keyup',e=>{if(KM[e.code])keys[KM[e.code]]=0});
+const songLink=(m,s)=>SVC[m].q+encodeURIComponent(s[0]+' '+s[1]);
+async function enterPlace(k){
+ const P=PLACES[k],tok=++seq;state.place=k;state.song='';feed=null;drop();go(5);
+ $('#pn').textContent=P.name;$('#pb').textContent=P.blurb;$('#sheet').innerHTML='';$('#ld').style.display='';$('#bar').style.width='0';$('#lt').textContent='Loading '+P.name+'…';
+ if(!state.tracks)fetchMyTracks(state).then(t=>{state.tracks=t||[]});
+ const fp=fetchPlaceFeed(k,state);fp.then(f=>{if(tok!==seq||!f)return;feed=f;renderSheet()});
+ try{init5();
+  prog[k]=p=>{$('#bar').style.width=Math.round(p*100)+'%'};
+  const root=await getPlace(k);
+  if(tok!==seq)return;
+  $('#lt').textContent='Building the scene…';
+  const b=new THREE.Box3().setFromObject(root),c=b.getCenter(new THREE.Vector3()),s=b.getSize(new THREE.Vector3()),r=Math.max(s.x,s.y,s.z)||1;
+  root.position.sub(c);sc5.add(root);cur=root;
+  setBackdrop(k,new THREE.Box3().setFromObject(root),r);
+  cam5.near=r/1000;cam5.far=r*30;cam5.updateProjectionMatrix();cam5.position.set(r*.7,r*.5,r*.7);
+  ctl.target.set(0,0,0);ctl.minDistance=r*.05;ctl.maxDistance=r*2.5;ctl.maxPolarAngle=Math.PI*.495;ctl.update();
+  await spawnCrowd(root,fp,tok);if(tok!==seq)return;
+  $('#ld').style.display='none';run=true;$('#pad').classList.add('rdy');
+ }catch(e){delete placeCache[k];console.error('Place load failed',P.url,e);if(tok===seq)$('#lt').textContent='Could not load '+P.url+' — '+((e&&e.message)||(e&&e.target&&('HTTP '+(e.target.status||'error')))||String(e))}}
+$('#bk').onclick=()=>{seq++;drop();go(4)};
+
+/* ===== Connect through a song: the only way to send a connection request ===== */
+let srP=null,srS='';
+function srUpd(){$$('#srs [data-s]').forEach(b=>{b.onclick=()=>{srS=b.dataset.s;srUpd()};b.classList.toggle('ok',b.dataset.s===srS)});$('#sro').href=SVC[srS].q+encodeURIComponent($('#sri').value)}
+function openSongPick(P){srP=P;srS=state.music.service;$('#srt').textContent='Connect with '+P.u+' through a song';
+ $('#srs').innerHTML=Object.keys(SVC).map(k=>`<button class="btn g" data-s="${k}">${SVC[k].n}</button>`).join('');
+ $('#srl').innerHTML=(feed?feed.songs:[]).map(x=>`<option value="${esc(x[0]+' – '+x[1])}">`).join('');
+ $('#sri').value='';$('#srk').value='';$('#sr').classList.add('on');srUpd()}
+$('#sri').oninput=srUpd;$('#srx').onclick=()=>$('#sr').classList.remove('on');
+$('#srsend').onclick=()=>{const t=$('#sri').value.trim(),l=$('#srk').value.trim();if(!t&&!l)return toast('Pick a song to send.');
+ $('#sr').classList.remove('on');request(srP,{t:t||l,svc:srS,link:l})};
+
+/* ===== Listening room: same song, same moment, with text chat ===== */
+let room={with:null,link:'',msgs:[],cds:[],col:'aurora'};
+async function onRoomSend(p){console.log('EchoVro room',p)}   // hook: deliver to p.to. types: link, play {at}, chat {text}
+function parseLink(u){let m;
+ if(m=u.match(/open\.spotify\.com\/(?:intl-[a-z]+\/)?track\/(\w+)/))return{svc:'spotify',src:'https://open.spotify.com/embed/track/'+m[1]};
+ if(m=u.match(/(?:youtu\.be\/|[?&]v=)([\w-]{11})/))return{svc:'ytm',src:'https://www.youtube.com/embed/'+m[1]};
+ if(/gaana\.com\/song\//.test(u))return{svc:'gaana',src:''};
+ return null}
+function renderRoom(){const f=Object.values(conns).filter(c=>c.status==='connected');
+ if(!room.with&&f[0])room.with=f[0].u;
+ $('#rwho').innerHTML=f.length?f.map(c=>`<button class="btn g${c.u===room.with?' ok':''}" data-u="${esc(c.u)}">${esc(c.u)}</button>`).join(''):'<p class="emp">Connect with someone through a song first, then invite them here.</p>';
+ $$('#rwho [data-u]').forEach(b=>b.onclick=()=>{room.with=b.dataset.u;room.msgs=[];room.cds=[];renderRoom()});
+ renderCDs();$('#rch').innerHTML=room.msgs.map(bub).join('')||'<p class="emp">Say hi 👋</p>';$('#rch').scrollTop=1e5;
+ const l=room.link&&parseLink(room.link);
+ $('#rpl').innerHTML=!l?'':l.src?`<iframe src="${l.src}" allow="autoplay; encrypted-media" style="width:100%;height:${l.svc==='spotify'?152:220}px;border:0"></iframe>`:`<a class="btn" href="${esc(room.link)}" target="_blank" rel="noopener">Open in Gaana</a>`}
+$('#rgo').onclick=()=>{const u=$('#rlk').value.trim();if(!parseLink(u))return toast('Paste a Spotify, YouTube Music or Gaana song link.');
+ room.link=u;if(room.with)onRoomSend({to:room.with,type:'link',link:u});renderRoom()};
+function countdown(at){const iv=setInterval(()=>{const s=Math.ceil((at-Date.now())/1000);if(s>0)return toast('Playing in '+s+'…');clearInterval(iv);
+ const l=room.link&&parseLink(room.link),f=$('#rpl iframe');
+ if(l&&l.svc==='ytm'&&f){f.src=l.src+'?autoplay=1';toast('Playing together')}else toast('Press play now ▶')},1000)}
+$('#rsync').onclick=()=>{if(!room.link||!room.with)return toast('Pick a friend and load a song first.');
+ const at=Date.now()+5000;onRoomSend({to:room.with,type:'play',at});countdown(at)};
+function sendRoom(){const v=$('#rci').value.trim();if(!v||!room.with)return;room.msgs.push({me:1,t:v});$('#rci').value='';
+ onRoomSend({to:room.with,type:'chat',text:v});renderRoom();}
+$('#rcs').onclick=sendRoom;$('#rci').onkeydown=e=>{if(e.key==='Enter')sendRoom()};$('#rbk').onclick=()=>go(4);
+// Call from your backend: EchoVroReceive.room({from,type:'link'|'play'|'chat',link,at,text})
+EchoVroReceive.room=m=>{if(m.type==='link'){room.link=m.link;toast(m.from+' shared a song')}
+ if(m.type==='cd'){room.cds.push({t:m.t,svc:m.svc,link:m.link,from:m.from,col:m.col,fresh:1});toast(m.from+' sent you a CD')}
+ if(m.type==='chat')room.msgs.push({t:m.text});if(m.type==='play')countdown(m.at);renderRoom()};
+
+/* ===== Songs as CDs: send a song, it lands in the room as a disc. Tap a CD to play it. ===== */
+function cdHTML(c,i){const q=c.t.split(/\s+[–-]\s+/);
+ return `<button class="cdw${c.me?' sent':''}${c.fresh?' fresh':''}" style="--g:${CDC[c.col]||CDC.aurora}" data-i="${i}" aria-label="Play ${esc(c.t)}"><span class="cd"><span class="disc"></span><span class="cdl"><b>${esc(q[0])}</b><i>${esc(q[1]||'')}</i></span></span><em>${c.me?'You':esc(c.from||room.with||'')}</em></button>`}
+const CDC={aurora:'#e9eefb,#9fb6dc,#f3e7cf,#c0a8e0,#8fd6e4,#f6f0e0,#9fb6dc,#e9eefb',gold:'#fff3c4,#e0b04a,#fff8dc,#c98f2b,#f7e3a0,#e0b04a,#fff3c4',rose:'#ffe3ea,#e88aa4,#fff0f3,#c25b7c,#f6b8c8,#e88aa4,#ffe3ea',mint:'#e2fff3,#5fcfa0,#f2fff9,#3a9c7a,#a8ecd0,#5fcfa0,#e2fff3',violet:'#efe3ff,#9a73e0,#f8f2ff,#6b45b8,#c9b0f2,#9a73e0,#efe3ff',midnight:'#5a74a0,#16294a,#9db3d3,#0a1426,#6f8bb0,#16294a,#5a74a0'};
+function drawCC(){const el=$('#rcc');if(!el)return;
+ el.innerHTML=Object.keys(CDC).map(k=>`<button class="${k===room.col?'on':''}" data-c="${k}" aria-label="${k} CD" style="background:conic-gradient(${CDC[k]})"></button>`).join('');
+ $$('#rcc [data-c]').forEach(b=>b.onclick=()=>{room.col=b.dataset.c;drawCC()})}
+function renderCDs(){const el=$('#rcd');if(!el)return;drawCC();
+ el.innerHTML=room.cds.map(cdHTML).join('')||'<p class="emp">No CDs yet. Send one and it lands here.</p>';
+ $$('#rcd .cdw').forEach(b=>b.onclick=()=>playCD(room.cds[+b.dataset.i]));room.cds.forEach(c=>c.fresh=0)}
+function playCD(c){if(c.link&&parseLink(c.link)){room.link=c.link;if(room.with)onRoomSend({to:room.with,type:'link',link:c.link});renderRoom();toast('Playing '+c.t)}
+ else window.open(SVC[c.svc||state.music.service].q+encodeURIComponent(c.t),'_blank','noopener')}
+function sendCD(){const v=$('#rcdi').value.trim();if(!room.with)return toast('Connect with someone first.');if(!v)return toast('Type a song first.');
+ const isL=/^https?:\/\//i.test(v),pl=isL?parseLink(v):null,c={me:1,t:isL?'Song link':v.slice(0,60),svc:pl?pl.svc:state.music.service,link:isL?v:'',col:room.col,fresh:1};
+ room.cds.push(c);$('#rcdi').value='';onRoomSend({to:room.with,type:'cd',t:c.t,svc:c.svc,link:c.link,col:c.col});renderCDs();toast('CD sent to '+room.with);}
+$('#rcdb').onclick=sendCD;$('#rcdi').onkeydown=e=>{if(e.key==='Enter')sendCD()};
+
+/* ===== 3D avatar previews: one shared WebGL renderer drawn into each card's canvas ===== */
+const PV=256;   // preview resolution (cards are ≤170px wide)
+const pvw=a=>`<div class="pvw" data-id="${a.id}"><div class="ph">${face(a.look)}</div><canvas class="pv" width="${PV}" height="${PV}"></canvas></div>`;
+const T=THREE,models={},loading={};let R3=null;
+const sc3=new T.Scene(),cam3=new T.PerspectiveCamera(28,1,.01,100);
+try{R3=new T.WebGLRenderer({alpha:true,antialias:true});R3.setSize(PV,PV,false);R3.outputEncoding=T.sRGBEncoding;R3.toneMapping=T.ACESFilmicToneMapping;R3.toneMappingExposure=1.05;
+ const kl=new T.DirectionalLight(0xfff1d6,1.7),rl=new T.DirectionalLight(0x8fa8cc,1.2);kl.position.set(2,3,4);rl.position.set(-3,2,-3);sc3.add(new T.HemisphereLight(0xdfe8ff,0x16294a,.9),kl,rl)}
+catch(e){R3=null;document.body.classList.add('nogl');console.warn('WebGL unavailable — showing illustrated avatars',e)}
+function frameOf(root){root.updateMatrixWorld(true);let head=null,hips=null;
+ root.traverse(o=>{if(o.isBone){if(/^Head(_\d+)?$/.test(o.name))head=o;if(/^Hips(_\d+)?$/.test(o.name))hips=o}});
+ if(head&&hips){const a=head.getWorldPosition(new T.Vector3()),b=hips.getWorldPosition(new T.Vector3()),u=a.y-b.y;return{x:a.x,y:a.y+u*.12,z:a.z,s:u*.95}}
+ const b=new T.Box3().setFromObject(root),h=b.max.y-b.min.y;return{x:(b.min.x+b.max.x)/2,y:b.max.y-h*.16,z:(b.min.z+b.max.z)/2,s:h*.36}}
+const avLoader=new T.GLTFLoader();avLoader.setDRACOLoader(draco);   // shared loader; also handles Draco-compressed avatars
+function ensure(g){if(!R3)return;AVATARS[g].forEach(a=>{if(models[a.id]||loading[a.id])return;loading[a.id]=1;
+ avLoader.load(a.model,gl=>{const root=gl.scene;root.traverse(o=>{if(o.isMesh)o.frustumCulled=false});
+  const f=frameOf(root),pivot=new T.Group();root.position.x-=f.x;root.position.z-=f.z;pivot.add(root);pivot.visible=false;
+  pivot.userData={y:f.y,d:f.s/2/Math.tan(14*Math.PI/180)*1.05,rot:a.rot||0,clips:gl.animations||[]};sc3.add(pivot);models[a.id]=pivot},undefined,e=>{delete loading[a.id];console.warn('Avatar failed to load (serve the site over http/https):',a.model,e)})})}
+(function loop3(t){requestAnimationFrame(loop3);if(!R3)return;
+ if(t-(loop3.l||0)<33)return;loop3.l=t;   // ~30fps is plenty for a gentle sway
+ document.querySelectorAll('.pvw').forEach(w=>{const s=w.closest('.scr,#pp,#pf');if(!s||!(s.matches('.scr,#pp')?s.classList.contains('on'):s.style.display==='block'))return;const m=models[w.dataset.id];if(!m)return;
+  const u=m.userData,id=w.dataset.id;m.rotation.y=u.rot+Math.sin(t*.0008+id.charCodeAt(id.length-1))*.45;
+  cam3.position.set(0,u.y,u.d);cam3.near=u.d*.05;cam3.far=u.d*30;cam3.updateProjectionMatrix();cam3.lookAt(0,u.y,0);
+  m.visible=true;R3.render(sc3,cam3);m.visible=false;
+  const c=w.querySelector('canvas').getContext('2d');c.clearRect(0,0,PV,PV);c.drawImage(R3.domElement,0,0);w.classList.add('rdy')})})(0);
+// Start fetching every avatar right away (splash screen), so they're ready by the time step 2 opens.
+['male','female'].forEach(ensure);
+
+/* ===== Music notes: slam into the screen, then drift through the air ===== */
+const cv=$('#c'),x=cv.getContext('2d'),G=['♪','♫','♩','♬'],COL=['#eaf0ff','#8fa8cc','#c9d2e0','#eaf0ff'];
+let W,H,dpr,notes=[],rip=[];
+function size(){dpr=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cv.width=W*dpr;cv.height=H*dpr;x.setTransform(dpr,0,0,dpr,0,0)}
+addEventListener('resize',size);size();
+const N=W<700?34:60;
+for(let i=0;i<N;i++)notes.push({g:G[i%4],c:COL[i%4],tx:Math.random()*W,ty:Math.random()*H,sz:22+Math.random()*46,delay:Math.random()*2.4,dur:.55+Math.random()*.35,sp:14+Math.random()*30,ph:Math.random()*6.28,hit:false});
+let t0=performance.now();
+function loop(now){requestAnimationFrame(loop);if(step===5)return;const t=(now-t0)/1000;x.clearRect(0,0,W,H);x.textAlign='center';x.textBaseline='middle';
+ rip=rip.filter(r=>r.u<1);rip.forEach(r=>{r.u+=.022;x.strokeStyle=`rgba(234,240,255,${(1-r.u)*.55})`;x.lineWidth=2;x.beginPath();x.arc(r.x,r.y,8+r.u*r.r,0,6.283);x.stroke()});
+ notes.forEach(n=>{const u=(t-n.delay)/n.dur;if(u<0)return;let px,py,s,a;
+  if(u<1){const e=u*u*u;px=W/2+(n.tx-W/2)*e;py=H/2+(n.ty-H/2)*e;s=.05+e*1.35;a=Math.min(1,u*2.5)}   // flying toward the viewer
+  else{if(!n.hit){n.hit=true;n.land=t;rip.push({x:n.tx,y:n.ty,u:0,r:n.sz*2.6})}                    // impact
+   const f=t-n.land,k=Math.max(0,1-f*3);s=1+.35*k*Math.sin(f*22);a=1;                              // squash-bounce settle
+   n.ty-=n.sp*.016;if(n.ty<-60){n.ty=H+60;n.tx=Math.random()*W}                                     // drift upward
+   px=n.tx+Math.sin(t*.7+n.ph)*22;py=n.ty+Math.sin(t*.9+n.ph)*8}
+  x.globalAlpha=a*(py>H-80?Math.max(0,(H+60-py)/140):1);x.font=`${n.sz*s}px serif`;x.shadowColor='rgba(143,168,204,.9)';x.shadowBlur=14;x.fillStyle=n.c;x.save();x.translate(px,py);x.rotate(Math.sin(t*.6+n.ph)*.25);x.fillText(n.g,0,0);x.restore()});
+ x.globalAlpha=1;x.shadowBlur=0}
+requestAnimationFrame(loop);
+</script></body></html>
