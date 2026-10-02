@@ -29,6 +29,11 @@ public class User {
     private String musicCode;
 
     private String currentPlace;
+    
+    private Double px;
+    private Double py;
+    private Double pz;
+    private Double ry;
 
     private String currentSong;
 
@@ -144,4 +149,13 @@ public class User {
     public void setLastActive(LocalDateTime lastActive) {
         this.lastActive = lastActive;
     }
+    
+    public Double getPx() { return px; }
+    public void setPx(Double px) { this.px = px; }
+    public Double getPy() { return py; }
+    public void setPy(Double py) { this.py = py; }
+    public Double getPz() { return pz; }
+    public void setPz(Double pz) { this.pz = pz; }
+    public Double getRy() { return ry; }
+    public void setRy(Double ry) { this.ry = ry; }
 }

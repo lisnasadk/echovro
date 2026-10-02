@@ -909,8 +909,12 @@ async function syncCrowdPresences(newPeople){
  }
 }
 (function loop5(){requestAnimationFrame(loop5);const n=performance.now(),dt=Math.min(.05,(n-(loop5.t||n))/1000);loop5.t=n;
- if(run){if(crowd){const t=n/1000;crowd.children.forEach((w,i)=>{if(me&&w===me.w)return;w.rotation.y=w.userData.ry+Math.sin(t*.8+i*1.7)*.18})}
-  tickMe(dt);tickNear(n);ctl.update();R5.render(sc5,cam5)}})();
+ if(run){if(crowd){const t=n/1000;crowd.children.forEach((w,i)=>{if(me&&w===me.w)return;
+  const P=w.userData.P;
+  if(P&&P.px!=null){w.position.x+=(P.px-w.position.x)*Math.min(1,dt*8);w.position.y+=(P.py-w.position.y)*Math.min(1,dt*8);w.position.z+=(P.pz-w.position.z)*Math.min(1,dt*8);const dy=P.ry-w.rotation.y;w.rotation.y+=Math.atan2(Math.sin(dy),Math.cos(dy))*Math.min(1,dt*8);}
+  else{w.rotation.y=w.userData.ry+Math.sin(t*.8+i*1.7)*.18;}
+ })}
+ tickMe(dt);tickNear(n);ctl.update();R5.render(sc5,cam5)}})();
 /* ===== Controls for your avatar: walk, climb stairs, sit ===== */
 function setupMe(w,H){if(!w)return;const inner=w.children[0],rot=((models[state.avatar]||{}).userData||{}).rot||0;
  const bn=(p,s)=>{let r=null;inner.traverse(o=>{if(!r&&o.isBone&&p.test(o.name)&&s.test(o.name))r=o});return r},
@@ -1139,23 +1143,31 @@ function receiveMsg(u,text){const c=conns[u];if(!c||c.status!=='connected')retur
 $('#pf').onclick=()=>openPanel();$('#ppx').onclick=()=>$('#pp').classList.remove('on');
 /* ---- voice chat (WebRTC; signalling goes through signal()/EchoVroReceive.signal) ---- */
 function showCall(t,inc){$('#call').classList.add('on');$('#cl').textContent=t;$('#cacc').style.display=inc?'':'none';$('#cmute').style.display=inc?'none':'';$('#cmute').textContent='Mute'}
-function makePc(c,stream){const pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
+function makePc(c,stream){const pc=new RTCPeerConnection({iceServers:[
+  {urls:'stun:stun.l.google.com:19302'},
+  {urls:'stun:stun1.l.google.com:19302'},
+  {urls:'stun:stun2.l.google.com:19302'},
+  {urls:'stun:stun.cloudflare.com:3478'}
+]});
  stream.getTracks().forEach(t=>pc.addTrack(t,stream));
  const au=new Audio();au.autoplay=true;au.playsInline=true;
- pc.ontrack=e=>{au.srcObject=e.streams[0]; if(call) call.au = au; $('#call').appendChild(au);};
+ pc.ontrack=e=>{if(call)call.au=au;au.srcObject=e.streams[0];$('#call').appendChild(au);};
  pc.onicecandidate=e=>e.candidate&&signal({to:c.u,type:'ice',data:e.candidate});
- pc.onconnectionstatechange=()=>{const s=pc.connectionState;if(s==='connected')callUp();if(s==='failed'||s==='closed')endCall(true)};
+ pc.onconnectionstatechange=()=>{const s=pc.connectionState;console.log('[WebRTC]',c.u,s);if(s==='connected')callUp();if(s==='failed'||s==='closed')endCall(true)};
  return pc}
-async function mic(){try{return await navigator.mediaDevices.getUserMedia({audio:true})}catch(e){toast('Microphone access is needed for voice chat.');return null}}
+async function mic(){try{return await navigator.mediaDevices.getUserMedia({audio:true,echoCancellation:true,noiseSuppression:true})}catch(e){toast('Microphone access is needed for voice chat. Please allow it in your browser settings.');return null}}
 async function openVoice(c){if(!c||c.status!=='connected')return toast('Connect with them first.');if(call)return toast('Already in a call.');const stream=await mic();if(!stream)return;
- call={c,stream,pc:null,t0:0,iv:0};showCall('Calling '+c.u+'…');
- const pc=call.pc=makePc(c,stream),o=await pc.createOffer();await pc.setLocalDescription(o);signal({to:c.u,type:'offer',data:o})}
+ call={c,stream,pc:null,au:null,t0:0,iv:0};showCall('Calling '+c.u+'…');
+ const pc=call.pc=makePc(c,stream),o=await pc.createOffer({offerToReceiveAudio:true});await pc.setLocalDescription(o);signal({to:c.u,type:'offer',data:{type:o.type,sdp:o.sdp}})}
 function callUp(){if(!call||call.t0)return;call.t0=Date.now();const tick=()=>{const s=Math.floor((Date.now()-call.t0)/1000);$('#cl').textContent='🎙 '+call.c.u+' · '+String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')};tick();call.iv=setInterval(tick,500)}
- async function onSignal(m){const c=conns[m.from];if(!c||c.status!=='connected')return;
+async function onSignal(m){
+  // Allow signalling from ANY user, not just "connected" ones
+  let c=conns[m.from];
+  if(!c)c=conns[m.from]={u:m.from,av:'',m:'spotify',status:'none',msgs:[],unread:0};
   if(m.type==='offer'){if(call)return signal({to:m.from,type:'hangup'});pendingOffer=m;iceBuf=[];showCall(c.u+' is calling…',true)}
   else if(m.type==='hangup')endCall(true);
   else if(m.type==='ice'){
-    if(call&&call.pc&&call.pc.remoteDescription)try{await call.pc.addIceCandidate(new RTCIceCandidate(m.data))}catch(e){}
+    if(call&&call.pc&&call.pc.remoteDescription)try{await call.pc.addIceCandidate(new RTCIceCandidate(m.data))}catch(e){console.warn('ICE err',e)}
     else iceBuf.push(m.data)
   }
   else if(m.type==='answer'&&call&&call.pc){
@@ -1163,11 +1175,15 @@ function callUp(){if(!call||call.t0)return;call.t0=Date.now();const tick=()=>{co
     for(const i of iceBuf)try{await call.pc.addIceCandidate(new RTCIceCandidate(i))}catch(e){}
     iceBuf=[];
   }
- }
-async function acceptCall(){const m=pendingOffer;if(!m)return;pendingOffer=null;const c=conns[m.from],stream=await mic();if(!stream){signal({to:m.from,type:'hangup'});return endCall(true)}
- call={c,stream,pc:null,t0:0,iv:0};const pc=call.pc=makePc(c,stream);await pc.setRemoteDescription(new RTCSessionDescription(m.data));
+}
+async function acceptCall(){const m=pendingOffer;if(!m)return;pendingOffer=null;
+ let c=conns[m.from];if(!c)c=conns[m.from]={u:m.from,av:'',m:'spotify',status:'none',msgs:[],unread:0};
+ const stream=await mic();if(!stream){signal({to:m.from,type:'hangup'});return endCall(true)}
+ call={c,stream,pc:null,au:null,t0:0,iv:0};const pc=call.pc=makePc(c,stream);
+ await pc.setRemoteDescription(new RTCSessionDescription(m.data));
  for(const i of iceBuf)try{await pc.addIceCandidate(new RTCIceCandidate(i))}catch(e){}iceBuf=[];
- const a=await pc.createAnswer();await pc.setLocalDescription(a);signal({to:c.u,type:'answer',data:a});showCall('Connecting…')}
+ const a=await pc.createAnswer();await pc.setLocalDescription(a);
+ signal({to:c.u,type:'answer',data:{type:a.type,sdp:a.sdp}});showCall('Connecting with '+c.u+'…')}
 function endCall(remote){if(pendingOffer){if(!remote)signal({to:pendingOffer.from,type:'hangup'});pendingOffer=null}
  if(call){clearInterval(call.iv);call.stream.getTracks().forEach(t=>t.stop());if(call.au)call.au.remove();if(call.pc)call.pc.close();if(!remote)signal({to:call.c.u,type:'hangup'});call=null}
  $('#call').classList.remove('on')}
@@ -1197,7 +1213,16 @@ function tickMe(dt){const m=me;if(!m||!cur)return;const w=m.w,H=m.H,k=keys,dx=(k
  if(tl)tl.b.rotation.x=tl.r+LEG*(sw+A);if(tr)tr.b.rotation.x=tr.r+LEG*(-sw+A);
  if(kl)kl.b.rotation.x=kl.r-LEG*(Math.max(0,-sw)*1.2+kn);if(kr)kr.b.rotation.x=kr.r-LEG*(Math.max(0,sw)*1.2+kn);
  m.inner.position.y=m.iy-(m.seat?.23:.46)*H*s+Math.abs(Math.sin(m.ph))*H*.015*m.a;
- w.rotation.y=m.h+m.rot}
+ w.rotation.y=m.h+m.rot;
+ // Broadcast position ~3x/sec so other users see me move
+ if(go&&CONFIG.USE_BACKEND&&state.username&&state.place){
+   const now=performance.now();
+   if(!tickMe.lt||now-tickMe.lt>300){
+     tickMe.lt=now;
+     api('/api/places/'+encodeURIComponent(state.place)+'/move',{method:'POST',body:JSON.stringify({username:state.username,px:w.position.x,py:w.position.y,pz:w.position.z,ry:w.rotation.y})}).catch(()=>{});
+   }
+ }
+}
 $$('#pad [data-k]').forEach(b=>{const k=b.dataset.k,f=v=>e=>{e.preventDefault();keys[k]=v;if(v&&ctl)ctl.autoRotate=false};
  b.onpointerdown=f(1);['onpointerup','onpointerleave','onpointercancel'].forEach(ev=>b[ev]=f(0))});
 $('#bc').onclick=()=>{climb=!climb;$('#bc').classList.toggle('on',climb)};

@@ -42,10 +42,11 @@ public class PlaceService {
 
             people.add(new PlacePersonDto(
                     u.getName(),
-                    u.getAvatar() != null ? u.getAvatar() : "male_avatar_1",
+                    u.getAvatar() != null ? u.getAvatar() : "m1",
                     u.getCurrentSong(), // No mock song
                     u.getMusicService() != null ? u.getMusicService() : "spotify",
-                    tracks
+                    tracks,
+                    u.getPx(), u.getPy(), u.getPz(), u.getRy()
             ));
         }
 
@@ -86,6 +87,20 @@ public class PlaceService {
             User u = uOpt.get();
             u.setCurrentPlace(null);
             u.setLastActive(LocalDateTime.now());
+            userRepository.save(u);
+        }
+    }
+
+    @Transactional
+    public void movePlace(String username, Double px, Double py, Double pz, Double ry) {
+        if (username == null || username.isBlank()) return;
+        Optional<User> uOpt = userRepository.findByName(username);
+        if (uOpt.isPresent()) {
+            User u = uOpt.get();
+            u.setPx(px);
+            u.setPy(py);
+            u.setPz(pz);
+            u.setRy(ry);
             userRepository.save(u);
         }
     }
