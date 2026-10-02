@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://<YOUR_BACKEND_HOST>/api/$1"
+      "destination": "https://echovro.onrender.com/api/$1"
     }
   ],
   "headers": [
