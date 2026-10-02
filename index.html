@@ -232,7 +232,7 @@ input:focus{border-color:#6f9bff;box-shadow:0 0 0 4px rgba(111,155,255,.18)}inpu
 
 <!-- 1 · LOGIN / SIGN UP -->
 <section class="scr" id="s1">
-  <div class="card">
+  <div class="card" id="acard">
     <h2 id="h1t">Join the universe</h2>
     <p class="sub" id="s1s">Create your account with an email, username and password.</p>
     <div class="tabs" id="atabs" style="margin-top:6px"><button data-a="signup" class="on">Sign up</button><button data-a="login">Log in</button></div>
@@ -243,6 +243,15 @@ input:focus{border-color:#6f9bff;box-shadow:0 0 0 4px rgba(111,155,255,.18)}inpu
     <div id="pcw"><label for="pc">Confirm password</label><input id="pc" type="password" autocomplete="new-password" placeholder="Repeat your password" maxlength="72"></div>
     <div class="err" id="err"></div>
     <button class="btn" id="b1">Continue</button>
+  </div>
+  <div class="card" id="vcard" style="display:none">
+    <h2>Verify your email</h2>
+    <p class="sub">We sent a 6-digit code to <b id="vem"></b>. It expires in 10 minutes.</p>
+    <label for="vc">Verification code</label>
+    <input id="vc" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456">
+    <div class="err" id="verr"></div>
+    <button class="btn" id="vgo">Verify</button>
+    <div class="cma"><button class="btn g" id="vre" type="button">Resend code</button><button class="btn g" id="vbk" type="button">Wrong email?</button></div>
   </div>
 </section>
 
@@ -315,12 +324,16 @@ input:focus{border-color:#6f9bff;box-shadow:0 0 0 4px rgba(111,155,255,.18)}inpu
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/SkeletonUtils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script src="echovro-ml.js"></script>
 <script>
 /* ============ CONFIG — the programmer fills these ============ */
 const CONFIG={
   USE_BACKEND:true,                             // ← true = sign up / log in call your Java Spring Boot backend
   API_BASE:'http://localhost:8080',             // ← backend URL (change to your deployed backend URL later)
+  EMAILJS_PUBLIC_KEY:'',                        // ← EmailJS: Account → API keys → Public Key
+  EMAILJS_SERVICE_ID:'',                        // ← EmailJS: Email Services → Service ID
+  EMAILJS_TEMPLATE_ID:'',                       // ← EmailJS: Email Templates → Template ID (uses {{to_email}}, {{to_name}}, {{passcode}}, {{time}})
   DEMO_MODE:true,                               // ← true = "linking" is simulated so you can test the flow. Set to false in production.
   SPOTIFY_CLIENT_ID:'',                         // ← Spotify client id
   YT_CLIENT_ID:'',                              // ← Google OAuth client id (YouTube Music uses Google sign-in)
@@ -408,7 +421,7 @@ function setAuth(m){authMode=m;const su=m==='signup';
  $('#h1t').textContent=su?'Join the universe':'Welcome back';
  $('#s1s').textContent=su?'Create your account with an email, username and password.':'Log in with your email and password.';
  $('#pw').autocomplete=su?'new-password':'current-password';$('#pw').placeholder=su?'At least 8 characters':'Your password';
- $('#err').textContent='';$('#pw').value=$('#pc').value=''}
+ $('#err').textContent='';$('#pw').value=$('#pc').value='';$('#vcard').style.display='none';$('#acard').style.display=''}
 $$('#atabs button').forEach(b=>b.onclick=()=>setAuth(b.dataset.a));
 $('#pwt').onclick=()=>{const h=$('#pw').type==='password';$('#pw').type=$('#pc').type=h?'text':'password';$('#pwt').textContent=h?'Hide':'Show'};
 ['em','un','pw','pc'].forEach(i=>$('#'+i).onkeydown=e=>{if(e.key==='Enter')$('#b1').click()});
@@ -418,14 +431,21 @@ setAuth('signup');
 //   signup: supabase.auth.signUp({email,password,options:{data:{username}}})
 //   login:  supabase.auth.signInWithPassword({email,password})
 // Return {ok:true,username} or {ok:false,error:'message'}.
+// Login token (JWT) from the backend. Sent as "Authorization: Bearer ..." on every protected request.
+const TOKEN_KEY='echovro_token';
+const getToken=()=>{try{return localStorage.getItem(TOKEN_KEY)||''}catch(e){return ''}};
+const setToken=t=>{try{t?localStorage.setItem(TOKEN_KEY,t):localStorage.removeItem(TOKEN_KEY)}catch(e){}};
+async function api(path,opts={}){const h={'Content-Type':'application/json',...(opts.headers||{})},t=getToken();if(t)h.Authorization='Bearer '+t;
+ return fetch(CONFIG.API_BASE+path,{...opts,headers:h})}
 async function authRequest(p){
  if(!CONFIG.USE_BACKEND)return{ok:true,username:p.username||(p.email.split('@')[0].replace(/[^a-zA-Z0-9_.]/g,'').slice(0,20)||'guest')};
  const su=p.mode==='signup';
  const body=su?{name:p.username,email:p.email,password:p.password}:{email:p.email,password:p.password};
  try{
-  const r=await fetch(CONFIG.API_BASE+(su?'/api/auth/register':'/api/auth/login'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const r=await api(su?'/api/auth/register':'/api/auth/login',{method:'POST',body:JSON.stringify(body)});
   const d=await r.json().catch(()=>({}));
   if(!r.ok)return{ok:false,error:d.message||d.error||(r.status===401?'Wrong email or password.':'Something went wrong.')};
+  setToken(d.token||'');
   return{ok:true,username:d.name||d.username||p.username}}
  catch(e){return{ok:false,error:'Cannot reach the server. Is the backend running?'}}}
 
@@ -441,7 +461,33 @@ $('#b1').onclick=async()=>{const e=$('#em').value.trim(),u=$('#un').value.trim()
  b.disabled=false;b.textContent='Continue';
  if(!r||!r.ok)return er.textContent=(r&&r.error)||'Something went wrong. Please try again.';
  $('#pw').value=$('#pc').value='';
- state.email=e;state.username=r.username||u;go(2)};
+ state.email=e;state.username=r.username||u;
+ if(su)startVerify();else go(2)};
+
+/* ===== Email verification (EmailJS) — sends a 6-digit code after sign up ===== */
+let vc=null,vcool=0;
+const ejReady=()=>CONFIG.EMAILJS_PUBLIC_KEY&&CONFIG.EMAILJS_SERVICE_ID&&CONFIG.EMAILJS_TEMPLATE_ID&&window.emailjs;
+async function sendCode(){
+ const code=String(crypto.getRandomValues(new Uint32Array(1))[0]%1000000).padStart(6,'0');
+ vc={code,exp:Date.now()+10*60*1000,tries:0};
+ if(!ejReady()){
+  if(CONFIG.DEMO_MODE){toast('Test mode (EmailJS keys not set) — your code is '+code);return true}
+  $('#verr').textContent='Email service is not set up yet.';vc=null;return false}
+ try{await emailjs.send(CONFIG.EMAILJS_SERVICE_ID,CONFIG.EMAILJS_TEMPLATE_ID,{to_email:state.email,to_name:state.username,passcode:code,time:'10 minutes'},{publicKey:CONFIG.EMAILJS_PUBLIC_KEY});return true}
+ catch(e){console.error('EmailJS',e);$('#verr').textContent='Could not send the email. Check the address and try again.';vc=null;return false}}
+async function startVerify(){
+ $('#acard').style.display='none';$('#vcard').style.display='';$('#vem').textContent=state.email;$('#vc').value='';$('#verr').textContent='';
+ if(await sendCode()){toast('Code sent to '+state.email);vcool=Date.now()+30000;$('#vc').focus()}}
+$('#vgo').onclick=()=>{const v=$('#vc').value.trim(),er=$('#verr');
+ if(!vc)return er.textContent='Tap Resend to get a new code.';
+ if(Date.now()>vc.exp){vc=null;return er.textContent='That code expired. Tap Resend.'}
+ if(++vc.tries>5){vc=null;return er.textContent='Too many attempts. Tap Resend for a new code.'}
+ if(!/^\d{6}$/.test(v)||v!==vc.code)return er.textContent='Incorrect code.';
+ vc=null;er.textContent='';go(2)};
+$('#vre').onclick=async()=>{const w=Math.ceil((vcool-Date.now())/1000);if(w>0)return toast('Please wait '+w+'s before resending.');
+ $('#verr').textContent='';if(await sendCode()){vcool=Date.now()+30000;toast('New code sent')}};
+$('#vbk').onclick=()=>{vc=null;setAuth('signup')};
+$('#vc').onkeydown=e=>{if(e.key==='Enter')$('#vgo').click()};
 $('#b2').onclick=()=>go(3);
 
 /* ===== Step 3: link a music service (mandatory) — Spotify / YouTube Music / Gaana ===== */
