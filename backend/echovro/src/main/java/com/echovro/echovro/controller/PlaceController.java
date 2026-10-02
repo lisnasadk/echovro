@@ -44,12 +44,4 @@ public class PlaceController {
         placeService.leavePlace(user);
         return ResponseEntity.ok().build();
     }
-
-    @PostMapping("/{placeKey}/move")
-    public ResponseEntity<Void> movePlace(
-            @PathVariable("placeKey") String placeKey,
-            @RequestBody com.echovro.echovro.dto.MoveRequest request) {
-        placeService.movePlace(request.getUsername(), request.getPx(), request.getPy(), request.getPz(), request.getRy());
-        return ResponseEntity.ok().build();
-    }
 }

@@ -124,10 +124,12 @@
 
   /* ---------- Step 4: compatibility ---------- */
   function compat(a, b) {
-    if (!a || !b) return { score: 15, shared: [], label: 'Different worlds — great for discovery', myTop: [], theirTop: [], bridge: null };
+    if (!a || !b) return { score: null, shared: [], label: 'Not enough listening data yet', myTop: [], theirTop: [], bridge: null };
     const hasA = (a.n && a.n > 0) || (a.top && a.top.length > 0);
     const hasB = (b.n && b.n > 0) || (b.top && b.top.length > 0);
-    // If either user has very limited data, we still compute their rawScore and give them a baseline of 15% rather than failing.
+    if (!hasA || !hasB) {
+      return { score: null, shared: [], label: 'Not enough listening data yet', myTop: a.top || [], theirTop: b.top || [], bridge: null };
+    }
     let dot = 0, na = 0, nb = 0, mn = 0, mx = 0;
     GENRES.forEach(g => {
       const x = (a.vec[g] || 0) * (IDF[g] || 1), y = (b.vec[g] || 0) * (IDF[g] || 1);

@@ -441,7 +441,7 @@ button, .btn, .av, .pc, #pad button {
 <div class="dots" id="dots"><i class="on"></i><i></i><i></i><i></i><i></i></div>
 <button id="pf" aria-label="Your profile"><div class="fa" id="pfa"></div><span id="pfb"></span></button>
 <aside id="pp"><div class="pph"><div class="fa" id="ppav"></div><div><b id="ppn"></b><i id="pps"></i></div><button class="btn g" id="ppx">✕</button></div><div id="ppb"></div></aside>
-<div id="call" style="display:none"></div>
+<div id="call"><span id="cl"></span><button class="btn" id="cacc" style="display:none">Accept</button><button class="btn g" id="cmute">Mute</button><button class="btn" id="cend">End</button></div>
 <div id="sr"><div class="card"><h2 id="srt"></h2><p class="sub">Pick a song you think they would love. They will see it with your request.</p>
 <div class="row" id="srs"></div>
 <label for="sri">Song</label><input id="sri" list="srl" placeholder="Song – artist"><datalist id="srl"></datalist>
@@ -892,10 +892,8 @@ async function syncCrowdPresences(newPeople){
      toast(p.u + ' entered the place');
    } else if(p.u !== state.username) {
      const child = crowd.children.find(c => c.userData.P && c.userData.P.u === p.u);
-     if(child){
-       const oldS = child.userData.P.s;
-       Object.assign(child.userData.P, p);
-       if(oldS !== p.s){
+     if(child && child.userData.P.s !== p.s){
+       child.userData.P.s = p.s;
        if(child.userData.st){
          child.remove(child.userData.st);
          child.userData.st.material.map.dispose();
@@ -906,18 +904,13 @@ async function syncCrowdPresences(newPeople){
          child.userData.st = songTag(p.s, me.H);
          child.add(child.userData.st);
        }
-       }
      }
    }
  }
 }
 (function loop5(){requestAnimationFrame(loop5);const n=performance.now(),dt=Math.min(.05,(n-(loop5.t||n))/1000);loop5.t=n;
- if(run){if(crowd){const t=n/1000;crowd.children.forEach((w,i)=>{if(me&&w===me.w)return;
-  const P=w.userData.P;
-  if(P&&P.px!=null){w.position.x+=(P.px-w.position.x)*Math.min(1,dt*8);w.position.y+=(P.py-w.position.y)*Math.min(1,dt*8);w.position.z+=(P.pz-w.position.z)*Math.min(1,dt*8);const dy=P.ry-w.rotation.y;w.rotation.y+=Math.atan2(Math.sin(dy),Math.cos(dy))*Math.min(1,dt*8);}
-  else{w.rotation.y=w.userData.ry+Math.sin(t*.8+i*1.7)*.18;}
- })}
- tickMe(dt);tickNear(n);ctl.update();R5.render(sc5,cam5)}})();
+ if(run){if(crowd){const t=n/1000;crowd.children.forEach((w,i)=>{if(me&&w===me.w)return;w.rotation.y=w.userData.ry+Math.sin(t*.8+i*1.7)*.18})}
+  tickMe(dt);tickNear(n);ctl.update();R5.render(sc5,cam5)}})();
 /* ===== Controls for your avatar: walk, climb stairs, sit ===== */
 function setupMe(w,H){if(!w)return;const inner=w.children[0],rot=((models[state.avatar]||{}).userData||{}).rot||0;
  const bn=(p,s)=>{let r=null;inner.traverse(o=>{if(!r&&o.isBone&&p.test(o.name)&&s.test(o.name))r=o});return r},
@@ -1069,7 +1062,7 @@ async function pollSyncEvents(){
   if(state.place){
     try {
       const f = await fetchPlaceFeed(state.place, state);
-      if(f){
+      if(f && (!feed || JSON.stringify(f.people) !== JSON.stringify(feed.people))){
         feed = f;
         renderSheet();
         syncCrowdPresences(f.people);
@@ -1077,7 +1070,7 @@ async function pollSyncEvents(){
     } catch(e){}
   }
 }
-setInterval(pollSyncEvents, 1500);
+setInterval(pollSyncEvents, 2500);
 
 const fa=av=>{const a=avOf(av);return `<div class="fa">${a?pvw(a):''}</div>`};   // real 3D avatar (.glb) rendered by the shared preview renderer
 const bub=m=>`<div class="bub${m.me?' me':''}">${esc(m.t)}</div>`;
@@ -1095,12 +1088,12 @@ function respond(u,ok){const c=conns[u];if(!c)return;onRespondSend({to:u,accept:
  if(ok){c.status='connected';toast('Connected with '+u)}else c.status='none';
  saveConns();refresh();if(ok)openPanel('thread',u)}
 function renderCmActions(){const P=cmP;if(!P)return;const c=conns[P.u],a=$('#cma');
- if(c&&c.status==='connected')a.innerHTML='<button class="btn" data-a="chat">Message</button>';
+ if(c&&c.status==='connected')a.innerHTML='<button class="btn" data-a="chat">Message</button><button class="btn" data-a="voice">Voice call</button>';
  else if(c&&c.status==='pending'&&c.dir==='in')a.innerHTML='<button class="btn" data-a="yes">Accept</button><button class="btn g" data-a="no">Decline</button>';
  else if(c&&c.status==='pending')a.innerHTML='<button class="btn" disabled>Request sent…</button>';
  else a.innerHTML='<button class="btn" data-a="connect">Connect through a song</button>';
  a.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const k=b.dataset.a;
-  if(k==='chat')openPanel('thread',P.u);else if(k==='connect')openSongPick(P);else respond(P.u,k==='yes')})}
+  if(k==='chat')openPanel('thread',P.u);else if(k==='voice')openVoice(conns[P.u]);else if(k==='connect')openSongPick(P);else respond(P.u,k==='yes')})}
 /* ---- profile panel with chat menu ---- */
 async function openPanel(view,u){
   ppThread=view==='thread'&&conns[u]&&conns[u].status==='connected'?u:null;
@@ -1126,8 +1119,8 @@ function renderPanel(){const p=$('#pp');if(!p.classList.contains('on'))return;co
  $('#ppav').innerHTML=a?pvw(a):'';$('#ppn').textContent=state.username;$('#pps').textContent=state.music?SVC[state.music.service].n+' linked':'';
  const body=$('#ppb'),list=Object.values(conns);
  if(ppThread&&conns[ppThread]&&conns[ppThread].status==='connected'){const c=conns[ppThread];
-  body.innerHTML=`<div class="thh"><button class="btn g" id="thb">←</button>${fa(c.av)}<b>${esc(c.u)}</b></div><div id="thm">${(c.msgs||[]).map(bub).join('')||'<p class="emp">Say hi 👋</p>'}</div><div class="mine" style="margin:10px 0 0"><input id="thi" maxlength="300" placeholder="Message…"><button class="btn" id="ths">Send</button></div>`;
-  $('#thb').onclick=()=>{ppThread=null;renderPanel()};
+  body.innerHTML=`<div class="thh"><button class="btn g" id="thb">←</button>${fa(c.av)}<b>${esc(c.u)}</b><button class="btn" id="thv">🎙 Voice</button></div><div id="thm">${(c.msgs||[]).map(bub).join('')||'<p class="emp">Say hi 👋</p>'}</div><div class="mine" style="margin:10px 0 0"><input id="thi" maxlength="300" placeholder="Message…"><button class="btn" id="ths">Send</button></div>`;
+  $('#thb').onclick=()=>{ppThread=null;renderPanel()};$('#thv').onclick=()=>openVoice(c);
   const send=()=>{const v=$('#thi').value.trim();if(v)sendMsg(c.u,v)};$('#ths').onclick=send;$('#thi').onkeydown=e=>{if(e.key==='Enter')send()};
   const m=$('#thm');m.scrollTop=m.scrollHeight;return}
  ppThread=null;
@@ -1146,51 +1139,31 @@ function receiveMsg(u,text){const c=conns[u];if(!c||c.status!=='connected')retur
 $('#pf').onclick=()=>openPanel();$('#ppx').onclick=()=>$('#pp').classList.remove('on');
 /* ---- voice chat (WebRTC; signalling goes through signal()/EchoVroReceive.signal) ---- */
 function showCall(t,inc){$('#call').classList.add('on');$('#cl').textContent=t;$('#cacc').style.display=inc?'':'none';$('#cmute').style.display=inc?'none':'';$('#cmute').textContent='Mute'}
-function makePc(c,stream){const pc=new RTCPeerConnection({iceServers:[
-  {urls:'stun:stun.l.google.com:19302'},
-  {urls:'stun:stun1.l.google.com:19302'},
-  {urls:'stun:stun2.l.google.com:19302'},
-  {urls:'stun:stun.cloudflare.com:3478'}
-]});
+function makePc(c,stream){const pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});   // add a TURN server for restrictive networks
  stream.getTracks().forEach(t=>pc.addTrack(t,stream));
- const au=new Audio();au.autoplay=true;au.playsInline=true;
- pc.ontrack=e=>{if(call)call.au=au;au.srcObject=e.streams[0];$('#call').appendChild(au);};
+ const au=new Audio();au.autoplay=true;pc.ontrack=e=>{au.srcObject=e.streams[0]};
  pc.onicecandidate=e=>e.candidate&&signal({to:c.u,type:'ice',data:e.candidate});
- pc.onconnectionstatechange=()=>{const s=pc.connectionState;console.log('[WebRTC]',c.u,s);if(s==='connected')callUp();if(s==='failed'||s==='closed')endCall(true)};
+ pc.onconnectionstatechange=()=>{const s=pc.connectionState;if(s==='connected')callUp();if(s==='failed'||s==='closed')endCall(true)};
  return pc}
-async function mic(){try{return await navigator.mediaDevices.getUserMedia({audio:true,echoCancellation:true,noiseSuppression:true})}catch(e){toast('Microphone access is needed for voice chat. Please allow it in your browser settings.');return null}}
+async function mic(){try{return await navigator.mediaDevices.getUserMedia({audio:true})}catch(e){toast('Microphone access is needed for voice chat.');return null}}
 async function openVoice(c){if(!c||c.status!=='connected')return toast('Connect with them first.');if(call)return toast('Already in a call.');const stream=await mic();if(!stream)return;
- call={c,stream,pc:null,au:null,t0:0,iv:0};showCall('Calling '+c.u+'…');
- const pc=call.pc=makePc(c,stream),o=await pc.createOffer({offerToReceiveAudio:true});await pc.setLocalDescription(o);signal({to:c.u,type:'offer',data:{type:o.type,sdp:o.sdp}})}
+ call={c,stream,pc:null,t0:0,iv:0};showCall('Calling '+c.u+'…');
+ const pc=call.pc=makePc(c,stream),o=await pc.createOffer();await pc.setLocalDescription(o);signal({to:c.u,type:'offer',data:o})}
 function callUp(){if(!call||call.t0)return;call.t0=Date.now();const tick=()=>{const s=Math.floor((Date.now()-call.t0)/1000);$('#cl').textContent='🎙 '+call.c.u+' · '+String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')};tick();call.iv=setInterval(tick,500)}
-async function onSignal(m){
-  // Allow signalling from ANY user, not just "connected" ones
-  let c=conns[m.from];
-  if(!c)c=conns[m.from]={u:m.from,av:'',m:'spotify',status:'none',msgs:[],unread:0};
-  if(m.type==='offer'){if(call)return signal({to:m.from,type:'hangup'});pendingOffer=m;iceBuf=[];showCall(c.u+' is calling…',true)}
-  else if(m.type==='hangup')endCall(true);
-  else if(m.type==='ice'){
-    if(call&&call.pc&&call.pc.remoteDescription)try{await call.pc.addIceCandidate(new RTCIceCandidate(m.data))}catch(e){console.warn('ICE err',e)}
-    else iceBuf.push(m.data)
-  }
-  else if(m.type==='answer'&&call&&call.pc){
-    await call.pc.setRemoteDescription(new RTCSessionDescription(m.data));
-    for(const i of iceBuf)try{await call.pc.addIceCandidate(new RTCIceCandidate(i))}catch(e){}
-    iceBuf=[];
-  }
-}
-async function acceptCall(){const m=pendingOffer;if(!m)return;pendingOffer=null;
- let c=conns[m.from];if(!c)c=conns[m.from]={u:m.from,av:'',m:'spotify',status:'none',msgs:[],unread:0};
- const stream=await mic();if(!stream){signal({to:m.from,type:'hangup'});return endCall(true)}
- call={c,stream,pc:null,au:null,t0:0,iv:0};const pc=call.pc=makePc(c,stream);
- await pc.setRemoteDescription(new RTCSessionDescription(m.data));
- for(const i of iceBuf)try{await pc.addIceCandidate(new RTCIceCandidate(i))}catch(e){}iceBuf=[];
- const a=await pc.createAnswer();await pc.setLocalDescription(a);
- signal({to:c.u,type:'answer',data:{type:a.type,sdp:a.sdp}});showCall('Connecting with '+c.u+'…')}
+async function onSignal(m){const c=conns[m.from];if(!c||c.status!=='connected')return;
+ if(m.type==='offer'){if(call)return signal({to:m.from,type:'hangup'});pendingOffer=m;iceBuf=[];showCall(c.u+' is calling…',true)}
+ else if(m.type==='hangup')endCall(true);
+ else if(m.type==='ice'){if(call&&call.pc)try{await call.pc.addIceCandidate(m.data)}catch(e){}else iceBuf.push(m.data)}
+ else if(m.type==='answer'&&call&&call.pc)await call.pc.setRemoteDescription(m.data)}
+async function acceptCall(){const m=pendingOffer;if(!m)return;pendingOffer=null;const c=conns[m.from],stream=await mic();if(!stream){signal({to:m.from,type:'hangup'});return endCall(true)}
+ call={c,stream,pc:null,t0:0,iv:0};const pc=call.pc=makePc(c,stream);await pc.setRemoteDescription(m.data);
+ for(const i of iceBuf)try{await pc.addIceCandidate(i)}catch(e){}iceBuf=[];
+ const a=await pc.createAnswer();await pc.setLocalDescription(a);signal({to:c.u,type:'answer',data:a});showCall('Connecting…')}
 function endCall(remote){if(pendingOffer){if(!remote)signal({to:pendingOffer.from,type:'hangup'});pendingOffer=null}
- if(call){clearInterval(call.iv);call.stream.getTracks().forEach(t=>t.stop());if(call.au)call.au.remove();if(call.pc)call.pc.close();if(!remote)signal({to:call.c.u,type:'hangup'});call=null}
+ if(call){clearInterval(call.iv);call.stream.getTracks().forEach(t=>t.stop());if(call.pc)call.pc.close();if(!remote)signal({to:call.c.u,type:'hangup'});call=null}
  $('#call').classList.remove('on')}
-
+$('#cend').onclick=()=>endCall(false);$('#cacc').onclick=acceptCall;
+$('#cmute').onclick=()=>{if(!call)return;const t=call.stream.getAudioTracks();t.forEach(x=>x.enabled=!x.enabled);$('#cmute').textContent=t[0]&&t[0].enabled?'Mute':'Unmute'};
 function findSeat(){const m=me,o=m.w.position,H=m.H;
  for(let i=0;i<12;i++){const a=i/12*6.283,x=o.x+Math.sin(a)*H*.7,z=o.z+Math.cos(a)*H*.7;
   mray.set(new THREE.Vector3(x,o.y+H*.6,z),DOWN);const h=mray.intersectObject(cur,true)[0];
@@ -1215,16 +1188,7 @@ function tickMe(dt){const m=me;if(!m||!cur)return;const w=m.w,H=m.H,k=keys,dx=(k
  if(tl)tl.b.rotation.x=tl.r+LEG*(sw+A);if(tr)tr.b.rotation.x=tr.r+LEG*(-sw+A);
  if(kl)kl.b.rotation.x=kl.r-LEG*(Math.max(0,-sw)*1.2+kn);if(kr)kr.b.rotation.x=kr.r-LEG*(Math.max(0,sw)*1.2+kn);
  m.inner.position.y=m.iy-(m.seat?.23:.46)*H*s+Math.abs(Math.sin(m.ph))*H*.015*m.a;
- w.rotation.y=m.h+m.rot;
- // Broadcast position ~3x/sec so other users see me move
- if(go&&CONFIG.USE_BACKEND&&state.username&&state.place){
-   const now=performance.now();
-   if(!tickMe.lt||now-tickMe.lt>300){
-     tickMe.lt=now;
-     api('/api/places/'+encodeURIComponent(state.place)+'/move',{method:'POST',body:JSON.stringify({username:state.username,px:w.position.x,py:w.position.y,pz:w.position.z,ry:w.rotation.y})}).catch(()=>{});
-   }
- }
-}
+ w.rotation.y=m.h+m.rot}
 $$('#pad [data-k]').forEach(b=>{const k=b.dataset.k,f=v=>e=>{e.preventDefault();keys[k]=v;if(v&&ctl)ctl.autoRotate=false};
  b.onpointerdown=f(1);['onpointerup','onpointerleave','onpointercancel'].forEach(ev=>b[ev]=f(0))});
 $('#bc').onclick=()=>{climb=!climb;$('#bc').classList.toggle('on',climb)};
@@ -1236,9 +1200,8 @@ addEventListener('keyup',e=>{if(KM[e.code])keys[KM[e.code]]=0});
 const songLink=(m,s)=>SVC[m].q+encodeURIComponent(s[0]+' '+s[1]);
 async function enterPlace(k){
  const P=PLACES[k],tok=++seq;state.place=k;state.song='';feed=null;drop();go(5);
- // IMPORTANT: await join so we are in the DB before the feed is fetched
  if(CONFIG.USE_BACKEND && state.username){
-   try{ await api('/api/places/'+encodeURIComponent(k)+'/join?user='+encodeURIComponent(state.username),{method:'POST'}); }catch(e){}
+   api('/api/places/'+encodeURIComponent(k)+'/join?user='+encodeURIComponent(state.username), {method:'POST'}).catch(()=>{});
  }
  $('#pn').textContent=P.name;$('#pb').textContent=P.blurb;$('#sheet').innerHTML='';$('#ld').style.display='';$('#bar').style.width='0';$('#lt').textContent='Loading '+P.name+'…';
  if(!state.tracks)fetchMyTracks(state).then(t=>{state.tracks=t||[]});
@@ -1255,8 +1218,6 @@ async function enterPlace(k){
   ctl.target.set(0,0,0);ctl.minDistance=r*.05;ctl.maxDistance=r*2.5;ctl.maxPolarAngle=Math.PI*.495;ctl.update();
   await spawnCrowd(root,fp,tok);if(tok!==seq)return;
   $('#ld').style.display='none';run=true;$('#pad').classList.add('rdy');
-  // Re-fetch after scene loads to pick up users who joined during the 3D load
-  try{const f2=await fetchPlaceFeed(k,state);if(tok===seq&&f2){feed=f2;renderSheet();syncCrowdPresences(f2.people);}}catch(e){}
  }catch(e){delete placeCache[k];console.error('Place load failed',P.url,e);if(tok===seq)$('#lt').textContent='Could not load '+P.url+' — '+((e&&e.message)||(e&&e.target&&('HTTP '+(e.target.status||'error')))||String(e))}}
 let sheetOpen=true;
 $('#shtog').onclick=()=>{
