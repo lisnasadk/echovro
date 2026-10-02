@@ -892,8 +892,10 @@ async function syncCrowdPresences(newPeople){
      toast(p.u + ' entered the place');
    } else if(p.u !== state.username) {
      const child = crowd.children.find(c => c.userData.P && c.userData.P.u === p.u);
-     if(child && child.userData.P.s !== p.s){
-       child.userData.P.s = p.s;
+     if(child){
+       const oldS = child.userData.P.s;
+       Object.assign(child.userData.P, p);
+       if(oldS !== p.s){
        if(child.userData.st){
          child.remove(child.userData.st);
          child.userData.st.material.map.dispose();
@@ -903,6 +905,7 @@ async function syncCrowdPresences(newPeople){
        if(p.s){
          child.userData.st = songTag(p.s, me.H);
          child.add(child.userData.st);
+       }
        }
      }
    }
@@ -1066,7 +1069,7 @@ async function pollSyncEvents(){
   if(state.place){
     try {
       const f = await fetchPlaceFeed(state.place, state);
-      if(f && (!feed || JSON.stringify(f.people) !== JSON.stringify(feed.people))){
+      if(f){
         feed = f;
         renderSheet();
         syncCrowdPresences(f.people);
@@ -1074,7 +1077,7 @@ async function pollSyncEvents(){
     } catch(e){}
   }
 }
-setInterval(pollSyncEvents, 2500);
+setInterval(pollSyncEvents, 1500);
 
 const fa=av=>{const a=avOf(av);return `<div class="fa">${a?pvw(a):''}</div>`};   // real 3D avatar (.glb) rendered by the shared preview renderer
 const bub=m=>`<div class="bub${m.me?' me':''}">${esc(m.t)}</div>`;
