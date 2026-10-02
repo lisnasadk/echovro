@@ -1,0 +1,14 @@
+# Database files (local H2)
+backend/echovro/data/
+
+# Build output
+backend/echovro/target/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db

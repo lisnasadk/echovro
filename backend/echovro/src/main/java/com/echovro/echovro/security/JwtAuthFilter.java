@@ -17,9 +17,11 @@ import java.util.List;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
+    private final com.echovro.echovro.security.LogoutAllService logoutAllService;
 
-    public JwtAuthFilter(JwtService jwtService) {
+    public JwtAuthFilter(JwtService jwtService, com.echovro.echovro.security.LogoutAllService logoutAllService) {
         this.jwtService = jwtService;
+        this.logoutAllService = logoutAllService;
     }
 
     @Override
@@ -28,12 +30,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                     FilterChain chain) throws ServletException, IOException {
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
-            try {
-                Long userId = jwtService.parseUserId(header.substring(7));
-                SecurityContextHolder.getContext().setAuthentication(
-                        new UsernamePasswordAuthenticationToken(userId, null, List.of()));
-            } catch (JwtException | IllegalArgumentException e) {
-                // invalid or expired token: request stays unauthenticated (401 on protected routes)
+            if (!logoutAllService.isLogoutAllEnabled()) {
+                try {
+                    Long userId = jwtService.parseUserId(header.substring(7));
+                    SecurityContextHolder.getContext().setAuthentication(
+                            new UsernamePasswordAuthenticationToken(userId, null, List.of()));
+                } catch (JwtException | IllegalArgumentException e) {
+                    // invalid or expired token: request stays unauthenticated (401 on protected routes)
+                }
             }
         }
         chain.doFilter(request, response);

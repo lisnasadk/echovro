@@ -328,27 +328,26 @@ input:focus{border-color:#6f9bff;box-shadow:0 0 0 4px rgba(111,155,255,.18)}inpu
 <script src="echovro-ml.js"></script>
 <script>
 /* ============ CONFIG — the programmer fills these ============ */
+const isLocalBackend = window.location.port === '8080' || !window.location.port;
 const CONFIG={
   USE_BACKEND:true,                             // ← true = sign up / log in call your Java Spring Boot backend
-  API_BASE:'http://localhost:8080',             // ← backend URL (change to your deployed backend URL later)
-  EMAILJS_PUBLIC_KEY:'',                        // ← EmailJS: Account → API keys → Public Key
-  EMAILJS_SERVICE_ID:'',                        // ← EmailJS: Email Services → Service ID
-  EMAILJS_TEMPLATE_ID:'',                       // ← EmailJS: Email Templates → Template ID (uses {{to_email}}, {{to_name}}, {{passcode}}, {{time}})
-  DEMO_MODE:true,                               // ← true = "linking" is simulated so you can test the flow. Set to false in production.
+  API_BASE: isLocalBackend ? '' : 'http://localhost:8080', // ← backend URL
+  EMAILJS_PUBLIC_KEY:'c4-pOoJtU-Uw8x7TZ-public key',                        // ← EmailJS: Account → API keys → Public Key
+  EMAILJS_SERVICE_ID:'service_kcud9cp',                        // ← EmailJS: Email Services → Service ID
+  EMAILJS_TEMPLATE_ID:'template_ub25zoo',                       // ← EmailJS: Email Templates → Template ID
+  DEMO_MODE:false,                               // ← true = "linking" is simulated so you can test the flow. Set to false in production.
   SPOTIFY_CLIENT_ID:'',                         // ← Spotify client id
-  YT_CLIENT_ID:'',                              // ← Google OAuth client id (YouTube Music uses Google sign-in)
+  YT_CLIENT_ID:'',                              // ← Google OAuth client id
   YT_SCOPES:'https://www.googleapis.com/auth/youtube.readonly',
-  GAANA_AUTH_URL:'',                            // ← Gaana has no public login API; put your partner/auth URL here
+  GAANA_AUTH_URL:'',                            // ← Gaana partner/auth URL
   REDIRECT_URI:location.origin+location.pathname,
   SPOTIFY_SCOPES:'user-read-email user-read-private user-top-read user-read-currently-playing user-read-playback-state playlist-read-private'
 };
 
 /* ============ 3D PLACES ============
-   All places live in the repo's /places folder as .glb files (names are case-sensitive):
+   All places live in the repo's /places folder as .glb files:
      places/city.glb, places/cafe.glb, places/gallery.glb
-   Places are fetched in the background once the user reaches the "link music" step (warmPlaces), then cached in memory.
-   The files are Draco-compressed with WebP textures, so DRACOLoader is required (see loadGLTF below).
-   Serve the site over http/https (e.g. GitHub Pages); opening the file from disk will not work. */
+   Places are fetched in the background once the user reaches the "link music" step (warmPlaces), then cached in memory. */
 const PLACES={
  city:{icon:'🏙️',name:'The City',blurb:'Lights, traffic, late nights.',url:'places/city.glb',ground:true,
   credit:'“City Scene” by <a href="https://sketchfab.com/mortalityrexotable" target="_blank" rel="noopener">golukumar</a> · Sketchfab Standard license'},
@@ -361,11 +360,27 @@ const PLACES={
 // Music services. `q` builds a search link that opens the song in the person's own app.
 const SVC={spotify:{n:'Spotify',q:'https://open.spotify.com/search/'},ytm:{n:'YouTube Music',q:'https://music.youtube.com/search?q='},gaana:{n:'Gaana',q:'https://gaana.com/search/'}};
 
-// Hook: who is at a place + songs for it. Return {people:[{u,av,s,m,t:[[title,artist],...]}],songs:[[title,artist],...]}
-async function fetchPlaceFeed(key,profile){ return {people:[],songs:[]}; /* return (await fetch('/api/places/'+key+'/feed?user='+profile.username)).json() */ }
-// Hook: the user's own listening data from their linked service, as [[title,artist],...]. In production return it from your backend
-// (Spotify top tracks / YouTube Music liked videos / Gaana history). Demo mode uses a small sample so the matcher works out of the box.
-async function fetchMyTracks(profile){ return []; /* await fetch('/api/me/tracks?service='+profile.music.service) */ }
+// Hook: who is at a place + songs for it. Returns {people:[{u,av,s,m,t:[[title,artist],...]}],songs:[[title,artist],...]}
+async function fetchPlaceFeed(key,profile){
+  if(!CONFIG.USE_BACKEND) return {people:[],songs:[]};
+  try {
+    const u = (profile && profile.username) || state.username || '';
+    const r = await api('/api/places/'+encodeURIComponent(key)+'/feed'+(u?'?user='+encodeURIComponent(u):''));
+    if(r.ok) return await r.json();
+  } catch(e) { console.warn('fetchPlaceFeed error', e); }
+  return {people:[],songs:[]};
+}
+
+// Hook: the user's own listening data from their linked service, as [[title,artist],...]
+async function fetchMyTracks(profile){
+  if(!CONFIG.USE_BACKEND) return [];
+  try {
+    const svc = (profile && profile.music && profile.music.service) || (state.music && state.music.service) || 'spotify';
+    const r = await api('/api/me/tracks?service='+encodeURIComponent(svc));
+    if(r.ok) return await r.json();
+  } catch(e) { console.warn('fetchMyTracks error', e); }
+  return [];
+}
 
 // Avatars: 3D files live in /avatars. `rot` (radians) turns a model if it faces the wrong way; `look` is the fallback illustration.
 const SK='https://sketchfab.com/3d-models/';
@@ -380,7 +395,21 @@ const AVATARS={
   {id:'female_avatar_3',label:'Avatar 3',model:'avatars/female_avatar_3.glb',title:'Avatar 1',author:'archaosnihilist',src:SK+'avatar-1-34803472a019430fb18694bdbded433d',look:{skin:'#e0b48f',hair:'#8a3b2e',shirt:'#d9a441',style:'long'}}]
 };
 // Hook: send the finished profile (incl. linked music service + auth code) to your backend here. Called once music is linked.
-async function onComplete(profile){ console.log('EchoVro profile',profile); /* await fetch('/api/signup',{method:'POST',body:JSON.stringify(profile)}); */ }
+async function onComplete(profile){
+  console.log('EchoVro profile complete', profile);
+  if(!CONFIG.USE_BACKEND) return;
+  try {
+    await api('/api/me/profile', {
+      method: 'PUT',
+      body: JSON.stringify({
+        gender: profile.gender,
+        avatar: profile.avatar,
+        music: profile.music,
+        tracks: profile.tracks || []
+      })
+    });
+  } catch(e) { console.warn('onComplete sync error', e); }
+}
 /* ============================================================= */
 
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
@@ -568,7 +597,20 @@ function songTag(txt,H){const c=document.createElement('canvas');c.width=512;c.h
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let feed=null;
 // Hook: tell your backend what this user is playing at this place so others see it.
-async function onSongSet(p){console.log('EchoVro song',p);/* await fetch('/api/places/'+p.place+'/song',{method:'POST',body:JSON.stringify(p)}); */}
+async function onSongSet(p){
+  console.log('EchoVro song', p);
+  if(!CONFIG.USE_BACKEND) return;
+  try {
+    await api('/api/places/'+encodeURIComponent(p.place)+'/song', {
+      method: 'POST',
+      body: JSON.stringify({
+        place: p.place,
+        username: p.username || state.username,
+        song: p.song
+      })
+    });
+  } catch(e) { console.warn('onSongSet error', e); }
+}
 function setMyTag(){if(!me)return;const w=me.w,o=w.userData.st;
  if(o){w.remove(o);o.material.map.dispose();o.material.dispose();w.userData.st=null}
  if(state.song){w.userData.st=songTag(state.song,me.H);w.add(w.userData.st)}}
@@ -642,15 +684,104 @@ function tickNear(n){if(!me||!crowd||n-nearT<200)return;nearT=n;const p=me.w.pos
 /* ===== Connections: text / voice requests + chat inbox in your profile ===== */
 let conns={},connsFor='',ppTab='chats',ppThread=null,call=null,pendingOffer=null,iceBuf=[];
 const ckey=()=>'echovro_conns_'+state.username;
-function loadConns(){connsFor=state.username;try{conns=JSON.parse(localStorage.getItem(ckey())||'{}')}catch(e){conns={}}}
+async function loadConns(){
+  connsFor=state.username;
+  try{conns=JSON.parse(localStorage.getItem(ckey())||'{}')}catch(e){conns={}}
+  if(CONFIG.USE_BACKEND && getToken()){
+    try {
+      const r = await api('/api/connections');
+      if(r.ok){
+        const list = await r.json();
+        if(Array.isArray(list)){
+          list.forEach(c => {
+            const ex = conns[c.u] || {msgs:[], unread:0};
+            conns[c.u] = {
+              u: c.u,
+              av: c.av,
+              m: c.m,
+              status: c.status,
+              dir: c.dir,
+              song: c.song,
+              msgs: ex.msgs || [],
+              unread: ex.unread || 0
+            };
+          });
+          saveConns();
+          refresh();
+        }
+      }
+    } catch(e){ console.warn('Failed to sync connections', e); }
+  }
+}
 function saveConns(){try{localStorage.setItem(ckey(),JSON.stringify(conns))}catch(e){}}
 // ---- Hooks → your backend (WebSocket/REST). ----
-async function onRequestSend(p){console.log('EchoVro request',p)}   // {to} — a connection request; chat and calls unlock only after it is accepted
-async function onRespondSend(p){console.log('EchoVro respond',p)}   // {to,accept}
-async function onChatSend(p){console.log('EchoVro message',p)}      // {to,text}
-async function signal(m){console.log('EchoVro signal',m)}           // WebRTC offer/answer/ice/hangup → deliver to m.to
+async function onRequestSend(p){
+  console.log('EchoVro request', p);
+  if(!CONFIG.USE_BACKEND) return;
+  try {
+    await api('/api/connections/request', {
+      method: 'POST',
+      body: JSON.stringify({ to: p.to, song: p.song })
+    });
+  } catch(e) { console.warn('onRequestSend error', e); }
+}
+async function onRespondSend(p){
+  console.log('EchoVro respond', p);
+  if(!CONFIG.USE_BACKEND) return;
+  try {
+    await api('/api/connections/respond', {
+      method: 'POST',
+      body: JSON.stringify({ to: p.to, accept: !!p.accept })
+    });
+  } catch(e) { console.warn('onRespondSend error', e); }
+}
+async function onChatSend(p){
+  console.log('EchoVro message', p);
+  if(!CONFIG.USE_BACKEND) return;
+  try {
+    await api('/api/chat/send', {
+      method: 'POST',
+      body: JSON.stringify({ to: p.to, text: p.text })
+    });
+  } catch(e) { console.warn('onChatSend error', e); }
+}
+async function signal(m){
+  console.log('EchoVro signal', m);
+  if(!CONFIG.USE_BACKEND) return;
+  try {
+    await api('/api/sync/signal', {
+      method: 'POST',
+      body: JSON.stringify(m)
+    });
+  } catch(e) { console.warn('signal error', e); }
+}
 // Call these when your backend pushes something to this user:
 window.EchoVroReceive={request:P=>incoming(P),accepted:u=>accepted(u),message:(u,t)=>receiveMsg(u,t),signal:m=>onSignal(m)};
+
+// Real-time synchronization polling (sync events from backend)
+async function pollSyncEvents(){
+  if(!CONFIG.USE_BACKEND || !getToken() || !state.username) return;
+  try {
+    const r = await api('/api/sync/events');
+    if(r.ok){
+      const events = await r.json();
+      if(Array.isArray(events)){
+        for(const ev of events){
+          try {
+            const p = ev.payload ? JSON.parse(ev.payload) : {};
+            if(ev.eventType === 'request') incoming(p);
+            else if(ev.eventType === 'accepted') accepted(p.u || ev.from);
+            else if(ev.eventType === 'message') receiveMsg(p.from || ev.from, p.text);
+            else if(ev.eventType === 'signal') onSignal(p);
+            else if(ev.eventType === 'room' && window.EchoVroReceive.room) window.EchoVroReceive.room(p);
+          } catch(err){ console.warn('Error handling sync event', err, ev); }
+        }
+      }
+    }
+  } catch(e){}
+}
+setInterval(pollSyncEvents, 2500);
+
 const fa=av=>{const a=avOf(av);return `<div class="fa">${a?pvw(a):''}</div>`};   // real 3D avatar (.glb) rendered by the shared preview renderer
 const bub=m=>`<div class="bub${m.me?' me':''}">${esc(m.t)}</div>`;
 function badge(){const n=Object.values(conns).reduce((s,c)=>s+(c.unread||0)+(c.status==='pending'&&c.dir==='in'?1:0),0),b=$('#pfb');b.textContent=n||'';b.style.display=n?'flex':'none'}
@@ -674,7 +805,26 @@ function renderCmActions(){const P=cmP;if(!P)return;const c=conns[P.u],a=$('#cma
  a.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const k=b.dataset.a;
   if(k==='chat')openPanel('thread',P.u);else if(k==='voice')openVoice(conns[P.u]);else if(k==='connect')openSongPick(P);else respond(P.u,k==='yes')})}
 /* ---- profile panel with chat menu ---- */
-function openPanel(view,u){ppThread=view==='thread'&&conns[u]&&conns[u].status==='connected'?u:null;if(ppThread&&conns[u]){conns[u].unread=0;saveConns()}$('#pp').classList.add('on');renderPanel();badge()}
+async function openPanel(view,u){
+  ppThread=view==='thread'&&conns[u]&&conns[u].status==='connected'?u:null;
+  if(ppThread&&conns[u]){
+    conns[u].unread=0;
+    saveConns();
+    if(CONFIG.USE_BACKEND && getToken()){
+      try {
+        const r = await api('/api/chat/messages?with='+encodeURIComponent(u));
+        if(r.ok){
+          const hist = await r.json();
+          if(Array.isArray(hist)&&hist.length>0){
+            conns[u].msgs = hist.map(m=>({me:m.me, t:m.t}));
+            saveConns();
+          }
+        }
+      } catch(e){}
+    }
+  }
+  $('#pp').classList.add('on');renderPanel();badge()
+}
 function renderPanel(){const p=$('#pp');if(!p.classList.contains('on'))return;const a=findAv();
  $('#ppav').innerHTML=a?pvw(a):'';$('#ppn').textContent=state.username;$('#pps').textContent=state.music?SVC[state.music.service].n+' linked':'';
  const body=$('#ppb'),list=Object.values(conns);
@@ -791,7 +941,16 @@ $('#srsend').onclick=()=>{const t=$('#sri').value.trim(),l=$('#srk').value.trim(
 
 /* ===== Listening room: same song, same moment, with text chat ===== */
 let room={with:null,link:'',msgs:[],cds:[],col:'aurora'};
-async function onRoomSend(p){console.log('EchoVro room',p)}   // hook: deliver to p.to. types: link, play {at}, chat {text}
+async function onRoomSend(p){
+  console.log('EchoVro room', p);
+  if(!CONFIG.USE_BACKEND) return;
+  try {
+    await api('/api/room/event', {
+      method: 'POST',
+      body: JSON.stringify(p)
+    });
+  } catch(e) { console.warn('onRoomSend error', e); }
+}
 function parseLink(u){let m;
  if(m=u.match(/open\.spotify\.com\/(?:intl-[a-z]+\/)?track\/(\w+)/))return{svc:'spotify',src:'https://open.spotify.com/embed/track/'+m[1]};
  if(m=u.match(/(?:youtu\.be\/|[?&]v=)([\w-]{11})/))return{svc:'ytm',src:'https://www.youtube.com/embed/'+m[1]};
@@ -882,4 +1041,25 @@ function loop(now){requestAnimationFrame(loop);if(step===5)return;const t=(now-t
   x.globalAlpha=a*(py>H-80?Math.max(0,(H+60-py)/140):1);x.font=`${n.sz*s}px serif`;x.shadowColor='rgba(143,168,204,.9)';x.shadowBlur=14;x.fillStyle=n.c;x.save();x.translate(px,py);x.rotate(Math.sin(t*.6+n.ph)*.25);x.fillText(n.g,0,0);x.restore()});
  x.globalAlpha=1;x.shadowBlur=0}
 requestAnimationFrame(loop);
+
+/* ===== Automatic session restore on startup ===== */
+async function initSession(){
+  if(!CONFIG.USE_BACKEND || !getToken()) return;
+  try {
+    const r = await api('/api/me');
+    if(r.ok){
+      const p = await r.json();
+      if(p && p.name){
+        state.username = p.name;
+        state.email = p.email || '';
+        if(p.gender) state.gender = p.gender;
+        if(p.avatar) state.avatar = p.avatar;
+        if(p.musicService) state.music = { service: p.musicService };
+        if(p.tracks) state.tracks = p.tracks;
+        loadConns();
+      }
+    }
+  } catch(e){}
+}
+initSession();
 </script></body></html>

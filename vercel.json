@@ -1,0 +1,22 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://<YOUR_BACKEND_HOST>/api/$1"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    }
+  ],
+  "env": {
+    "EMAILJS_PUBLIC_KEY": "c4-pOoJtU-Uw8x7TZ-public key",
+    "EMAILJS_SERVICE_ID": "service_kcud9cp",
+    "EMAILJS_TEMPLATE_ID": "template_ub25zoo",
+    "DEMO_MODE": "false"
+  }
+}
