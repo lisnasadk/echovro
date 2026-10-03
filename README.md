@@ -1,6 +1,6 @@
 # EchoVro – Full‑stack Demo
 
-This repository contains the **EchoVro** demo application that connects a modern **React‑style frontend** with a **Spring Boot** backend and a persistent **H2** database.
+This repository contains the **EchoVro** demo application that connects a modern **React‑style frontend** backend with **Java** using Spring Boot and a persistent PostgresSQL database.
 
 ---
 
