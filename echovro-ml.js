@@ -88,18 +88,19 @@
 
   /** Accepts [title, artist], {title, artist|artists[]|channel}, or a bare title string. */
   function asTrack(t) {
-    let title = '', artist = '';
-    if (Array.isArray(t)) { title = t[0]; artist = t[1]; }
+    let title = '', artist = '', tags = [];
+    if (Array.isArray(t)) { title = t[0]; artist = t[1]; if (Array.isArray(t[2])) tags = t[2]; }
     else if (t && typeof t === 'object') {
       title = t.title != null ? t.title : t.name;
       artist = t.artist != null ? t.artist : (t.artists != null ? t.artists : t.channel);
+      tags = Array.isArray(t.genres) ? t.genres : (Array.isArray(t.tags) ? t.tags : []);
     } else title = t;
     if (Array.isArray(artist)) artist = artist.map(a => (a && a.name) || a).join(', ');
-    return { title: cleanTitle(title), artist: cleanArtist(artist) };
+    return { title: cleanTitle(title), artist: cleanArtist(artist), tags };
   }
 
   /* ===================================================================
-     2. KNOWLEDGE BASE  (swap/extend freely — see loadKnowledgeBase)
+     2. KNOWLEDGE BASE  (starts empty — populate with loadKnowledgeBase)
      =================================================================== */
   const KB = { artists: new Map(), songs: new Map() }; // artists: key -> {id, display, genres}; songs: titleKey -> artistId
   const cache = new Map();
@@ -169,38 +170,13 @@
   const kbStats = () => ({ artists: new Set([...KB.artists.values()]).size, songs: KB.songs.size, vocab: NB.vocab.size });
   function lookupArtist(name) { const k = key(name); return k ? KB.artists.get(k) || null : null; }
 
-  // ---- seed data (~55 artists; production should load a much larger KB via loadKnowledgeBase) ----
-  loadKnowledgeBase({
-    artists: {
-      'The Beatles': { rock: .5, pop: .4, folk: .1 }, 'Bob Marley': { reggae: .8, folk: .1, rock: .1 }, 'A.R. Rahman': { bollywood: .6, sufi: .2, electronic: .1, classical: .1 },
-      'Arijit Singh': { bollywood: .8, pop: .1, sufi: .1 }, 'The Weeknd': { 'r&b': .5, pop: .35, electronic: .15 }, 'Dua Lipa': { pop: .6, electronic: .3, 'r&b': .1 },
-      'Vijay Yesudas': { malayalam: .8, bollywood: .2 }, 'Ed Sheeran': { pop: .5, indie: .4, folk: .1 }, 'Mohit Chauhan': { bollywood: .6, indie: .2, folk: .2 },
-      'Jack Johnson': { indie: .6, folk: .2, reggae: .1, pop: .1 }, 'Claude Debussy': { classical: 1 }, 'Erik Satie': { classical: .8, ambient: .2 },
-      'Marconi Union': { ambient: .8, electronic: .2 }, 'Tochi Raina': { bollywood: .5, sufi: .3, indie: .2 },
-      'Coldplay': { rock: .4, pop: .4, indie: .2 }, 'Taylor Swift': { pop: .7, indie: .2, folk: .1 }, 'Drake': { 'hip-hop': .7, 'r&b': .2, pop: .1 },
-      'Kendrick Lamar': { 'hip-hop': .9, 'r&b': .1 }, 'Daft Punk': { electronic: .9, pop: .1 }, 'Adele': { pop: .5, 'r&b': .3, jazz: .2 },
-      'Nusrat Fateh Ali Khan': { sufi: .8, classical: .2 }, 'KK': { bollywood: .8, rock: .1, pop: .1 }, 'Shreya Ghoshal': { bollywood: .8, classical: .2 },
-      'Sid Sriram': { 'r&b': .4, bollywood: .3, indie: .3 }, 'Anirudh Ravichander': { bollywood: .4, electronic: .4, pop: .2 }, 'Miles Davis': { jazz: 1 },
-      'Norah Jones': { jazz: .5, indie: .3, folk: .2 }, 'Radiohead': { rock: .5, indie: .3, electronic: .2 }, 'Billie Eilish': { pop: .5, electronic: .3, indie: .2 },
-      'Post Malone': { 'hip-hop': .5, pop: .4, rock: .1 }, 'Imagine Dragons': { rock: .5, pop: .4, electronic: .1 }, 'Queen': { rock: .9, pop: .1 },
-      'Pink Floyd': { rock: .7, ambient: .3 }, 'Ludovico Einaudi': { classical: .7, ambient: .3 }, 'Hans Zimmer': { classical: .6, ambient: .2, electronic: .2 },
-      // additions
-      'Pritam': { bollywood: .85, pop: .1, electronic: .05 }, 'Jubin Nautiyal': { bollywood: .8, pop: .2 }, 'Atif Aslam': { bollywood: .6, pop: .2, sufi: .2 },
-      'Rahat Fateh Ali Khan': { sufi: .5, bollywood: .4, classical: .1 }, 'Lata Mangeshkar': { bollywood: .7, classical: .3 }, 'Kishore Kumar': { bollywood: .9, pop: .1 },
-      'K. S. Chithra': { malayalam: .7, classical: .2, bollywood: .1 }, 'M. G. Sreekumar': { malayalam: .9, classical: .1 }, 'Sushin Shyam': { malayalam: .7, electronic: .2, indie: .1 },
-      'Prateek Kuhad': { indie: .7, folk: .2, bollywood: .1 }, 'Bruno Mars': { pop: .6, 'r&b': .3, 'hip-hop': .1 }, 'Eminem': { 'hip-hop': 1 },
-      'Arctic Monkeys': { rock: .5, indie: .5 }, 'Led Zeppelin': { rock: 1 }, 'Frank Ocean': { 'r&b': .7, indie: .2, 'hip-hop': .1 }, 'Fleetwood Mac': { rock: .6, pop: .3, folk: .1 }
-    },
-    songs: {
-      'Here Comes the Sun': 'The Beatles', 'Three Little Birds': 'Bob Marley', 'Kun Faya Kun': 'A.R. Rahman', 'Ilahi': 'Arijit Singh', 'Agar Tum Saath Ho': 'Arijit Singh',
-      'Blinding Lights': 'The Weeknd', 'Starboy': 'The Weeknd', 'Levitating': 'Dua Lipa', 'Malare': 'Vijay Yesudas', 'Perfect': 'Ed Sheeran', 'Tum Se Hi': 'Mohit Chauhan',
-      'Banana Pancakes': 'Jack Johnson', 'Clair de Lune': 'Claude Debussy', 'Gymnopédie No. 1': 'Erik Satie', 'Weightless': 'Marconi Union', 'Kabira': 'Tochi Raina'
-    }
-  });
+  // The KB starts EMPTY. Load real data at startup (DB export, Last.fm/MusicBrainz tags, etc.):
+  //   ML.loadKnowledgeBase({ artists: { 'Name': {genre: weight} }, songs: { 'Title': 'Artist Name' } })
+  // Tracks that carry their own genre tags (Spotify artist genres, Last.fm tags) need no KB at all.
 
   /* ===================================================================
      3. GENRE INFERENCE  track -> {genres, artists, source, confidence}
-        source: 'kb' (artist known) | 'song' (title known) | 'nb' (guessed) | 'none'
+        source: 'kb' (artist known) | 'tags' (track's own genre tags) | 'song' (title known) | 'nb' (guessed) | 'none'
         Treat the returned object as read-only (results are cached).
      =================================================================== */
   function findArtists(artistStr) {
@@ -221,8 +197,8 @@
   }
 
   function resolve(track) {
-    const { title, artist } = asTrack(track);
-    const ck = key(title) + '|' + key(artist);
+    const { title, artist, tags } = asTrack(track);
+    const ck = key(title) + '|' + key(artist) + '|' + tags.map(x => String(x).toLowerCase()).join(',');
     const hit = cache.get(ck);
     if (hit) return hit;
 
@@ -230,6 +206,8 @@
     let res;
     if (recs.length) {
       res = { genres: averageGenres(recs), artists: [...new Set(ids)], source: 'kb', confidence: 1 };
+    } else if (tags.length && tagVec(tags)) {
+      res = { genres: tagVec(tags), artists: [...new Set(ids)], source: 'tags', confidence: 0.8 };
     } else {
       // song-title lookup: only when there is no artist, or the title is distinctive (2+ words) — avoids "Perfect"-style collisions
       const sid = KB.songs.get(key(title));
@@ -277,7 +255,7 @@
       n++;
       r.artists.forEach(a => artists.add(a));
       for (const g in r.genres) vec[g] += r.genres[g];
-      if (r.source === 'kb' || r.source === 'song') cov.known++; else if (r.source === 'nb') cov.guessed++; else cov.unknown++;
+      if (r.source === 'kb' || r.source === 'song' || r.source === 'tags') cov.known++; else if (r.source === 'nb') cov.guessed++; else cov.unknown++;
     }
     return finish(vec, artists, n, cov);
   }
@@ -301,6 +279,7 @@
     GENRES.forEach(g => vec[g] += counted ? (local[g] / counted) * weight : 0);
     return counted > 0;
   }
+  function tagVec(tags) { const v = zeroVec(); if (!tagsToVec(tags, v, 1)) return null; const o = {}; GENRES.forEach(g => { if (v[g] > 0) o[g] = v[g]; }); return o; }
   /** Flat list of genre tags -> profile. */
   function profileFromTags(tags) {
     const vec = zeroVec(), cov = emptyCoverage();
@@ -365,6 +344,11 @@
   const artistName = id => { const r = KB.artists.get(id); return r ? r.display : id; };
   const usable = p => !!(p && p.vec && GENRES.some(g => p.vec[g] > 0));
 
+  /**
+   * SYMMETRIC: compat(a, b) and compat(b, a) return the same score, label, components, shared genres and shared artists
+   * (cosine, Jaccard and the shared-genre ranking are all order-independent). Only the perspective fields swap:
+   * `bridge` = what the OTHER person likes that YOU don't; `bridgeForThem` = the reverse; myTop/theirTop follow the caller.
+   */
   function compat(a, b, opts) {
     const idf = ((opts && opts.idf) || defaultIdf).weights();
     const myTop = (a && a.top) || [], theirTop = (b && b.top) || [];
@@ -390,7 +374,7 @@
     const wj = mx > 0 ? mn / mx : 0;
 
     const A = a.artists || new Set(), B = b.artists || new Set();
-    const sharedArtistIds = [...A].filter(x => B.has(x));
+    const sharedArtistIds = [...A].filter(x => B.has(x)).sort();
     const useArtists = A.size > 0 && B.size > 0;
     const aj = useArtists ? sharedArtistIds.length / (new Set([...A, ...B]).size || 1) : 0;
 
@@ -400,11 +384,11 @@
     const score = Math.max(CONFIG.baseline, Math.min(100, Math.round(100 * raw)));
 
     const shared = GENRES.filter(g => Math.min(a.vec[g] || 0, b.vec[g] || 0) > CONFIG.sharedThreshold)
-      .sort((x, y) => Math.min(a.vec[y], b.vec[y]) * idf[y] - Math.min(a.vec[x], b.vec[x]) * idf[x]) // rare shared genres first
+      .sort((x, y) => (Math.min(a.vec[y], b.vec[y]) * idf[y] - Math.min(a.vec[x], b.vec[x]) * idf[x]) || GENRES.indexOf(x) - GENRES.indexOf(y)) // rare shared genres first, deterministic ties
       .slice(0, 3);
 
     const bridgeOf = (from, to) => GENRES.filter(g => (from.vec[g] || 0) >= CONFIG.topThreshold && (to.vec[g] || 0) < CONFIG.bridgeThreshold)
-      .sort((x, y) => from.vec[y] * idf[y] - from.vec[x] * idf[x])[0] || null;
+      .sort((x, y) => (from.vec[y] * idf[y] - from.vec[x] * idf[x]) || GENRES.indexOf(x) - GENRES.indexOf(y))[0] || null;
     const bridge = bridgeOf(b, a);        // something THEY love that YOU barely listen to
     const bridgeForThem = bridgeOf(a, b); // something YOU love that THEY barely listen to
 
