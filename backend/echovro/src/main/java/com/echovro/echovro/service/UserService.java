@@ -1,5 +1,6 @@
 package com.echovro.echovro.service;
 
+import com.echovro.echovro.dto.MusicPreferencesDto;
 import com.echovro.echovro.dto.ProfileDto;
 import com.echovro.echovro.dto.UpdateProfileRequest;
 import com.echovro.echovro.exception.ApiException;
@@ -38,6 +39,7 @@ public class UserService {
     public ProfileDto getProfile(Long id) {
         User u = getUserById(id);
         List<List<String>> tracks = parseTracks(u.getTracksJson());
+        MusicPreferencesDto prefs = parsePreferences(u.getPreferencesJson());
         return new ProfileDto(
                 u.getId(),
                 u.getName(),
@@ -47,7 +49,8 @@ public class UserService {
                 u.getMusicService(),
                 u.getCurrentPlace(),
                 u.getCurrentSong(),
-                tracks
+                tracks,
+                prefs
         );
     }
 
@@ -65,9 +68,20 @@ public class UserService {
                 u.setTracksJson(objectMapper.writeValueAsString(req.getTracks()));
             } catch (Exception ignored) {}
         }
+        if (req.getPreferences() != null) {
+            try {
+                u.setPreferencesJson(objectMapper.writeValueAsString(req.getPreferences()));
+            } catch (Exception ignored) {}
+        }
         u.setLastActive(LocalDateTime.now());
         User saved = userRepository.save(u);
         return getProfile(saved.getId());
+    }
+
+    @Transactional
+    public void saveUser(User user) {
+        user.setLastActive(LocalDateTime.now());
+        userRepository.save(user);
     }
 
     public List<List<String>> getUserTracks(Long id, String service) {
@@ -85,6 +99,15 @@ public class UserService {
             return objectMapper.readValue(json, new TypeReference<List<List<String>>>() {});
         } catch (Exception e) {
             return new ArrayList<>();
+        }
+    }
+
+    private MusicPreferencesDto parsePreferences(String json) {
+        if (json == null || json.isBlank()) return new MusicPreferencesDto();
+        try {
+            return objectMapper.readValue(json, MusicPreferencesDto.class);
+        } catch (Exception e) {
+            return new MusicPreferencesDto();
         }
     }
 

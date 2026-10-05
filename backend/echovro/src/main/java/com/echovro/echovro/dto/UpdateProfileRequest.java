@@ -7,6 +7,7 @@ public class UpdateProfileRequest {
     private String avatar;
     private MusicInfo music;
     private List<List<String>> tracks;
+    private MusicPreferencesDto preferences;
 
     public static class MusicInfo {
         private String service;
@@ -63,5 +64,13 @@ public class UpdateProfileRequest {
 
     public void setTracks(List<List<String>> tracks) {
         this.tracks = tracks;
+    }
+
+    public MusicPreferencesDto getPreferences() {
+        return preferences;
+    }
+
+    public void setPreferences(MusicPreferencesDto preferences) {
+        this.preferences = preferences;
     }
 }

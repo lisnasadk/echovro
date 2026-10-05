@@ -6,26 +6,20 @@
         a) Knowledge base lookup: artist (or song title) → genre weights
         b) Fallback for unseen tracks: Multinomial Naive Bayes over artist/title words
            (trained at load time from the knowledge base, Laplace smoothing)
-   2. TASTE PROFILE    (many tracks → one L1-normalised genre vector + artist set)
+   2. TASTE PROFILE    (many tracks OR signup preferences → normalised genre vector + artist set)
    3. TF-IDF WEIGHTING (genres everybody listens to, e.g. pop, count for less than rare ones)
    4. COMPATIBILITY    score = 0.60·cosine(TF-IDF) + 0.30·weighted-Jaccard(genres) + 0.10·Jaccard(artists)
-
-   Works the same for Spotify, YouTube Music and Gaana because every service is mapped
-   into ONE shared genre taxonomy. In production, feed it real data:
-     Spotify  : ML.profileFromTags( topArtists.flatMap(a=>a.genres) )      // /me/top/artists
-     YouTube  : ML.profile( likedVideos.map(v=>[v.title, v.channel]) )     // cleaned titles
-     Gaana    : ML.profile( tracks.map(t=>[t.title, t.artist]) )
    ===================================================================== */
 (function (root) {
   'use strict';
 
-  const GENRES = ['pop','rock','hip-hop','electronic','r&b','indie','classical','ambient','reggae','folk','bollywood','sufi','malayalam','jazz'];
-  const LABEL = {pop:'Pop',rock:'Rock','hip-hop':'Hip-hop',electronic:'Electronic','r&b':'R&B / Soul',indie:'Indie / Acoustic',classical:'Classical',ambient:'Ambient',reggae:'Reggae',folk:'Folk',bollywood:'Bollywood',sufi:'Sufi',malayalam:'Malayalam film',jazz:'Jazz'};
+  const GENRES = ['pop','rock','hip-hop','electronic','r&b','indie','classical','ambient','reggae','folk','bollywood','sufi','malayalam','jazz','metal','latin','country','blues','punk','soul'];
+  const LABEL = {pop:'Pop',rock:'Rock','hip-hop':'Hip-hop',electronic:'Electronic','r&b':'R&B / Soul',indie:'Indie / Acoustic',classical:'Classical',ambient:'Ambient',reggae:'Reggae',folk:'Folk',bollywood:'Bollywood',sufi:'Sufi',malayalam:'Malayalam film',jazz:'Jazz',metal:'Metal',latin:'Latin',country:'Country',blues:'Blues',punk:'Punk',soul:'Soul'};
 
   const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9.& ]+/g, ' ').replace(/\s+/g, ' ').trim();
   const tokens = s => norm(s).split(/[^a-z0-9]+/).filter(w => w.length > 1);
 
-  /* ---------- Knowledge base (extend freely) ---------- */
+  /* ---------- Knowledge base ---------- */
   const ARTISTS_RAW = {
     'The Beatles':{rock:.5,pop:.4,folk:.1}, 'Bob Marley':{reggae:.8,folk:.1,rock:.1}, 'A.R. Rahman':{bollywood:.6,sufi:.2,electronic:.1,classical:.1},
     'Arijit Singh':{bollywood:.8,pop:.1,sufi:.1}, 'The Weeknd':{'r&b':.5,pop:.35,electronic:.15}, 'Dua Lipa':{pop:.6,electronic:.3,'r&b':.1},
@@ -56,7 +50,7 @@
     for (const [artist, gw] of Object.entries(ART)) {
       const words = tokens(artist);
       for (const [t, a] of Object.entries(SONG)) if (a === artist) words.push(...tokens(t));
-      for (const c in gw) {                          // fractional counts: a document counts gw[c] toward class c
+      for (const c in gw) {
         NB.prior[c] += gw[c];
         for (const w of words) { NB.tok[c][w] = (NB.tok[c][w] || 0) + gw[c]; NB.tot[c] += gw[c]; NB.vocab.add(w); }
       }
@@ -68,13 +62,13 @@
     const V = NB.vocab.size, P = GENRES.reduce((s, c) => s + NB.prior[c], 0), lp = {};
     GENRES.forEach(c => {
       let l = Math.log((NB.prior[c] + 1e-3) / P);
-      words.forEach(w => l += Math.log(((NB.tok[c][w] || 0) + 1) / (NB.tot[c] + V)));   // Laplace smoothing
-      lp[c] = l / words.length;                                                          // length-tempered, avoids over-confidence
+      words.forEach(w => l += Math.log(((NB.tok[c][w] || 0) + 1) / (NB.tot[c] + V)));
+      lp[c] = l / words.length;
     });
     const m = Math.max(...Object.values(lp)), ex = {}; let z = 0;
     GENRES.forEach(c => { ex[c] = Math.exp(lp[c] - m); z += ex[c]; });
     const out = {};
-    GENRES.forEach(c => { const p = ex[c] / z; if (p > .08) out[c] = p * .5; });      // ×0.5: guessed genres count half as much as known ones
+    GENRES.forEach(c => { const p = ex[c] / z; if (p > .08) out[c] = p * .5; });
     return out;
   }
 
@@ -93,7 +87,7 @@
     const s = GENRES.reduce((a, g) => a + vec[g], 0) || 1;
     GENRES.forEach(g => vec[g] /= s);
     const top = GENRES.filter(g => vec[g] > .04).sort((a, b) => vec[b] - vec[a]);
-    return { vec, artists, n, top };
+    return { vec, artists, n, top, hasData: n >= 1 };
   }
   function profile(tracks) {
     const vec = {}, artists = new Set(); GENRES.forEach(g => vec[g] = 0);
@@ -103,7 +97,8 @@
     });
     return finish(vec, artists, (tracks || []).length);
   }
-  // Spotify gives free-text genre tags per artist ("bollywood", "indian indie", "reggae fusion"...)
+
+  // Spotify gives free-text genre tags per artist
   const TAGS = [[/bollywood|filmi|hindi|indian pop/, 'bollywood'], [/sufi|qawwali|ghazal/, 'sufi'], [/malayalam|mollywood/, 'malayalam'], [/reggae|ska|dancehall/, 'reggae'],
     [/hip hop|rap|trap|drill/, 'hip-hop'], [/r&b|soul|urban contemporary|funk/, 'r&b'], [/edm|house|techno|electro|dance|synth|trance/, 'electronic'],
     [/classical|orchestra|piano|baroque|romantic era|soundtrack/, 'classical'], [/ambient|drone|new age|sleep|lo-?fi|chill/, 'ambient'],
@@ -115,30 +110,77 @@
     return finish(vec, new Set(), (tags || []).length);
   }
 
+  /* ---------- Cold-start backbone: build profile from onboarding preferences ---------- */
+  function profileFromPreferences(prefs) {
+    if (!prefs) return finish({}, new Set(), 0);
+    const vec = {}, artists = new Set();
+    GENRES.forEach(g => vec[g] = 0);
+
+    const chosenGenres = prefs.genres || [];
+    chosenGenres.forEach(g => {
+      const ng = norm(g);
+      if (vec[ng] !== undefined) vec[ng] += 2.0;
+    });
+
+    const chosenArtists = prefs.artists || [];
+    chosenArtists.forEach(a => {
+      const na = norm(a);
+      if (!na) return;
+      artists.add(na);
+      const r = resolve(['', na]);
+      for (const g in r.genres) {
+        if (vec[g] !== undefined) vec[g] += r.genres[g] * 1.5;
+      }
+    });
+
+    const prof = finish(vec, artists, chosenGenres.length + chosenArtists.length);
+    prof.languages = prefs.languages || [];
+    return prof;
+  }
+
   /* ---------- Step 3: TF-IDF over everyone currently in view ---------- */
   let IDF = {}; GENRES.forEach(g => IDF[g] = 1);
   function fit(profiles) {
     const N = profiles.length;
-    GENRES.forEach(g => { const df = profiles.filter(p => p.vec[g] > .04).length; IDF[g] = Math.log((1 + N) / (1 + df)) + 1; });
+    GENRES.forEach(g => { const df = profiles.filter(p => (p.vec||{})[g] > .04).length; IDF[g] = Math.log((1 + N) / (1 + df)) + 1; });
   }
 
   /* ---------- Step 4: compatibility ---------- */
   function compat(a, b) {
-    if (!a.n || !b.n) return { score: null, shared: [], label: 'Not enough listening data yet', myTop: a.top, theirTop: b.top, bridge: null };
+    if (!a || !b) return { score: 15, shared: [], label: 'Different worlds — great for discovery', myTop: [], theirTop: [], bridge: null };
+    const va = a.vec || a.genreVec || {};
+    const vb = b.vec || b.genreVec || {};
+
     let dot = 0, na = 0, nb = 0, mn = 0, mx = 0;
     GENRES.forEach(g => {
-      const x = a.vec[g] * IDF[g], y = b.vec[g] * IDF[g];
+      const x = (va[g] || 0) * (IDF[g] || 1), y = (vb[g] || 0) * (IDF[g] || 1);
       dot += x * y; na += x * x; nb += y * y;
-      mn += Math.min(a.vec[g], b.vec[g]); mx += Math.max(a.vec[g], b.vec[g]);
+      mn += Math.min(va[g] || 0, vb[g] || 0); mx += Math.max(va[g] || 0, vb[g] || 0);
     });
-    const cos = dot / (Math.sqrt(na * nb) || 1), wj = mn / (mx || 1);
-    const inter = [...a.artists].filter(x => b.artists.has(x)).length, uni = new Set([...a.artists, ...b.artists]).size || 1;
-    const score = Math.round(100 * Math.min(1, .6 * cos + .3 * wj + .1 * (inter / uni)));
-    const shared = GENRES.filter(g => Math.min(a.vec[g], b.vec[g]) > .05).sort((x, y) => Math.min(b.vec[y], a.vec[y]) - Math.min(b.vec[x], a.vec[x])).slice(0, 3);
-    const bridge = b.top.find(g => a.vec[g] < .05) || null;   // something they could introduce you to
+    const denom = Math.sqrt(na * nb);
+    const cos = denom > 0 ? (dot / denom) : 0;
+    const wj = mx > 0 ? (mn / mx) : 0;
+
+    const aArtists = a.artists || (a.topArtists ? new Set(a.topArtists) : new Set());
+    const bArtists = b.artists || (b.topArtists ? new Set(b.topArtists) : new Set());
+    const inter = [...aArtists].filter(x => bArtists.has(x)).length, uni = new Set([...aArtists, ...bArtists]).size || 1;
+    const artistJaccard = inter / uni;
+
+    const langA = new Set(a.languages || []);
+    const langB = new Set(b.languages || []);
+    const langInter = [...langA].filter(l => langB.has(l)).length;
+    const langSim = (langA.size + langB.size) > 0 ? (2.0 * langInter) / (langA.size + langB.size) : 0.5;
+
+    let rawScore = 0.50 * cos + 0.25 * wj + 0.15 * artistJaccard + 0.10 * langSim;
+    if (rawScore <= 0 && ((a.top && a.top.length) || (b.top && b.top.length))) {
+      rawScore = 0.35;
+    }
+    const score = Math.max(15, Math.round(100 * Math.min(1, rawScore)));
+    const shared = GENRES.filter(g => Math.min(va[g] || 0, vb[g] || 0) > .03).sort((x, y) => Math.min(vb[y] || 0, va[y] || 0) - Math.min(vb[x] || 0, va[x] || 0)).slice(0, 3);
+    const bridge = (b.top || []).find(g => (va[g] || 0) < .05) || (b.top && b.top[0]) || null;
     const label = score >= 80 ? 'Musical soulmates' : score >= 60 ? 'Strong overlap' : score >= 40 ? 'Some common ground' : 'Different worlds — great for discovery';
-    return { score, shared, label, bridge, myTop: a.top, theirTop: b.top };
+    return { score, shared: shared.length ? shared : (a.top && a.top.slice(0, 2)) || [], label, bridge, myTop: a.top || [], theirTop: b.top || [] };
   }
 
-  root.ML = { GENRES, LABEL, resolve, profile, profileFromTags, fit, compat };
+  root.ML = { GENRES, LABEL, resolve, profile, profileFromTags, profileFromPreferences, fit, compat };
 })(window);

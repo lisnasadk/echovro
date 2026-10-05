@@ -35,6 +35,12 @@ public class User {
     @Column(length = 8192)
     private String tracksJson;
 
+    @Column(columnDefinition = "TEXT")
+    private String preferencesJson;
+
+    @Column(columnDefinition = "TEXT")
+    private String profileJson;
+
     private Double px;
     private Double py;
     private Double pz;
@@ -132,6 +138,22 @@ public class User {
 
     public void setTracksJson(String tracksJson) {
         this.tracksJson = tracksJson;
+    }
+
+    public String getPreferencesJson() {
+        return preferencesJson;
+    }
+
+    public void setPreferencesJson(String preferencesJson) {
+        this.preferencesJson = preferencesJson;
+    }
+
+    public String getProfileJson() {
+        return profileJson;
+    }
+
+    public void setProfileJson(String profileJson) {
+        this.profileJson = profileJson;
     }
 
     public Double getPx() {

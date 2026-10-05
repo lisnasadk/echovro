@@ -12,6 +12,7 @@ public class ProfileDto {
     private String currentPlace;
     private String currentSong;
     private List<List<String>> tracks;
+    private MusicPreferencesDto preferences;
 
     public ProfileDto() {}
 
@@ -25,6 +26,19 @@ public class ProfileDto {
         this.currentPlace = currentPlace;
         this.currentSong = currentSong;
         this.tracks = tracks;
+    }
+
+    public ProfileDto(Long id, String name, String email, String gender, String avatar, String musicService, String currentPlace, String currentSong, List<List<String>> tracks, MusicPreferencesDto preferences) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.gender = gender;
+        this.avatar = avatar;
+        this.musicService = musicService;
+        this.currentPlace = currentPlace;
+        this.currentSong = currentSong;
+        this.tracks = tracks;
+        this.preferences = preferences;
     }
 
     public Long getId() {
@@ -97,5 +111,13 @@ public class ProfileDto {
 
     public void setTracks(List<List<String>> tracks) {
         this.tracks = tracks;
+    }
+
+    public MusicPreferencesDto getPreferences() {
+        return preferences;
+    }
+
+    public void setPreferences(MusicPreferencesDto preferences) {
+        this.preferences = preferences;
     }
 }

@@ -341,6 +341,11 @@ button, .btn, .av, .pc, #pad button {
     padding: 12px 14px;
   }
 }
+
+.pref-chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 14px}
+.pref-chip{background:rgba(255,255,255,0.06);border:1px solid var(--line);border-radius:999px;padding:6px 14px;color:var(--silver);font-size:13px;cursor:pointer;transition:all .2s;user-select:none}
+.pref-chip:hover{background:rgba(255,255,255,0.12);color:#fff}
+.pref-chip.sel{background:var(--acc);color:#fff;border-color:var(--acc);box-shadow:0 0 10px rgba(99,102,241,0.35)}
 </style></head><body>
 <canvas id="c"></canvas><div class="vig"></div><canvas id="pl"></canvas>
 
@@ -553,7 +558,7 @@ function go(n){
  $('#pl').classList.toggle('on',n===5);
  document.body.classList.toggle('in5',n===5);
  if(n===1)ensure('male');if(n===2){drawAvatars();ensure(state.gender)}
- if(n===3)warmPlaces();   // start downloading the place models in the background
+ if(n===3){warmPlaces();drawPreferences();}   // start downloading the place models in the background
  if(n===3||n===4){const h=pvw(findAv());$('#me3').innerHTML=$('#me4').innerHTML=h;$('#hi').textContent='Hi, '+state.username+'!';$('#done').textContent='Where shall we meet, '+state.username+'?'}
  if(n===4){ensure('male');ensure('female');drawPlaces()}
  if(n===6)renderRoom();
@@ -668,6 +673,45 @@ $('#b2').onclick=()=>{
 };
 
 /* ===== Step 3: link a music service (mandatory) — Spotify / YouTube Music / Gaana ===== */
+
+const ONBOARD_GENRES = ['Pop','Rock','Hip-Hop','Electronic','R&B','Indie','Classical','Ambient','Reggae','Folk','Bollywood','Sufi','Malayalam','Jazz','Metal','Latin'];
+const ONBOARD_ARTISTS = ['The Weeknd','Taylor Swift','Arijit Singh','A.R. Rahman','Kendrick Lamar','Dua Lipa','Drake','Coldplay','Billie Eilish','Ed Sheeran','Vijay Yesudas','Post Malone','Queen','Shreya Ghoshal','Anirudh Ravichander'];
+const ONBOARD_LANGS = ['English','Hindi','Malayalam','Spanish','French','Korean','Tamil','Punjabi'];
+
+state.preferences = state.preferences || { genres: [], artists: [], languages: [] };
+
+function drawPreferences(){
+  const gEl = $('#pref-genres'), aEl = $('#pref-artists'), lEl = $('#pref-langs');
+  if(!gEl || !aEl || !lEl) return;
+  const p = state.preferences || { genres: [], artists: [], languages: [] };
+  gEl.innerHTML = ONBOARD_GENRES.map(g => `<span class="pref-chip${(p.genres||[]).includes(g)?' sel':''}" data-g="${g}">${g}</span>`).join('');
+  aEl.innerHTML = ONBOARD_ARTISTS.map(a => `<span class="pref-chip${(p.artists||[]).includes(a)?' sel':''}" data-a="${a}">${a}</span>`).join('');
+  lEl.innerHTML = ONBOARD_LANGS.map(l => `<span class="pref-chip${(p.languages||[]).includes(l)?' sel':''}" data-l="${l}">${l}</span>`).join('');
+
+  $('#pref-genres .pref-chip').forEach(c => c.onclick = () => {
+    c.classList.toggle('sel');
+    p.genres = Array.from($('#pref-genres .pref-chip.sel')).map(x => x.dataset.g);
+    checkB3();
+  });
+  $('#pref-artists .pref-chip').forEach(c => c.onclick = () => {
+    c.classList.toggle('sel');
+    p.artists = Array.from($('#pref-artists .pref-chip.sel')).map(x => x.dataset.a);
+    checkB3();
+  });
+  $('#pref-langs .pref-chip').forEach(c => c.onclick = () => {
+    c.classList.toggle('sel');
+    p.languages = Array.from($('#pref-langs .pref-chip.sel')).map(x => x.dataset.l);
+    checkB3();
+  });
+  checkB3();
+}
+
+function checkB3(){
+  const hasPref = state.preferences && ((state.preferences.genres||[]).length > 0 || (state.preferences.artists||[]).length > 0);
+  const hasMusic = !!(state.music && state.music.service);
+  $('#b3').disabled = !(hasPref || hasMusic);
+}
+
 function linkedUI(){const m=state.music&&state.music.service;$$('[data-svc]').forEach(b=>{b.classList.toggle('ok',b.dataset.svc===m);b.classList.toggle('dim',!!m&&b.dataset.svc!==m)});$('#b3').disabled=!m}
 function linked(service,code){state.music={service,code};linkedUI();toast(SVC[service].n+' linked.')}
 async function connect(k){
@@ -688,7 +732,27 @@ async function connect(k){
  if(k==='spotify'){q.set('scope',CONFIG.SPOTIFY_SCOPES);location.href='https://accounts.spotify.com/authorize?'+q}
  else{q.set('scope',CONFIG.YT_SCOPES);q.set('access_type','offline');location.href='https://accounts.google.com/o/oauth2/v2/auth?'+q}}
 $$('[data-svc]').forEach(b=>b.onclick=()=>connect(b.dataset.svc));
-const finish3=()=>{onComplete({...state});go(4)};
+const finish3=()=>{
+  if(!state.music && state.preferences && ((state.preferences.genres||[]).length || (state.preferences.artists||[]).length)){
+    state.music = { service: 'spotify' };
+  }
+  if(state.preferences){
+    state.mlProfile = ML.profileFromPreferences(state.preferences);
+    if(CONFIG.USE_BACKEND && getToken()){
+      api('/api/ml/preferences', {
+        method: 'POST',
+        body: JSON.stringify(state.preferences)
+      }).catch(()=>{});
+    }
+  }
+  try {
+    localStorage.setItem('echovro_user_profile', JSON.stringify({
+      username: state.username, email: state.email, gender: state.gender, avatar: state.avatar, music: state.music, tracks: state.tracks, preferences: state.preferences
+    }));
+  } catch(e){}
+  onComplete({...state});
+  go(4);
+};
 $('#b3').onclick=()=>state.music?finish3():toast('Link a music service to continue.');
 // Returning from the music service (?code=...&state=spotify|ytm|gaana): resume.
 (async ()=>{
@@ -991,10 +1055,11 @@ const trackList=P=>{
 function showCompat(P){
  const key=P.u+'|'+myTracks().length+'|'+(P.s||'');let r=cc[key];
  if(!r){
-  const mine=ML.profile(myTracks()),profs=[mine];
+  const mine=state.mlProfile || (state.preferences ? ML.profileFromPreferences(state.preferences) : null) || ML.profile(myTracks()), profs=[mine];
   crowd.children.forEach(w=>{const q=w.userData.P;if(q&&!q.me)profs.push(q.prof||(q.prof=ML.profile(trackList(q))))});
   ML.fit(profs);                                       // TF-IDF weights from everyone in the room
-  r=cc[key]=ML.compat(mine,P.prof||(P.prof=ML.profile(trackList(P))));
+  const theirs=P.mlProfile || (P.preferences ? ML.profileFromPreferences(P.preferences) : null) || P.prof || (P.prof=ML.profile(trackList(P)));
+  r=cc[key]=ML.compat(mine,theirs);
  }
  const L=g=>ML.LABEL[g]||g,my=SVC[state.music&&state.music.service?state.music.service:'spotify'].n,th=SVC[P.m]?SVC[P.m].n:'';
  $('#cmav').innerHTML=pvw(avOf(P.av));$('#cmn').textContent=P.u;
@@ -1592,6 +1657,7 @@ function restoreLocalProfile(){
       if(p.avatar) state.avatar = p.avatar;
       if(p.music) state.music = p.music;
       if(p.tracks) state.tracks = p.tracks;
+      if(p.preferences) { state.preferences = p.preferences; state.mlProfile = ML.profileFromPreferences(p.preferences); }
     }
   } catch(e){}
 }
@@ -1610,6 +1676,7 @@ async function initSession(){
         if(p.avatar) state.avatar = p.avatar;
         if(p.musicService) state.music = { service: p.musicService };
         if(p.tracks && p.tracks.length) state.tracks = p.tracks;
+        if(p.preferences) { state.preferences = p.preferences; state.mlProfile = ML.profileFromPreferences(p.preferences); }
         
         localStorage.setItem('echovro_user_profile', JSON.stringify({
           username: state.username,
