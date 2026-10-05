@@ -936,6 +936,23 @@ async function syncCrowdPresences(newPeople){
        const dy = Math.atan2(Math.sin(w.userData.try - w.rotation.y), Math.cos(w.userData.try - w.rotation.y));
        w.rotation.y += dy * 0.25;
      }
+     if(w.userData.j){
+       if(w.userData.moving){
+         w.userData.ph = (w.userData.ph || 0) + dt * 9;
+         const sw = Math.sin(w.userData.ph) * 0.6;
+         const [tl, tr, kl, kr] = w.userData.j;
+         if(tl) tl.b.rotation.x = tl.r + LEG * sw;
+         if(tr) tr.b.rotation.x = tr.r - LEG * sw;
+         if(kl) kl.b.rotation.x = kl.r - LEG * Math.max(0, -sw) * 1.2;
+         if(kr) kr.b.rotation.x = kr.r - LEG * Math.max(0, sw) * 1.2;
+       } else {
+         const [tl, tr, kl, kr] = w.userData.j;
+         if(tl) tl.b.rotation.x += (tl.r - tl.b.rotation.x) * 0.2;
+         if(tr) tr.b.rotation.x += (tr.r - tr.b.rotation.x) * 0.2;
+         if(kl) kl.b.rotation.x += (kl.r - kl.b.rotation.x) * 0.2;
+         if(kr) kr.b.rotation.x += (kr.r - kr.b.rotation.x) * 0.2;
+       }
+     }
    } else {
      w.rotation.y = w.userData.ry + Math.sin(t*.8+i*1.7)*.18;
    }
@@ -1344,6 +1361,12 @@ function onRemoteMove(data){
     if(data.py != null) child.userData.ty = data.py;
     if(data.ry != null) child.userData.try = data.ry;
     if(data.moving != null) child.userData.moving = data.moving;
+  } else if(state.place && !window._fetchingPeer){
+    window._fetchingPeer = true;
+    fetchPlaceFeed(state.place, state).then(f => {
+      window._fetchingPeer = false;
+      if(f && f.people) syncCrowdPresences(f.people);
+    }).catch(()=>{ window._fetchingPeer = false; });
   }
 }
 
