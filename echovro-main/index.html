@@ -926,7 +926,20 @@ async function syncCrowdPresences(newPeople){
  }
 }
 (function loop5(){requestAnimationFrame(loop5);const n=performance.now(),dt=Math.min(.05,(n-(loop5.t||n))/1000);loop5.t=n;
- if(run){if(crowd){const t=n/1000;crowd.children.forEach((w,i)=>{if(me&&w===me.w)return;w.rotation.y=w.userData.ry+Math.sin(t*.8+i*1.7)*.18})}
+ if(run){if(crowd){const t=n/1000;crowd.children.forEach((w,i)=>{
+   if(me&&w===me.w)return;
+   if(w.userData.tx!=null && w.userData.tz!=null){
+     w.position.x += (w.userData.tx - w.position.x) * 0.25;
+     w.position.z += (w.userData.tz - w.position.z) * 0.25;
+     if(w.userData.ty!=null) w.position.y += (w.userData.ty - w.position.y) * 0.25;
+     if(w.userData.try!=null){
+       const dy = Math.atan2(Math.sin(w.userData.try - w.rotation.y), Math.cos(w.userData.try - w.rotation.y));
+       w.rotation.y += dy * 0.25;
+     }
+   } else {
+     w.rotation.y = w.userData.ry + Math.sin(t*.8+i*1.7)*.18;
+   }
+ })}
   tickMe(dt);tickNear(n);ctl.update();R5.render(sc5,cam5)}})();
 /* ===== Controls for your avatar: walk, climb stairs, sit ===== */
 function setupMe(w,H){if(!w)return;const inner=w.children[0],rot=((models[state.avatar]||{}).userData||{}).rot||0;
@@ -1227,7 +1240,19 @@ function tickMe(dt){const m=me;if(!m||!cur)return;const w=m.w,H=m.H,k=keys,dx=(k
  if(tl)tl.b.rotation.x=tl.r+LEG*(sw+A);if(tr)tr.b.rotation.x=tr.r+LEG*(-sw+A);
  if(kl)kl.b.rotation.x=kl.r-LEG*(Math.max(0,-sw)*1.2+kn);if(kr)kr.b.rotation.x=kr.r-LEG*(Math.max(0,sw)*1.2+kn);
  m.inner.position.y=m.iy-(m.seat?.23:.46)*H*s+Math.abs(Math.sin(m.ph))*H*.015*m.a;
- w.rotation.y=m.h+m.rot}
+ w.rotation.y=m.h+m.rot;
+  const nowMs = performance.now();
+  if(go || m.sit !== (m.lastSit||0)){
+    if(nowMs - (m.lastSent||0) > 120){
+      m.lastSent = nowMs;
+      m.lastSit = m.sit;
+      sendMovement(state.place, w.position.x, w.position.y, w.position.z, w.rotation.y, !!go, !!m.sit);
+    }
+  } else if(m.wasMoving){
+    sendMovement(state.place, w.position.x, w.position.y, w.position.z, w.rotation.y, false, !!m.sit);
+  }
+  m.wasMoving = !!go;
+}
 $$('#pad [data-k]').forEach(b=>{const k=b.dataset.k,f=v=>e=>{e.preventDefault();keys[k]=v;if(v&&ctl)ctl.autoRotate=false};
  b.onpointerdown=f(1);['onpointerup','onpointerleave','onpointercancel'].forEach(ev=>b[ev]=f(0))});
 $('#bc').onclick=()=>{climb=!climb;$('#bc').classList.toggle('on',climb)};
@@ -1237,6 +1262,124 @@ addEventListener('keydown',e=>{if(step!==5||e.target.tagName==='INPUT')return;if
  if(e.code==='KeyE')toggleSit();if(e.code==='KeyC')$('#bc').click()});
 addEventListener('keyup',e=>{if(KM[e.code])keys[KM[e.code]]=0});
 const songLink=(m,s)=>SVC[m].q+encodeURIComponent(s[0]+' '+s[1]);
+
+/* ===== Real-Time Place Movement & Presence WebSocket Sync ===== */
+let placeWs = null;
+let placeWsPlace = null;
+
+function connectPlaceSocket(placeKey){
+  if(!CONFIG.USE_BACKEND || !placeKey) return;
+  if(placeWs && placeWsPlace === placeKey && placeWs.readyState === WebSocket.OPEN) return;
+  disconnectPlaceSocket();
+  placeWsPlace = placeKey;
+  try {
+    const base = CONFIG.API_BASE.replace(/^http/i, 'ws');
+    const ws = new WebSocket(base + '/ws-sync/websocket');
+    ws.onopen = () => {
+      ws.send('CONNECT\naccept-version:1.2\nheart-beat:10000,10000\n\n\0');
+    };
+    ws.onmessage = (e) => {
+      const msg = typeof e.data === 'string' ? e.data : '';
+      if(msg.startsWith('CONNECTED')){
+        ws.send(`SUBSCRIBE\nid:sub-move-${Date.now()}\ndestination:/topic/places/${placeKey}/move\n\n\0`);
+        ws.send(`SUBSCRIBE\nid:sub-pres-${Date.now()}\ndestination:/topic/places/${placeKey}/presence\n\n\0`);
+      } else if(msg.startsWith('MESSAGE')){
+        const bIdx = msg.indexOf('\n\n');
+        if(bIdx !== -1){
+          const raw = msg.slice(bIdx + 2).replace(/\0$/, '').trim();
+          try {
+            const data = JSON.parse(raw);
+            if(data.user && data.user !== state.username && data.px != null){
+              onRemoteMove(data);
+            } else if(data.type){
+              onRemotePresence(data);
+            }
+          } catch(err){}
+        }
+      }
+    };
+    ws.onerror = (err) => console.warn('Place WebSocket error', err);
+    ws.onclose = () => { if(placeWs === ws) placeWs = null; };
+    placeWs = ws;
+  } catch(e){ console.warn('Could not establish Place WebSocket', e); }
+}
+
+function disconnectPlaceSocket(){
+  if(placeWs){
+    try {
+      if(placeWsPlace){
+        placeWs.send(`SEND\ndestination:/app/places/${placeWsPlace}/presence\ncontent-type:application/json\n\n${JSON.stringify({type:'leave',user:state.username})}\0`);
+      }
+      placeWs.close();
+    } catch(e){}
+    placeWs = null;
+  }
+  placeWsPlace = null;
+}
+
+function sendMovement(placeKey, px, py, pz, ry, moving, sit){
+  if(!placeKey || !state.username) return;
+  const payload = JSON.stringify({ user: state.username, px, py, pz, ry, moving: !!moving, sit: !!sit });
+  if(placeWs && placeWs.readyState === WebSocket.OPEN){
+    try {
+      placeWs.send(`SEND\ndestination:/app/places/${placeKey}/move\ncontent-type:application/json\n\n${payload}\0`);
+      return;
+    } catch(e){}
+  }
+  // REST fallback
+  if(CONFIG.USE_BACKEND){
+    api('/api/places/' + encodeURIComponent(placeKey) + '/move', {
+      method: 'POST',
+      body: payload
+    }).catch(()=>{});
+  }
+}
+
+function onRemoteMove(data){
+  if(!crowd || data.user === state.username) return;
+  const child = crowd.children.find(c => c.userData.P && c.userData.P.u === data.user);
+  if(child){
+    child.userData.tx = data.px;
+    child.userData.tz = data.pz;
+    if(data.py != null) child.userData.ty = data.py;
+    if(data.ry != null) child.userData.try = data.ry;
+    if(data.moving != null) child.userData.moving = data.moving;
+  }
+}
+
+function onRemotePresence(data){
+  if(!crowd || data.user === state.username) return;
+  if(data.type === 'leave'){
+    const child = crowd.children.find(c => c.userData.P && c.userData.P.u === data.user);
+    if(child){
+      crowd.remove(child);
+      if(child.userData.st){
+        child.userData.st.material.map.dispose();
+        child.userData.st.material.dispose();
+      }
+      toast(data.user + ' left the place');
+    }
+  } else if(data.type === 'join'){
+    if(state.place){
+      fetchPlaceFeed(state.place, state).then(f => {
+        if(f && f.people) syncCrowdPresences(f.people);
+      });
+    }
+  } else if(data.type === 'song'){
+    const child = crowd.children.find(c => c.userData.P && c.userData.P.u === data.user);
+    if(child && data.song){
+      child.userData.P.s = data.song;
+      if(child.userData.st){
+        child.remove(child.userData.st);
+        child.userData.st.material.map.dispose();
+        child.userData.st.material.dispose();
+      }
+      child.userData.st = songTag(data.song, me ? me.H : 1.7);
+      child.add(child.userData.st);
+    }
+  }
+}
+
 async function enterPlace(k){
  const P=PLACES[k],tok=++seq;state.place=k;state.song='';feed=null;drop();go(5);
  if(CONFIG.USE_BACKEND && state.username){

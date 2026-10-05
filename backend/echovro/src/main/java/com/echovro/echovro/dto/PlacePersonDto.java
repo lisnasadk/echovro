@@ -8,6 +8,10 @@ public class PlacePersonDto {
     private String s;   // song title
     private String m;   // music service
     private List<List<String>> t; // tracks [[title, artist], ...]
+    private Double px;
+    private Double py;
+    private Double pz;
+    private Double ry;
 
     public PlacePersonDto() {}
 
@@ -17,6 +21,18 @@ public class PlacePersonDto {
         this.s = s;
         this.m = m;
         this.t = t;
+    }
+
+    public PlacePersonDto(String u, String av, String s, String m, List<List<String>> t, Double px, Double py, Double pz, Double ry) {
+        this.u = u;
+        this.av = av;
+        this.s = s;
+        this.m = m;
+        this.t = t;
+        this.px = px;
+        this.py = py;
+        this.pz = pz;
+        this.ry = ry;
     }
 
     public String getU() {
@@ -57,5 +73,37 @@ public class PlacePersonDto {
 
     public void setT(List<List<String>> t) {
         this.t = t;
+    }
+
+    public Double getPx() {
+        return px;
+    }
+
+    public void setPx(Double px) {
+        this.px = px;
+    }
+
+    public Double getPy() {
+        return py;
+    }
+
+    public void setPy(Double py) {
+        this.py = py;
+    }
+
+    public Double getPz() {
+        return pz;
+    }
+
+    public void setPz(Double pz) {
+        this.pz = pz;
+    }
+
+    public Double getRy() {
+        return ry;
+    }
+
+    public void setRy(Double ry) {
+        this.ry = ry;
     }
 }

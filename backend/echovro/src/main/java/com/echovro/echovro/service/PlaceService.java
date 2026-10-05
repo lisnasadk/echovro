@@ -37,20 +37,40 @@ public class PlaceService {
 
             List<List<String>> tracks = parseTracks(u.getTracksJson());
             if (tracks.isEmpty()) {
-                tracks = new ArrayList<>(); // No mock tracks
+                tracks = new ArrayList<>();
             }
 
             people.add(new PlacePersonDto(
                     u.getName(),
                     u.getAvatar() != null ? u.getAvatar() : "male_avatar_1",
-                    u.getCurrentSong(), // No mock song
+                    u.getCurrentSong(),
                     u.getMusicService() != null ? u.getMusicService() : "spotify",
-                    tracks
+                    tracks,
+                    u.getPx(),
+                    u.getPy(),
+                    u.getPz(),
+                    u.getRy()
             ));
         }
 
         List<List<String>> songs = getSongsForPlace(placeKey);
         return new PlaceFeedResponse(people, songs);
+    }
+
+    @Transactional
+    public void updatePosition(String placeKey, String username, Double px, Double py, Double pz, Double ry, boolean moving, boolean sit) {
+        if (username == null || username.isBlank()) return;
+        Optional<User> uOpt = userRepository.findByName(username);
+        if (uOpt.isPresent()) {
+            User u = uOpt.get();
+            u.setCurrentPlace(placeKey);
+            u.setPx(px);
+            u.setPy(py);
+            u.setPz(pz);
+            u.setRy(ry);
+            u.setLastActive(LocalDateTime.now());
+            userRepository.save(u);
+        }
     }
 
     @Transactional

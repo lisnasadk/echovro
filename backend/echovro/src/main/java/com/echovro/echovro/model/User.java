@@ -35,6 +35,11 @@ public class User {
     @Column(length = 8192)
     private String tracksJson;
 
+    private Double px;
+    private Double py;
+    private Double pz;
+    private Double ry;
+
     private LocalDateTime createdAt = LocalDateTime.now();
 
     private LocalDateTime lastActive = LocalDateTime.now();
@@ -127,6 +132,38 @@ public class User {
 
     public void setTracksJson(String tracksJson) {
         this.tracksJson = tracksJson;
+    }
+
+    public Double getPx() {
+        return px;
+    }
+
+    public void setPx(Double px) {
+        this.px = px;
+    }
+
+    public Double getPy() {
+        return py;
+    }
+
+    public void setPy(Double py) {
+        this.py = py;
+    }
+
+    public Double getPz() {
+        return pz;
+    }
+
+    public void setPz(Double pz) {
+        this.pz = pz;
+    }
+
+    public Double getRy() {
+        return ry;
+    }
+
+    public void setRy(Double ry) {
+        this.ry = ry;
     }
 
     public LocalDateTime getCreatedAt() {

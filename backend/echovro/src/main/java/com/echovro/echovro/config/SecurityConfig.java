@@ -63,7 +63,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/places/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/places/**").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
-                .requestMatchers("/", "/index.html", "/echovro-ml.js", "/avatars/**", "/places/**", "/favicon.ico", "/*.jpg", "/*.png", "/*.glb").permitAll()
+                .requestMatchers("/", "/index.html", "/echovro-ml.js", "/avatars/**", "/places/**", "/favicon.ico", "/*.jpg", "/*.png", "/*.glb", "/ws-sync/**").permitAll()
                 .requestMatchers("/api/**").authenticated()
                 .anyRequest().permitAll()
             )
