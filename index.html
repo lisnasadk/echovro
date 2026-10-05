@@ -351,6 +351,7 @@ button, .btn, .av, .pc, #pad button {
   position: fixed;
   inset: 0;
   z-index: 99999 !important;
+  pointer-events: auto !important;
   display: none;
   align-items: center;
   justify-content: center;
@@ -1229,7 +1230,9 @@ function renderCards(tab, query) {
   });
 }
 
+window.openPrefModal = openPrefModal;
 function openPrefModal() {
+  const pp = $('#pp'); if (pp) pp.classList.remove('on');
   if (typeof initPrefCards === 'function') initPrefCards();
   if (typeof bindPrefEvents === 'function') bindPrefEvents();
 
@@ -1253,7 +1256,7 @@ function openPrefModal() {
 
   const searchInput = $('#pref-card-search');
   if (searchInput) searchInput.value = '';
-  $('#pref-tab-filters button').forEach(b => b.classList.toggle('on', b.dataset.tab === 'all'));
+  $$('#pref-tab-filters button').forEach(b => b.classList.toggle('on', b.dataset.tab === 'all'));
   renderCards('all', '');
   updateCounter();
   const modal = $('#pref-modal');
@@ -1457,7 +1460,7 @@ function bindPrefEvents() {
       tempPrefs.genres.clear();
       tempPrefs.artists.clear();
       tempPrefs.languages.clear();
-      const currentTab = $('#pref-tab-filters button.on')?.dataset.tab || 'all';
+      const currentTab = $('#pref-tab-filters button.on')?.dataset?.tab || 'all';
       const currentQuery = $('#pref-card-search')?.value || '';
       renderCards(currentTab, currentQuery);
       updateCounter();
@@ -1475,9 +1478,9 @@ function bindPrefEvents() {
     };
   }
 
-  $('#pref-tab-filters button').forEach(b => {
+  $$('#pref-tab-filters button').forEach(b => {
     b.onclick = () => {
-      $('#pref-tab-filters button').forEach(x => x.classList.remove('on'));
+      $$('#pref-tab-filters button').forEach(x => x.classList.remove('on'));
       b.classList.add('on');
       renderCards(b.dataset.tab, $('#pref-card-search')?.value || '');
     };
