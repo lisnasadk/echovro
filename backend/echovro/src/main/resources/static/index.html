@@ -514,6 +514,51 @@ button, .btn, .av, .pc, #pad button {
     padding-right: 14px;
   }
 }
+
+.pref-sec-header {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 14px 0 6px;
+  padding: 4px 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.pref-sec-header:first-child {
+  margin-top: 0;
+}
+.pref-sec-title {
+  font-family: 'Sora', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pref-sec-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: rgba(111, 155, 255, 0.2);
+  color: #93c5fd;
+  border: 1px solid rgba(111, 155, 255, 0.3);
+}
+.pref-sec-sub {
+  font-size: 11px;
+  color: var(--silver);
+  opacity: 0.8;
+}
+.pref-select-card.rec {
+  border-color: rgba(111, 155, 255, 0.35);
+  background: rgba(111, 155, 255, 0.07);
+}
+.pref-select-card.rec .card-badge {
+  background: rgba(111, 155, 255, 0.25);
+  color: #93c5fd;
+}
+
 </style></head><body>
 <canvas id="c"></canvas><div class="vig"></div><canvas id="pl"></canvas>
 
@@ -982,6 +1027,53 @@ function getFilteredCards(tab, query) {
   });
 }
 
+function getRelatedArtists(selectedArtistNames, limit = 8) {
+  if (!selectedArtistNames || selectedArtistNames.length === 0 || !window.ML || !ML.ARTISTS_RAW) return [];
+  const artists = ML.ARTISTS_RAW;
+  const selSet = new Set(selectedArtistNames.map(a => a.toLowerCase().trim()));
+  
+  // Aggregate vector of selected artists
+  const aggVec = {};
+  selectedArtistNames.forEach(name => {
+    const art = Object.entries(artists).find(([k]) => k.toLowerCase() === name.toLowerCase());
+    if (art) {
+      for (const [g, w] of Object.entries(art[1])) {
+        aggVec[g] = (aggVec[g] || 0) + w;
+      }
+    }
+  });
+
+  const scored = [];
+  for (const [name, w] of Object.entries(artists)) {
+    if (selSet.has(name.toLowerCase())) continue;
+    let dot = 0, na = 0, nb = 0;
+    const allG = new Set([...Object.keys(aggVec), ...Object.keys(w)]);
+    for (const g of allG) {
+      const a = aggVec[g] || 0;
+      const b = w[g] || 0;
+      dot += a * b;
+      na += a * a;
+      nb += b * b;
+    }
+    const denom = Math.sqrt(na * nb);
+    const score = denom > 0 ? (dot / denom) : 0;
+    if (score > 0.08) {
+      const topGs = Object.keys(w).map(g => (ML.LABEL && ML.LABEL[g]) || g).slice(0, 2).join(' · ');
+      scored.push({
+        type: 'artists',
+        key: name,
+        name: name,
+        sub: topGs || 'Artist',
+        badge: 'Recommended',
+        score
+      });
+    }
+  }
+
+  scored.sort((a, b) => b.score - a.score);
+  return scored.slice(0, limit);
+}
+
 function updateCounter() {
   const gCount = tempPrefs.genres.size;
   const aCount = tempPrefs.artists.size;
@@ -993,12 +1085,32 @@ function updateCounter() {
       el.textContent = '0 selected';
     } else {
       const parts = [];
-      if (gCount) parts.push(gCount + (gCount === 1 ? ' genre' : ' genres'));
       if (aCount) parts.push(aCount + (aCount === 1 ? ' artist' : ' artists'));
+      if (gCount) parts.push(gCount + (gCount === 1 ? ' genre' : ' genres'));
       if (lCount) parts.push(lCount + (lCount === 1 ? ' language' : ' languages'));
       el.textContent = parts.join(' · ') + ' selected';
     }
   }
+}
+
+function renderCardHtml(item, isRec = false) {
+  const bucket = item.type === 'genres' ? tempPrefs.genres : (item.type === 'artists' ? tempPrefs.artists : tempPrefs.languages);
+  let isSelected = false;
+  for (const v of bucket) {
+    if (String(v).toLowerCase() === String(item.key).toLowerCase()) {
+      isSelected = true;
+      break;
+    }
+  }
+
+  return `<div class="pref-select-card${isSelected ? ' sel' : ''}${isRec ? ' rec' : ''}" data-type="${item.type}" data-key="${esc(item.key)}">
+    <div class="card-top">
+      <span class="card-badge">${item.badge}</span>
+      <span class="card-chk">✓</span>
+    </div>
+    <div class="card-title">${esc(item.name)}</div>
+    <div class="card-sub">${esc(item.sub)}</div>
+  </div>`;
 }
 
 function renderCards(tab, query) {
@@ -1006,59 +1118,116 @@ function renderCards(tab, query) {
   const container = $('#pref-cards-grid');
   if (!container) return;
 
-  const filtered = getFilteredCards(tab, query);
-  if (filtered.length === 0) {
-    container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px 20px; color: var(--silver);">
-      <p style="font-size: 15px; margin: 0 0 6px;">No cards found matching "${esc(query)}"</p>
-      <p style="font-size: 13px; margin: 0; opacity: 0.7;">Try searching another artist, genre, or language.</p>
-    </div>`;
-    return;
-  }
+  query = (query || '').toLowerCase().trim();
+  const selectedArtistsList = Array.from(tempPrefs.artists);
+  const showArtistSections = (tab === 'artists' || tab === 'all') && !query;
 
-  container.innerHTML = filtered.map(item => {
-    const bucket = item.type === 'genres' ? tempPrefs.genres : (item.type === 'artists' ? tempPrefs.artists : tempPrefs.languages);
-    let isSelected = false;
-    for (const v of bucket) {
-      if (String(v).toLowerCase() === String(item.key).toLowerCase()) {
-        isSelected = true;
-        break;
-      }
+  let htmlParts = [];
+
+  if (showArtistSections && selectedArtistsList.length > 0) {
+    // 1. SECTION: Selected Artists
+    htmlParts.push(`<div class="pref-sec-header">
+      <div class="pref-sec-title"><span>⭐ Selected Artists</span><span class="pref-sec-badge">${selectedArtistsList.length}</span></div>
+      <span class="pref-sec-sub">Click to remove</span>
+    </div>`);
+
+    selectedArtistsList.forEach(artName => {
+      const card = ALL_PREF_CARDS.find(c => c.type === 'artists' && c.key.toLowerCase() === artName.toLowerCase()) || {
+        type: 'artists',
+        key: artName,
+        name: artName,
+        sub: 'Artist',
+        badge: 'Selected'
+      };
+      htmlParts.push(renderCardHtml(card));
+    });
+
+    // 2. SECTION: Artists You May Like (Data-driven related artists)
+    const related = getRelatedArtists(selectedArtistsList, 8);
+    if (related.length > 0) {
+      htmlParts.push(`<div class="pref-sec-header">
+        <div class="pref-sec-title"><span>✨ Artists You May Like</span><span class="pref-sec-badge">${related.length}</span></div>
+        <span class="pref-sec-sub">Based on your selections</span>
+      </div>`);
+
+      related.forEach(card => {
+        htmlParts.push(renderCardHtml(card, true));
+      });
     }
 
-    return `<div class="pref-select-card${isSelected ? ' sel' : ''}" data-type="${item.type}" data-key="${esc(item.key)}">
-      <div class="card-top">
-        <span class="card-badge">${item.badge}</span>
-        <span class="card-chk">✓</span>
-      </div>
-      <div class="card-title">${esc(item.name)}</div>
-      <div class="card-sub">${esc(item.sub)}</div>
-    </div>`;
-  }).join('');
+    // 3. SECTION: Explore More Artists
+    const otherArtists = ALL_PREF_CARDS.filter(c => {
+      if (tab === 'artists' && c.type !== 'artists') return false;
+      if (c.type === 'artists') {
+        const isAlreadySelected = selectedArtistsList.some(a => a.toLowerCase() === c.key.toLowerCase());
+        const isAlreadyRec = related.some(r => r.key.toLowerCase() === c.key.toLowerCase());
+        return !isAlreadySelected && !isAlreadyRec;
+      }
+      return true;
+    });
 
+    if (otherArtists.length > 0) {
+      htmlParts.push(`<div class="pref-sec-header">
+        <div class="pref-sec-title"><span>Explore More ${tab === 'artists' ? 'Artists' : 'Cards'}</span><span class="pref-sec-badge">${otherArtists.length}</span></div>
+        <span class="pref-sec-sub">From 500+ song dataset</span>
+      </div>`);
+
+      otherArtists.forEach(card => {
+        htmlParts.push(renderCardHtml(card));
+      });
+    }
+  } else {
+    // Normal / Filtered / Search Results mode
+    const filtered = getFilteredCards(tab, query);
+    if (filtered.length === 0) {
+      container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px 20px; color: var(--silver);">
+        <p style="font-size: 15px; margin: 0 0 6px;">No artists or cards found matching "${esc(query)}"</p>
+        <p style="font-size: 13px; margin: 0; opacity: 0.7;">Try searching for another artist name, genre, or language.</p>
+      </div>`;
+      return;
+    }
+
+    if (query) {
+      htmlParts.push(`<div class="pref-sec-header">
+        <div class="pref-sec-title"><span>Search Results</span><span class="pref-sec-badge">${filtered.length}</span></div>
+        <span class="pref-sec-sub">Matching "${esc(query)}"</span>
+      </div>`);
+    }
+
+    filtered.forEach(card => {
+      htmlParts.push(renderCardHtml(card));
+    });
+  }
+
+  container.innerHTML = htmlParts.join('');
+
+  // Attach card click handlers
   container.querySelectorAll('.pref-select-card').forEach(card => {
     card.onclick = () => {
       const type = card.dataset.type;
       const key = card.dataset.key;
       const bucket = type === 'genres' ? tempPrefs.genres : (type === 'artists' ? tempPrefs.artists : tempPrefs.languages);
       
-      const isSel = card.classList.toggle('sel');
-      if (isSel) {
-        bucket.add(key);
-      } else {
-        for (const v of Array.from(bucket)) {
-          if (String(v).toLowerCase() === String(key).toLowerCase()) {
-            bucket.delete(v);
-          }
+      let exists = false;
+      for (const v of Array.from(bucket)) {
+        if (String(v).toLowerCase() === String(key).toLowerCase()) {
+          bucket.delete(v);
+          exists = true;
+          break;
         }
       }
+      if (!exists) {
+        bucket.add(key);
+      }
+
       updateCounter();
+      // Re-render so "Selected Artists" and "Artists You May Like" update immediately!
+      const currentTab = $('#pref-tab-filters button.on')?.dataset?.tab || 'all';
+      const currentQuery = $('#pref-card-search')?.value || '';
+      renderCards(currentTab, currentQuery);
     };
   });
 }
-
-window.openPrefModal = openPrefModal;
-window.closePrefModal = closePrefModal;
-window.saveManualPreferences = saveManualPreferences;
 
 function openPrefModal() {
   if (typeof initPrefCards === 'function') initPrefCards();
@@ -1085,12 +1254,39 @@ function closePrefModal() {
 }
 
 function saveManualPreferences() {
-  const chosenGenres = Array.from(tempPrefs.genres);
   const chosenArtists = Array.from(tempPrefs.artists);
-  const chosenLangs = Array.from(tempPrefs.languages);
+  let chosenGenres = Array.from(tempPrefs.genres);
+  let chosenLangs = Array.from(tempPrefs.languages);
 
   if (chosenGenres.length === 0 && chosenArtists.length === 0 && chosenLangs.length === 0) {
-    return toast('Please select at least 1 card to save preferences.');
+    return toast('Please select at least 1 artist or genre to save preferences.');
+  }
+
+  // Data-driven genre & language inference if user only picked artists
+  if (chosenGenres.length === 0 && chosenArtists.length > 0 && window.ML && ML.ARTISTS_RAW) {
+    const genreSums = {};
+    chosenArtists.forEach(art => {
+      const weights = ML.ARTISTS_RAW[art] || Object.entries(ML.ARTISTS_RAW).find(([k]) => k.toLowerCase() === art.toLowerCase())?.[1];
+      if (weights) {
+        for (const [g, w] of Object.entries(weights)) {
+          genreSums[g] = (genreSums[g] || 0) + w;
+        }
+      }
+    });
+    chosenGenres = Object.entries(genreSums)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([g]) => g);
+  }
+
+  // Language inference
+  if (chosenLangs.length === 0 && chosenGenres.length > 0) {
+    const lSet = new Set();
+    if (chosenGenres.includes('malayalam')) lSet.add('Malayalam');
+    if (chosenGenres.includes('tamil')) lSet.add('Tamil');
+    if (chosenGenres.includes('bollywood') || chosenGenres.includes('sufi')) lSet.add('Hindi');
+    if (chosenGenres.some(g => ['pop', 'rock', 'hip-hop', 'r&b', 'electronic', 'indie'].includes(g))) lSet.add('English');
+    chosenLangs = Array.from(lSet);
   }
 
   state.preferences = {
@@ -1099,12 +1295,12 @@ function saveManualPreferences() {
     languages: chosenLangs
   };
 
-  // Set music service to 'manual' if not already linked to streaming
+  // Set music service to 'manual' if not already on spotify
   if (!state.music || !state.music.service) {
     state.music = { service: 'manual' };
   }
 
-  // Generate representative tracks from selected artists if tracks is empty
+  // Auto-populate representative tracks from selected artists in ML.SONGS_RAW
   if (!state.tracks || state.tracks.length === 0) {
     const autoTracks = [];
     if (window.ML && ML.SONGS_RAW) {
@@ -1116,44 +1312,67 @@ function saveManualPreferences() {
       }
     }
     if (autoTracks.length > 0) {
-      state.tracks = autoTracks.slice(0, 25);
+      state.tracks = autoTracks.slice(0, 30);
     }
   }
 
-  // Generate ML taste profile
+  // Recalculate ML taste profile
   if (window.ML && ML.profileFromPreferences) {
     state.mlProfile = ML.profileFromPreferences(state.preferences);
   }
 
-  // Save to backend if authenticated
-  if (CONFIG.USE_BACKEND && getToken()) {
+  // Loading state feedback on button
+  const saveBtn = $('#pref-save-btn');
+  const originalSaveText = saveBtn ? saveBtn.textContent : 'Save Preferences';
+  if (saveBtn) {
+    saveBtn.textContent = 'Saving...';
+    saveBtn.disabled = true;
+  }
+
+  // Save to backend database via existing API endpoints
+  const savePromise = (CONFIG.USE_BACKEND && getToken()) ? Promise.all([
     api('/api/ml/preferences', {
       method: 'POST',
       body: JSON.stringify(state.preferences)
-    }).catch(() => {});
-
+    }),
     api('/api/me/profile', {
       method: 'PUT',
       body: JSON.stringify({
         musicService: state.music.service,
-        tracks: state.tracks
+        tracks: state.tracks || []
       })
-    }).catch(() => {});
-  }
+    })
+  ]) : Promise.resolve();
 
-  // Persist locally
-  try {
-    localStorage.setItem('echovro_user_profile', JSON.stringify({
-      username: state.username, email: state.email, gender: state.gender, avatar: state.avatar,
-      music: state.music, tracks: state.tracks, preferences: state.preferences
-    }));
-  } catch(e) {}
+  savePromise.then(() => {
+    // Persist locally in cache
+    try {
+      localStorage.setItem('echovro_user_profile', JSON.stringify({
+        username: state.username, email: state.email, gender: state.gender, avatar: state.avatar,
+        music: state.music, tracks: state.tracks, preferences: state.preferences
+      }));
+    } catch(e) {}
 
-  updatePrefUI();
-  closePrefModal();
-  toast(`Taste preferences saved! (${chosenGenres.length} genres, ${chosenArtists.length} artists)`);
-  checkB3();
-  if($('#b3')) { $('#b3').textContent = 'Continue to Places →'; $('#b3').style.boxShadow = '0 0 20px rgba(91,120,255,.6)'; }
+    updatePrefUI();
+    closePrefModal();
+    toast(`Preferences saved! (${chosenArtists.length} artists, ${chosenGenres.length} genres)`);
+    checkB3();
+    if ($('#b3')) {
+      $('#b3').textContent = 'Continue to Places →';
+      $('#b3').style.boxShadow = '0 0 20px rgba(91,120,255,.6)';
+    }
+  }).catch(err => {
+    console.error('Preferences save error:', err);
+    toast('Preferences saved locally!');
+    updatePrefUI();
+    closePrefModal();
+    checkB3();
+  }).finally(() => {
+    if (saveBtn) {
+      saveBtn.textContent = originalSaveText;
+      saveBtn.disabled = false;
+    }
+  });
 }
 
 function updatePrefUI() {
