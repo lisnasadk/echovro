@@ -738,6 +738,7 @@ button, .btn, .av, .pc, #pad button {
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/SkeletonUtils.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://cdn.ably.com/lib/ably.min-1.js"></script>
 <script src="echovro-ml.js"></script>
 <script>
 /* ============ CONFIG — the programmer fills these ============ */
@@ -1672,7 +1673,9 @@ let warmed=0;
 async function warmPlaces(){if(warmed)return;warmed=1;
  for(const k in PLACES){try{await getPlace(k)}catch(e){delete placeCache[k]}}}   // one at a time so bandwidth isn't split
 // Detach only — the cached scene keeps its GPU data so re-entering a place is instant.
-function drop(){run=false;me=null;nearU=null;cmP=null;$('#cm').classList.remove('on');$('#pad').classList.remove('rdy');if(cur){sc5.remove(cur);cur=null}if(floor){sc5.remove(floor);floor=null}
+function drop(){run=false;me=null;nearU=null;cmP=null;$('#cm').classList.remove('on');$('#pad').classList.remove('rdy');
+ leaveAblyPlace();
+ disconnectPlaceSocket();if(cur){sc5.remove(cur);cur=null}if(floor){sc5.remove(floor);floor=null}
  if(crowd){sc5.remove(crowd);crowd.traverse(o=>{if(o.isSprite){o.material.map.dispose();o.material.dispose()}});crowd=null}}   // avatar geometry is shared with the previews, so it is not disposed
 /* ===== People physically in the place: your avatar + everyone from the feed, standing on the floor ===== */
 let crowd=null,me=null,climb=false,nearU=null,nearT=0;const cc={};let cmP=null;const keys={},mray=new THREE.Raycaster(),DOWN=new THREE.Vector3(0,-1,0),LEG=-1;   // LEG: flip to 1 if legs swing backwards
@@ -1688,6 +1691,7 @@ let feed=null;
 // Hook: tell your backend what this user is playing at this place so others see it.
 async function onSongSet(p){
   console.log('EchoVro song', p);
+  if(ablyPlaceChannel){ ablyPlaceChannel.publish('presence', { type: 'song', user: state.username, userId: state.username, song: p.song }).catch(()=>{}); }
   if(!CONFIG.USE_BACKEND) return;
   try {
     await api('/api/places/'+encodeURIComponent(p.place)+'/song', {
@@ -2230,6 +2234,126 @@ addEventListener('keyup',e=>{if(KM[e.code])keys[KM[e.code]]=0});
 const songLink=(m,s)=>SVC[m].q+encodeURIComponent(s[0]+' '+s[1]);
 
 /* ===== Real-Time Place Movement & Presence WebSocket Sync ===== */
+/* ===== Ably Realtime: Multi-user Movement & Place Synchronization ===== */
+let ably = null;
+let ablyPlaceChannel = null;
+let ablyCurrentPlace = null;
+
+function getAblyClient(){
+  if(ably) return ably;
+  if(typeof Ably === 'undefined'){
+    console.warn('Ably library not loaded');
+    return null;
+  }
+  try {
+    const authEndpoint = (CONFIG.API_BASE || '') + '/api/realtime/token';
+    ably = new Ably.Realtime({
+      authCallback: async (tokenParams, callback) => {
+        try {
+          const headers = { 'Content-Type': 'application/json' };
+          const token = getToken();
+          if(token) headers['Authorization'] = 'Bearer ' + token;
+          const url = authEndpoint + (state.username ? ('?clientId=' + encodeURIComponent(state.username)) : '');
+          const res = await fetch(url, { headers });
+          if(!res.ok) throw new Error('Realtime token request failed: ' + res.status);
+          const tokenRequest = await res.json();
+          callback(null, tokenRequest);
+        } catch(err) {
+          console.error('Ably authCallback error:', err);
+          callback(err, null);
+        }
+      },
+      autoConnect: true,
+      recover: (lastConnectionDetails, cb) => cb(true)
+    });
+
+    ably.connection.on('connected', () => {
+      console.log('Ably Realtime connected (clientId: ' + (ably.auth.clientId || state.username) + ')');
+    });
+
+    ably.connection.on('failed', (stateChange) => {
+      console.warn('Ably connection failed:', stateChange.reason);
+    });
+
+    ably.connection.on('disconnected', (stateChange) => {
+      console.warn('Ably connection disconnected:', stateChange.reason);
+    });
+
+    ably.connection.on('suspended', (stateChange) => {
+      console.warn('Ably connection suspended - will retry automatically');
+    });
+
+    return ably;
+  } catch(e) {
+    console.error('Failed to initialize Ably Realtime:', e);
+    return null;
+  }
+}
+
+function joinAblyPlace(placeKey){
+  if(!placeKey) return;
+  const client = getAblyClient();
+  if(!client) return;
+
+  if(ablyPlaceChannel && ablyCurrentPlace && ablyCurrentPlace !== placeKey){
+    leaveAblyPlace();
+  }
+
+  ablyCurrentPlace = placeKey;
+  const channelName = 'echovro:place:' + placeKey;
+  ablyPlaceChannel = client.channels.get(channelName);
+
+  // Subscribe to movement broadcasts
+  ablyPlaceChannel.subscribe('move', (msg) => {
+    if(!msg || !msg.data) return;
+    const data = typeof msg.data === 'string' ? JSON.parse(msg.data) : msg.data;
+    const sender = data.userId || data.user;
+    if(sender && sender !== state.username){
+      onRemoteMove(data);
+    }
+  });
+
+  // Subscribe to presence events (join, leave, song changes)
+  ablyPlaceChannel.subscribe('presence', (msg) => {
+    if(!msg || !msg.data) return;
+    const data = typeof msg.data === 'string' ? JSON.parse(msg.data) : msg.data;
+    const sender = data.userId || data.user;
+    if(sender && sender !== state.username){
+      onRemotePresence(data);
+    }
+  });
+
+  // Announce user entered this place
+  if(state.username){
+    ablyPlaceChannel.publish('presence', {
+      type: 'join',
+      user: state.username,
+      userId: state.username,
+      av: state.avatar,
+      s: state.song,
+      m: state.music ? state.music.service : 'spotify'
+    }).catch(()=>{});
+  }
+}
+
+function leaveAblyPlace(){
+  if(ablyPlaceChannel){
+    try {
+      if(state.username){
+        ablyPlaceChannel.publish('presence', {
+          type: 'leave',
+          user: state.username,
+          userId: state.username
+        }).catch(()=>{});
+      }
+      ablyPlaceChannel.unsubscribe();
+      ablyPlaceChannel.detach();
+    } catch(e){}
+    ablyPlaceChannel = null;
+  }
+  ablyCurrentPlace = null;
+}
+
 let placeWs = null;
 let placeWsPlace = null;
 
@@ -2285,14 +2409,33 @@ function disconnectPlaceSocket(){
 
 function sendMovement(placeKey, px, py, pz, ry, moving, sit){
   if(!placeKey || !state.username) return;
-  const payload = JSON.stringify({ user: state.username, px, py, pz, ry, moving: !!moving, sit: !!sit });
+  const moveData = {
+    user: state.username,
+    userId: state.username,
+    px,
+    py,
+    pz,
+    ry,
+    moving: !!moving,
+    sit: !!sit,
+    ts: Date.now()
+  };
+
+  // 1. Primary: Broadcast in real time via Ably Channel
+  if(ablyPlaceChannel){
+    ablyPlaceChannel.publish('move', moveData).catch(err => {
+      console.warn('Ably publish error', err);
+    });
+  }
+
+  // 2. Also send to STOMP WebSocket / REST API for database position persistence
+  const payload = JSON.stringify(moveData);
   if(placeWs && placeWs.readyState === WebSocket.OPEN){
     try {
       placeWs.send(`SEND\ndestination:/app/places/${placeKey}/move\ncontent-type:application/json\n\n${payload}\0`);
       return;
     } catch(e){}
   }
-  // REST fallback
   if(CONFIG.USE_BACKEND){
     api('/api/places/' + encodeURIComponent(placeKey) + '/move', {
       method: 'POST',
@@ -2302,8 +2445,9 @@ function sendMovement(placeKey, px, py, pz, ry, moving, sit){
 }
 
 function onRemoteMove(data){
-  if(!crowd || data.user === state.username) return;
-  const child = crowd.children.find(c => c.userData.P && c.userData.P.u === data.user);
+  const sender = data.userId || data.user;
+  if(!crowd || !sender || sender === state.username) return;
+  const child = crowd.children.find(c => c.userData.P && (c.userData.P.u === sender || c.userData.P.userId === sender));
   if(child){
     child.userData.tx = data.px;
     child.userData.tz = data.pz;
@@ -2320,16 +2464,17 @@ function onRemoteMove(data){
 }
 
 function onRemotePresence(data){
-  if(!crowd || data.user === state.username) return;
+  const sender = data.userId || data.user;
+  if(!crowd || !sender || sender === state.username) return;
   if(data.type === 'leave'){
-    const child = crowd.children.find(c => c.userData.P && c.userData.P.u === data.user);
+    const child = crowd.children.find(c => c.userData.P && (c.userData.P.u === sender || c.userData.P.userId === sender));
     if(child){
       crowd.remove(child);
       if(child.userData.st){
         child.userData.st.material.map.dispose();
         child.userData.st.material.dispose();
       }
-      toast(data.user + ' left the place');
+      toast(sender + ' left the place');
     }
   } else if(data.type === 'join'){
     if(state.place){
@@ -2338,7 +2483,7 @@ function onRemotePresence(data){
       });
     }
   } else if(data.type === 'song'){
-    const child = crowd.children.find(c => c.userData.P && c.userData.P.u === data.user);
+    const child = crowd.children.find(c => c.userData.P && (c.userData.P.u === sender || c.userData.P.userId === sender));
     if(child && data.song){
       child.userData.P.s = data.song;
       if(child.userData.st){
@@ -2354,6 +2499,8 @@ function onRemotePresence(data){
 
 async function enterPlace(k){
  const P=PLACES[k],tok=++seq;state.place=k;state.song='';feed=null;drop();go(5);
+ joinAblyPlace(k);
+ connectPlaceSocket(k);
  if(CONFIG.USE_BACKEND && state.username){
    api('/api/places/'+encodeURIComponent(k)+'/join?user='+encodeURIComponent(state.username), {method:'POST'}).catch(()=>{});
  }
@@ -2386,6 +2533,8 @@ $('#shtog').onclick=()=>{
 };
 $('#bk').onclick=()=>{
  seq++;
+ leaveAblyPlace();
+ disconnectPlaceSocket();
  if(CONFIG.USE_BACKEND && state.username){
    api('/api/places/leave?user='+encodeURIComponent(state.username), {method:'POST'}).catch(()=>{});
  }
@@ -2589,6 +2738,8 @@ async function initSession(){
 initSession();
 
 window.addEventListener('beforeunload', () => {
+  leaveAblyPlace();
+  disconnectPlaceSocket();
   if(CONFIG.USE_BACKEND && state.username && state.place){
     navigator.sendBeacon('/api/places/leave?user=' + encodeURIComponent(state.username));
   }
