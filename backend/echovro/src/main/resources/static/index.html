@@ -572,7 +572,7 @@ button, .btn, .av, .pc, #pad button {
   <div class="orn"></div>
   <div class="desc"><p>EchoVro is more than a place to discover music. It's a place to discover the people who feel it the way you do.</p><p>Because sometimes, all it takes to find someone who understands you is a song.</p></div>
   <p class="tag">EchoVro — Music is better together.</p>
-  <button class="btn" data-go="1">Get started</button>
+  <button class="btn" id="btn-get-started" data-go="1" onclick="onGetStarted()" style="cursor:pointer;position:relative;z-index:10;">Get started</button>
   </div>
 </section>
 
@@ -829,6 +829,14 @@ const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const state={email:'',username:'',gender:'male',avatar:null,music:null,place:null,tracks:null,history:[]};
 let step=0;
 const avOf=id=>[...AVATARS.male,...AVATARS.female].find(a=>a.id===id),findAv=()=>avOf(state.avatar);
+window.go = go;
+function onGetStarted(){
+  if(state.username && state.avatar && state.music) go(4);
+  else if(state.username && state.avatar) go(3);
+  else if(state.username) go(2);
+  else go(1);
+}
+window.onGetStarted = onGetStarted;
 function go(n){
  if(n>=4&&!state.music){toast('Link a music service to continue.');n=3}   // music linking is mandatory
  step=n;$$('.scr').forEach((s,i)=>s.classList.toggle('on',i===n));$$('#dots i').forEach((d,i)=>d.classList.toggle('on',i===Math.min(n,4)));$('#dots').style.display=n>=5?'none':'';
@@ -1510,10 +1518,19 @@ function bindPrefEvents() {
 }
 setTimeout(bindPrefEvents, 0);
 
-// Universal delegated click listener for taste preferences buttons
+// Universal delegated click listener for Get Started and taste preferences buttons
 document.addEventListener('click', function(e) {
   const t = e.target;
   if (!t) return;
+  const isGetStarted = t.id === 'btn-get-started' || t.closest('#btn-get-started') ||
+                       (t.dataset && t.dataset.go === '1') || t.closest('[data-go="1"]') ||
+                       (t.textContent && t.textContent.trim().toLowerCase() === 'get started');
+  if (isGetStarted) {
+    e.preventDefault();
+    e.stopPropagation();
+    onGetStarted();
+    return;
+  }
   const isPrefBtn = t.id === 'pp-edit-pref' || t.closest('#pp-edit-pref') ||
                     t.id === 'btn-manual-pref' || t.closest('#btn-manual-pref') ||
                     (t.textContent && t.textContent.toLowerCase().includes('edit') && t.textContent.toLowerCase().includes('preference'));
@@ -1819,6 +1836,7 @@ async function syncCrowdPresences(newPeople){
      }
    }
  }
+}
 }
 (function loop5(){requestAnimationFrame(loop5);const n=performance.now(),dt=Math.min(.05,(n-(loop5.t||n))/1000);loop5.t=n;
  if(run){if(crowd){const t=n/1000;crowd.children.forEach((w,i)=>{
