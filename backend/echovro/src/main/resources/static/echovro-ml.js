@@ -1216,5 +1216,5 @@
     return { score, shared: shared.length ? shared : (a.top && a.top.slice(0, 2)) || [], label, bridge, myTop: a.top || [], theirTop: b.top || [] };
   }
 
-  root.ML = { GENRES, LABEL, resolve, profile, profileFromTags, profileFromPreferences, fit, compat };
+  root.ML = { GENRES, LABEL, ARTISTS_RAW, SONGS_RAW, resolve, profile, profileFromTags, profileFromPreferences, fit, compat };
 })(window);

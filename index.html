@@ -346,6 +346,171 @@ button, .btn, .av, .pc, #pad button {
 .pref-chip{background:rgba(255,255,255,0.06);border:1px solid var(--line);border-radius:999px;padding:6px 14px;color:var(--silver);font-size:13px;cursor:pointer;transition:all .2s;user-select:none}
 .pref-chip:hover{background:rgba(255,255,255,0.12);color:#fff}
 .pref-chip.sel{background:var(--acc);color:#fff;border-color:var(--acc);box-shadow:0 0 10px rgba(99,102,241,0.35)}
+
+#pref-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 9, 20, 0.82);
+  backdrop-filter: blur(24px);
+  padding: 16px;
+}
+#pref-modal-card {
+  width: 100%;
+  max-width: 680px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid rgba(111, 155, 255, 0.3);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.7);
+}
+.pref-modal-header {
+  padding: 20px 24px 14px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent);
+}
+.pref-badge-count {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(111, 155, 255, 0.2);
+  color: #8fb4ff;
+  font-weight: 600;
+  border: 1px solid rgba(111, 155, 255, 0.3);
+}
+.pref-modal-controls {
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+#pref-cards-grid {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  align-content: flex-start;
+  min-height: 240px;
+  max-height: 52vh;
+}
+.pref-modal-footer {
+  padding: 14px 24px;
+  border-top: 1px solid var(--line);
+  background: rgba(10, 16, 30, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+#pref-selected-counter {
+  font-size: 13px;
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pref-select-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 82px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+.pref-select-card:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(143, 180, 255, 0.5);
+  transform: translateY(-2px);
+}
+.pref-select-card.sel {
+  background: rgba(111, 155, 255, 0.18);
+  border-color: #6f9bff;
+  box-shadow: 0 0 0 1px #6f9bff, 0 8px 24px rgba(91, 120, 255, 0.25);
+}
+.pref-select-card .card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.pref-select-card .card-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--silver);
+}
+.pref-select-card.sel .card-badge {
+  background: rgba(111, 155, 255, 0.35);
+  color: #fff;
+}
+.pref-select-card .card-chk {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: bold;
+  color: transparent;
+  transition: all 0.2s;
+}
+.pref-select-card.sel .card-chk {
+  background: #6f9bff;
+  border-color: #6f9bff;
+  color: #fff;
+}
+.pref-select-card .card-title {
+  font-family: 'Sora', sans-serif;
+  font-weight: 600;
+  font-size: 13.5px;
+  color: #fff;
+  line-height: 1.25;
+  margin-bottom: 4px;
+}
+.pref-select-card .card-sub {
+  font-size: 11px;
+  color: var(--silver);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (max-width: 600px) {
+  #pref-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 12px 14px;
+    gap: 8px;
+  }
+  .pref-modal-header, .pref-modal-controls, .pref-modal-footer {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+}
 </style></head><body>
 <canvas id="c"></canvas><div class="vig"></div><canvas id="pl"></canvas>
 
@@ -399,10 +564,24 @@ button, .btn, .av, .pc, #pad button {
 <!-- 3 · LINK MUSIC (required) -->
 <section class="scr" id="s3">
   <div class="me" id="me3"></div>
-  <h2 id="hi">Hi!</h2><p class="sub">Link your music to continue.</p>
-  <p class="must">This step is required. Pick the service you listen on, so people at each place can hear what moves you.</p>
+  <h2 id="hi">Hi!</h2><p class="sub">Link your music or pick your taste to continue.</p>
+  <p class="must">This step is required. Connect your streaming app or pick favourite cards directly from our 500+ song dataset so people at each place can hear what moves you.</p>
   <div class="row"><button class="btn sp" data-svc="spotify">Spotify</button><button class="btn yt" data-svc="ytm">YouTube Music</button><button class="btn ga" data-svc="gaana">Gaana</button></div>
-  <button class="btn" id="b3" disabled>Continue</button>
+  
+  <div style="margin:14px 0 8px;display:flex;align-items:center;justify-content:center;gap:12px;width:100%;max-width:380px;">
+    <div style="flex:1;height:1px;background:var(--line);"></div>
+    <span style="font-size:12px;color:var(--silver);text-transform:uppercase;letter-spacing:.06em;font-weight:600;">or without streaming app</span>
+    <div style="flex:1;height:1px;background:var(--line);"></div>
+  </div>
+
+  <button class="btn g" id="btn-manual-pref" type="button" style="width:100%;max-width:380px;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 18px;border-radius:18px;border:1px solid rgba(111,155,255,.45);background:rgba(111,155,255,.14);color:#e8eeff;font-weight:600;font-size:14px;box-shadow:0 8px 24px rgba(30,60,160,.25);transition:all .2s;">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6f9bff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+    <span id="btn-manual-pref-text">Pick Taste Cards (Genres, Artists, Langs)</span>
+  </button>
+
+  <div id="pref-preview-chip" style="display:none;width:100%;max-width:380px;margin-top:10px;padding:10px 14px;background:rgba(255,255,255,.05);border:1px solid rgba(111,155,255,.3);border-radius:14px;font-size:13px;color:var(--silver);text-align:center;"></div>
+
+  <button class="btn" id="b3" disabled style="margin-top:16px;">Continue</button>
 </section>
 
 <!-- 4 · CHOOSE A PLACE -->
@@ -445,7 +624,7 @@ button, .btn, .av, .pc, #pad button {
 
 <div class="dots" id="dots"><i class="on"></i><i></i><i></i><i></i><i></i></div>
 <button id="pf" aria-label="Your profile"><div class="fa" id="pfa"></div><span id="pfb"></span></button>
-<aside id="pp"><div class="pph"><div class="fa" id="ppav"></div><div><b id="ppn"></b><i id="pps"></i></div><button class="btn g" id="ppx">✕</button></div><div id="ppb"></div></aside>
+<aside id="pp"><div class="pph"><div class="fa" id="ppav"></div><div><b id="ppn"></b><i id="pps"></i></div><button class="btn g" id="ppx">✕</button></div><div style="padding:0 18px 8px;"><button class="btn g" id="pp-edit-pref" type="button" style="width:100%;font-size:12px;padding:6px 12px;border-radius:999px;border:1px solid rgba(111,155,255,.3);">🎵 Edit Taste Preferences</button></div><div id="ppb"></div></aside>
 <div id="call"><span id="cl"></span><button class="btn" id="cacc" style="display:none">Accept</button><button class="btn g" id="crej" style="display:none">Reject</button><button class="btn g" id="cmute">Mute</button><button class="btn" id="cend">End</button></div>
 <div id="sr"><div class="card"><h2 id="srt"></h2><p class="sub">Pick a song you think they would love. They will see it with your request.</p>
 <div class="row" id="srs"></div>
@@ -453,6 +632,55 @@ button, .btn, .av, .pc, #pad button {
 <label for="srk">Or paste a song link (optional)</label><input id="srk" placeholder="https://…">
 <div class="cma"><a class="btn g" id="sro" target="_blank" rel="noopener">Find in app</a><button class="btn" id="srsend">Send song</button></div>
 <div class="cma"><button class="btn g" id="srx">Cancel</button></div></div></div>
+<!-- PREFERENCES MODAL: interactive cards for genres, artists, languages -->
+<div id="pref-modal">
+  <div class="card" id="pref-modal-card">
+    
+    <!-- Modal Header -->
+    <div class="pref-modal-header">
+      <div>
+        <h2 style="font-size:19px;margin:0 0 4px;font-weight:700;display:flex;align-items:center;gap:8px;">
+          <span>Choose Your Music Taste</span>
+          <span id="pref-total-badge" class="pref-badge-count">146 Cards</span>
+        </h2>
+        <p class="sub" style="font-size:13px;margin:0;color:var(--silver);">Pick cards from our dataset to train your ML recommendation & compatibility vibe.</p>
+      </div>
+      <button class="btn g" id="pref-close-btn" type="button" aria-label="Close" style="border-radius:999px;width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
+    </div>
+
+    <!-- Filter & Search Controls -->
+    <div class="pref-modal-controls">
+      <div style="position:relative;width:100%;">
+        <input id="pref-card-search" type="text" placeholder="Search 146 cards (Malayalam, Sushin, Rock, Arijit, Tamil, Hip-hop)..." style="width:100%;box-sizing:border-box;padding-left:38px;font-size:14px;border-radius:14px;background:rgba(0,0,0,.35);">
+        <svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--silver);pointer-events:none;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      </div>
+      <div class="tabs" id="pref-tab-filters" style="align-self:flex-start;display:flex;gap:4px;overflow-x:auto;max-width:100%;">
+        <button type="button" class="on" data-tab="all">All (146)</button>
+        <button type="button" data-tab="genres">Genres (21)</button>
+        <button type="button" data-tab="artists">Artists (117)</button>
+        <button type="button" data-tab="languages">Languages (8)</button>
+      </div>
+    </div>
+
+    <!-- Scrollable Cards Grid -->
+    <div id="pref-cards-grid">
+      <!-- Generated dynamically -->
+    </div>
+
+    <!-- Modal Footer Actions -->
+    <div class="pref-modal-footer">
+      <div id="pref-selected-counter">
+        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6f9bff;"></span>
+        <span id="pref-counter-text">0 selected</span>
+      </div>
+      <div style="display:flex;gap:8px;margin-left:auto;">
+        <button class="btn g" id="pref-clear-btn" type="button" style="padding:8px 14px;font-size:13px;">Clear All</button>
+        <button class="btn" id="pref-save-btn" type="button" style="padding:8px 22px;font-size:14px;font-weight:600;">Save Preferences</button>
+      </div>
+    </div>
+
+  </div>
+</div>
 <div id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -494,7 +722,7 @@ const PLACES={
 };
 
 // Music services. `q` builds a search link that opens the song in the person's own app.
-const SVC={spotify:{n:'Spotify',q:'https://open.spotify.com/search/'},ytm:{n:'YouTube Music',q:'https://music.youtube.com/search?q='},gaana:{n:'Gaana',q:'https://gaana.com/search/'}};
+const SVC={spotify:{n:'Spotify',q:'https://open.spotify.com/search/'},ytm:{n:'YouTube Music',q:'https://music.youtube.com/search?q='},gaana:{n:'Gaana',q:'https://gaana.com/search/'},manual:{n:'EchoVro Taste',q:'https://open.spotify.com/search/'}};
 
 // Hook: who is at a place + songs for it. Returns {people:[{u,av,s,m,t:[[title,artist],...]}],songs:[[title,artist],...]}
 async function fetchPlaceFeed(key,profile){
@@ -672,45 +900,347 @@ $('#b2').onclick=()=>{
   go(3);
 };
 
-/* ===== Step 3: link a music service (mandatory) — Spotify / YouTube Music / Gaana ===== */
-
-const ONBOARD_GENRES = ['Pop','Rock','Hip-Hop','Electronic','R&B','Indie','Classical','Ambient','Reggae','Folk','Bollywood','Sufi','Malayalam','Tamil','Jazz','Metal','Latin'];
-const ONBOARD_ARTISTS = ['The Weeknd','Taylor Swift','Arijit Singh','A.R. Rahman','Sushin Shyam','Dhanush','Kendrick Lamar','Dua Lipa','Drake','Coldplay','Billie Eilish','Ed Sheeran','Vijay Yesudas','Anirudh Ravichander','Sid Sriram','Shreya Ghoshal','Eminem','Queen'];
-const ONBOARD_LANGS = ['English','Hindi','Malayalam','Tamil','Spanish','French','Korean','Punjabi'];
+/* ===== Step 3: link a music service / taste preferences from cards ===== */
 
 state.preferences = state.preferences || { genres: [], artists: [], languages: [] };
+let ALL_PREF_CARDS = [];
+let tempPrefs = {
+  genres: new Set(),
+  artists: new Set(),
+  languages: new Set()
+};
 
-function drawPreferences(){
-  const gEl = $('#pref-genres'), aEl = $('#pref-artists'), lEl = $('#pref-langs');
-  if(!gEl || !aEl || !lEl) return;
-  const p = state.preferences || { genres: [], artists: [], languages: [] };
-  gEl.innerHTML = ONBOARD_GENRES.map(g => `<span class="pref-chip${(p.genres||[]).includes(g)?' sel':''}" data-g="${g}">${g}</span>`).join('');
-  aEl.innerHTML = ONBOARD_ARTISTS.map(a => `<span class="pref-chip${(p.artists||[]).includes(a)?' sel':''}" data-a="${a}">${a}</span>`).join('');
-  lEl.innerHTML = ONBOARD_LANGS.map(l => `<span class="pref-chip${(p.languages||[]).includes(l)?' sel':''}" data-l="${l}">${l}</span>`).join('');
+function initPrefCards() {
+  if (ALL_PREF_CARDS.length > 0) return;
+  const cards = [];
 
-  $('#pref-genres .pref-chip').forEach(c => c.onclick = () => {
-    c.classList.toggle('sel');
-    p.genres = Array.from($('#pref-genres .pref-chip.sel')).map(x => x.dataset.g);
-    checkB3();
+  // 1. Genres from ML.GENRES (21)
+  if (window.ML && ML.GENRES) {
+    ML.GENRES.forEach(g => {
+      cards.push({
+        type: 'genres',
+        key: g,
+        name: (ML.LABEL && ML.LABEL[g]) || g,
+        sub: 'Genre Vibe',
+        badge: 'Genre'
+      });
+    });
+  }
+
+  // 2. Artists from ML.ARTISTS_RAW (117)
+  if (window.ML && ML.ARTISTS_RAW) {
+    Object.entries(ML.ARTISTS_RAW).forEach(([artName, weights]) => {
+      const topGs = Object.keys(weights)
+        .map(g => (ML.LABEL && ML.LABEL[g]) || g)
+        .slice(0, 2)
+        .join(' · ');
+      cards.push({
+        type: 'artists',
+        key: artName,
+        name: artName,
+        sub: topGs || 'Artist',
+        badge: 'Artist'
+      });
+    });
+  }
+
+  // 3. Languages (8)
+  const langs = ['Malayalam', 'Tamil', 'Hindi', 'English', 'Punjabi', 'Spanish', 'French', 'Korean'];
+  langs.forEach(l => {
+    cards.push({
+      type: 'languages',
+      key: l,
+      name: l,
+      sub: 'Regional / Global',
+      badge: 'Language'
+    });
   });
-  $('#pref-artists .pref-chip').forEach(c => c.onclick = () => {
-    c.classList.toggle('sel');
-    p.artists = Array.from($('#pref-artists .pref-chip.sel')).map(x => x.dataset.a);
-    checkB3();
+
+  ALL_PREF_CARDS = cards;
+
+  // Update counts on tabs if present
+  const gCount = cards.filter(c => c.type === 'genres').length;
+  const aCount = cards.filter(c => c.type === 'artists').length;
+  const lCount = cards.filter(c => c.type === 'languages').length;
+  if ($('#count-tab-genres')) $('#count-tab-genres').textContent = gCount;
+  if ($('#count-tab-artists')) $('#count-tab-artists').textContent = aCount;
+  if ($('#count-tab-langs')) $('#count-tab-langs').textContent = lCount;
+  if ($('#pref-total-badge')) $('#pref-total-badge').textContent = cards.length + ' Cards';
+}
+
+function getFilteredCards(tab, query) {
+  query = (query || '').toLowerCase().trim();
+  return ALL_PREF_CARDS.filter(card => {
+    if (tab !== 'all' && card.type !== tab) return false;
+    if (!query) return true;
+    return card.name.toLowerCase().includes(query) ||
+           card.sub.toLowerCase().includes(query) ||
+           card.badge.toLowerCase().includes(query);
   });
-  $('#pref-langs .pref-chip').forEach(c => c.onclick = () => {
-    c.classList.toggle('sel');
-    p.languages = Array.from($('#pref-langs .pref-chip.sel')).map(x => x.dataset.l);
-    checkB3();
+}
+
+function updateCounter() {
+  const gCount = tempPrefs.genres.size;
+  const aCount = tempPrefs.artists.size;
+  const lCount = tempPrefs.languages.size;
+  const total = gCount + aCount + lCount;
+  const el = $('#pref-counter-text');
+  if (el) {
+    if (total === 0) {
+      el.textContent = '0 selected';
+    } else {
+      const parts = [];
+      if (gCount) parts.push(gCount + (gCount === 1 ? ' genre' : ' genres'));
+      if (aCount) parts.push(aCount + (aCount === 1 ? ' artist' : ' artists'));
+      if (lCount) parts.push(lCount + (lCount === 1 ? ' language' : ' languages'));
+      el.textContent = parts.join(' · ') + ' selected';
+    }
+  }
+}
+
+function renderCards(tab, query) {
+  initPrefCards();
+  const container = $('#pref-cards-grid');
+  if (!container) return;
+
+  const filtered = getFilteredCards(tab, query);
+  if (filtered.length === 0) {
+    container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px 20px; color: var(--silver);">
+      <p style="font-size: 15px; margin: 0 0 6px;">No cards found matching "${esc(query)}"</p>
+      <p style="font-size: 13px; margin: 0; opacity: 0.7;">Try searching another artist, genre, or language.</p>
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(item => {
+    const bucket = item.type === 'genres' ? tempPrefs.genres : (item.type === 'artists' ? tempPrefs.artists : tempPrefs.languages);
+    let isSelected = false;
+    for (const v of bucket) {
+      if (String(v).toLowerCase() === String(item.key).toLowerCase()) {
+        isSelected = true;
+        break;
+      }
+    }
+
+    return `<div class="pref-select-card${isSelected ? ' sel' : ''}" data-type="${item.type}" data-key="${esc(item.key)}">
+      <div class="card-top">
+        <span class="card-badge">${item.badge}</span>
+        <span class="card-chk">✓</span>
+      </div>
+      <div class="card-title">${esc(item.name)}</div>
+      <div class="card-sub">${esc(item.sub)}</div>
+    </div>`;
+  }).join('');
+
+  container.querySelectorAll('.pref-select-card').forEach(card => {
+    card.onclick = () => {
+      const type = card.dataset.type;
+      const key = card.dataset.key;
+      const bucket = type === 'genres' ? tempPrefs.genres : (type === 'artists' ? tempPrefs.artists : tempPrefs.languages);
+      
+      const isSel = card.classList.toggle('sel');
+      if (isSel) {
+        bucket.add(key);
+      } else {
+        for (const v of Array.from(bucket)) {
+          if (String(v).toLowerCase() === String(key).toLowerCase()) {
+            bucket.delete(v);
+          }
+        }
+      }
+      updateCounter();
+    };
   });
+}
+
+function openPrefModal() {
+  initPrefCards();
+  tempPrefs = {
+    genres: new Set((state.preferences && state.preferences.genres) || []),
+    artists: new Set((state.preferences && state.preferences.artists) || []),
+    languages: new Set((state.preferences && state.preferences.languages) || [])
+  };
+  const searchInput = $('#pref-card-search');
+  if (searchInput) searchInput.value = '';
+  $('#pref-tab-filters button').forEach(b => b.classList.toggle('on', b.dataset.tab === 'all'));
+  renderCards('all', '');
+  updateCounter();
+  const modal = $('#pref-modal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closePrefModal() {
+  const modal = $('#pref-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function saveManualPreferences() {
+  const chosenGenres = Array.from(tempPrefs.genres);
+  const chosenArtists = Array.from(tempPrefs.artists);
+  const chosenLangs = Array.from(tempPrefs.languages);
+
+  if (chosenGenres.length === 0 && chosenArtists.length === 0 && chosenLangs.length === 0) {
+    return toast('Please select at least 1 card to save preferences.');
+  }
+
+  state.preferences = {
+    genres: chosenGenres,
+    artists: chosenArtists,
+    languages: chosenLangs
+  };
+
+  // Set music service to 'manual' if not already linked to streaming
+  if (!state.music || !state.music.service) {
+    state.music = { service: 'manual' };
+  }
+
+  // Generate representative tracks from selected artists if tracks is empty
+  if (!state.tracks || state.tracks.length === 0) {
+    const autoTracks = [];
+    if (window.ML && ML.SONGS_RAW) {
+      const artSet = new Set(chosenArtists.map(a => a.toLowerCase().trim()));
+      for (const [title, art] of Object.entries(ML.SONGS_RAW)) {
+        if (artSet.has(art.toLowerCase().trim())) {
+          autoTracks.push([title, art]);
+        }
+      }
+    }
+    if (autoTracks.length > 0) {
+      state.tracks = autoTracks.slice(0, 25);
+    }
+  }
+
+  // Generate ML taste profile
+  if (window.ML && ML.profileFromPreferences) {
+    state.mlProfile = ML.profileFromPreferences(state.preferences);
+  }
+
+  // Save to backend if authenticated
+  if (CONFIG.USE_BACKEND && getToken()) {
+    api('/api/ml/preferences', {
+      method: 'POST',
+      body: JSON.stringify(state.preferences)
+    }).catch(() => {});
+
+    api('/api/me/profile', {
+      method: 'PUT',
+      body: JSON.stringify({
+        musicService: state.music.service,
+        tracks: state.tracks
+      })
+    }).catch(() => {});
+  }
+
+  // Persist locally
+  try {
+    localStorage.setItem('echovro_user_profile', JSON.stringify({
+      username: state.username, email: state.email, gender: state.gender, avatar: state.avatar,
+      music: state.music, tracks: state.tracks, preferences: state.preferences
+    }));
+  } catch(e) {}
+
+  updatePrefUI();
+  closePrefModal();
+  toast(`Taste preferences saved! (${chosenGenres.length} genres, ${chosenArtists.length} artists)`);
   checkB3();
 }
 
-function checkB3(){
+function updatePrefUI() {
+  const p = state.preferences || { genres: [], artists: [], languages: [] };
+  const gCount = (p.genres || []).length;
+  const aCount = (p.artists || []).length;
+  const lCount = (p.languages || []).length;
+  const hasPref = gCount > 0 || aCount > 0 || lCount > 0;
+
+  const btnLabel = $('#btn-manual-pref-text');
+  const btn = $('#btn-manual-pref');
+  const chip = $('#pref-preview-chip');
+
+  if (btnLabel && btn) {
+    if (hasPref) {
+      btnLabel.textContent = `✓ Preferences Selected (${gCount} genres, ${aCount} artists) — Edit`;
+      btn.classList.add('ok');
+      btn.style.borderColor = 'rgba(74, 222, 128, 0.6)';
+      btn.style.background = 'rgba(74, 222, 128, 0.12)';
+    } else {
+      btnLabel.textContent = 'Pick Taste Cards (Genres, Artists, Langs)';
+      btn.classList.remove('ok');
+      btn.style.borderColor = 'rgba(111,155,255,.45)';
+      btn.style.background = 'rgba(111,155,255,.14)';
+    }
+  }
+
+  if (chip) {
+    if (hasPref) {
+      const topPicks = [...(p.genres || []).map(g => (ML.LABEL && ML.LABEL[g]) || g).slice(0, 3), ...(p.artists || []).slice(0, 2)];
+      chip.style.display = 'block';
+      chip.innerHTML = `<b style="color:#eaf0ff;">Your taste profile:</b> ${esc(topPicks.join(', '))}${topPicks.length < (gCount + aCount) ? ' ...' : ''}`;
+    } else {
+      chip.style.display = 'none';
+    }
+  }
+
+  checkB3();
+}
+
+function drawPreferences() {
+  updatePrefUI();
+}
+
+function checkB3() {
   const hasPref = state.preferences && ((state.preferences.genres||[]).length > 0 || (state.preferences.artists||[]).length > 0);
   const hasMusic = !!(state.music && state.music.service);
   $('#b3').disabled = !(hasPref || hasMusic);
 }
+
+// Hook modal event listeners
+function bindPrefEvents() {
+  const manualBtn = $('#btn-manual-pref');
+  if (manualBtn) manualBtn.onclick = () => openPrefModal();
+
+  const closeBtn = $('#pref-close-btn');
+  if (closeBtn) closeBtn.onclick = () => closePrefModal();
+
+  const modal = $('#pref-modal');
+  if (modal) {
+    modal.onclick = e => {
+      if (e.target === modal) closePrefModal();
+    };
+  }
+
+  const clearBtn = $('#pref-clear-btn');
+  if (clearBtn) {
+    clearBtn.onclick = () => {
+      tempPrefs.genres.clear();
+      tempPrefs.artists.clear();
+      tempPrefs.languages.clear();
+      const currentTab = $('#pref-tab-filters button.on')?.dataset.tab || 'all';
+      const currentQuery = $('#pref-card-search')?.value || '';
+      renderCards(currentTab, currentQuery);
+      updateCounter();
+    };
+  }
+
+  const saveBtn = $('#pref-save-btn');
+  if (saveBtn) saveBtn.onclick = () => saveManualPreferences();
+
+  const searchInput = $('#pref-card-search');
+  if (searchInput) {
+    searchInput.oninput = e => {
+      const currentTab = $('#pref-tab-filters button.on')?.dataset.tab || 'all';
+      renderCards(currentTab, e.target.value);
+    };
+  }
+
+  $('#pref-tab-filters button').forEach(b => {
+    b.onclick = () => {
+      $('#pref-tab-filters button').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+      renderCards(b.dataset.tab, $('#pref-card-search')?.value || '');
+    };
+  });
+}
+setTimeout(bindPrefEvents, 0);
 
 function linkedUI(){const m=state.music&&state.music.service;$$('[data-svc]').forEach(b=>{b.classList.toggle('ok',b.dataset.svc===m);b.classList.toggle('dim',!!m&&b.dataset.svc!==m)});$('#b3').disabled=!m}
 function linked(service,code){state.music={service,code};linkedUI();toast(SVC[service].n+' linked.')}
@@ -734,7 +1264,7 @@ async function connect(k){
 $$('[data-svc]').forEach(b=>b.onclick=()=>connect(b.dataset.svc));
 const finish3=()=>{
   if(!state.music && state.preferences && ((state.preferences.genres||[]).length || (state.preferences.artists||[]).length)){
-    state.music = { service: 'spotify' };
+    state.music = { service: 'manual' };
   }
   if(state.preferences){
     state.mlProfile = ML.profileFromPreferences(state.preferences);
@@ -753,7 +1283,7 @@ const finish3=()=>{
   onComplete({...state});
   go(4);
 };
-$('#b3').onclick=()=>state.music?finish3():toast('Link a music service to continue.');
+$('#b3').onclick=()=>{ const hasPref = state.preferences && ((state.preferences.genres||[]).length || (state.preferences.artists||[]).length); if(state.music || hasPref) finish3(); else toast('Link a music service or select preferences to continue.'); };
 // Returning from the music service (?code=...&state=spotify|ytm|gaana): resume.
 (async ()=>{
   const q=new URLSearchParams(location.search);
@@ -1248,7 +1778,7 @@ function pushBubble(m){const el=$('#thm');if(!el)return;const e=el.querySelector
 function sendMsg(u,text){const c=conns[u];if(!c||c.status!=='connected')return;const m={me:1,t:text};c.msgs.push(m);saveConns();onChatSend({to:u,text});$('#thi').value='';pushBubble(m)}
 function receiveMsg(u,text){const c=conns[u];if(!c||c.status!=='connected')return;const m={t:text};c.msgs.push(m);
  if($('#pp').classList.contains('on')&&ppThread===u)pushBubble(m);else{c.unread=(c.unread||0)+1;if(!ppThread)renderPanel();toast(u+': '+text.slice(0,40))}saveConns();badge()}
-$('#pf').onclick=()=>openPanel();$('#ppx').onclick=()=>$('#pp').classList.remove('on');
+$('#pf').onclick=()=>openPanel();$('#ppx').onclick=()=>$('#pp').classList.remove('on'); const ppPref=$('#pp-edit-pref'); if(ppPref) ppPref.onclick=()=>openPrefModal();
 /* ---- voice chat (WebRTC + Twilio Network Traversal; signalling goes through signal()/EchoVroReceive.signal) ---- */
 let iceServersCache = null;
 async function getVoiceIceServers(){
