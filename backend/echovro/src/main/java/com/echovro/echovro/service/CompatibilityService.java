@@ -16,7 +16,7 @@ public class CompatibilityService {
 
     public static final List<String> GENRES = List.of(
             "pop", "rock", "hip-hop", "electronic", "r&b", "indie", "classical",
-            "ambient", "reggae", "folk", "bollywood", "sufi", "malayalam", "jazz",
+            "ambient", "reggae", "folk", "bollywood", "sufi", "malayalam", "tamil", "jazz",
             "metal", "latin", "country", "blues", "punk", "soul"
     );
 
@@ -37,10 +37,32 @@ public class CompatibilityService {
             Map.entry("pink floyd", List.of("rock", "ambient")),
             Map.entry("vijay yesudas", List.of("malayalam", "bollywood")),
             Map.entry("shreya ghoshal", List.of("bollywood", "classical")),
-            Map.entry("anirudh ravichander", List.of("bollywood", "electronic", "pop")),
+            Map.entry("anirudh ravichander", List.of("tamil", "electronic", "pop")),
             Map.entry("mohit chauhan", List.of("bollywood", "indie", "folk")),
             Map.entry("miles davis", List.of("jazz")),
-            Map.entry("norah jones", List.of("jazz", "indie", "folk"))
+            Map.entry("norah jones", List.of("jazz", "indie", "folk")),
+            Map.entry("hesham abdul wahab", List.of("malayalam", "indie", "sufi")),
+            Map.entry("sushin shyam", List.of("malayalam", "electronic", "rock")),
+            Map.entry("k.j. yesudas", List.of("malayalam", "classical", "tamil")),
+            Map.entry("vineeth sreenivasan", List.of("malayalam", "pop")),
+            Map.entry("thirumali", List.of("hip-hop", "malayalam")),
+            Map.entry("vedan", List.of("hip-hop", "malayalam")),
+            Map.entry("dhanush", List.of("tamil", "folk")),
+            Map.entry("dhee", List.of("tamil", "indie", "r&b")),
+            Map.entry("yuvan shankar raja", List.of("tamil", "electronic", "hip-hop")),
+            Map.entry("harris jayaraj", List.of("tamil", "electronic", "pop")),
+            Map.entry("ilaiyaraaja", List.of("classical", "tamil", "folk")),
+            Map.entry("sid sriram", List.of("r&b", "tamil", "indie")),
+            Map.entry("atif aslam", List.of("bollywood", "pop", "sufi")),
+            Map.entry("sonu nigam", List.of("bollywood", "pop", "classical")),
+            Map.entry("badshah", List.of("hip-hop", "pop")),
+            Map.entry("divine", List.of("hip-hop")),
+            Map.entry("nucleya", List.of("electronic")),
+            Map.entry("bruno mars", List.of("pop", "r&b", "soul")),
+            Map.entry("harry styles", List.of("pop", "rock", "indie")),
+            Map.entry("eminem", List.of("hip-hop")),
+            Map.entry("nirvana", List.of("rock")),
+            Map.entry("linkin park", List.of("rock", "metal", "electronic"))
     );
 
     private final ObjectMapper mapper = new ObjectMapper();
