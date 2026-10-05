@@ -1121,7 +1121,7 @@
     const s = GENRES.reduce((a, g) => a + vec[g], 0) || 1;
     GENRES.forEach(g => vec[g] /= s);
     const top = GENRES.filter(g => vec[g] > .04).sort((a, b) => vec[b] - vec[a]);
-    return { vec, artists, n, top, hasData: n >= 1 };
+    return { vec, genreVec: vec, artists, topArtists: [...artists], n, dataCount: n, top, topGenres: top, hasData: n >= 1 };
   }
   function profile(tracks) {
     const vec = {}, artists = new Set(); GENRES.forEach(g => vec[g] = 0);

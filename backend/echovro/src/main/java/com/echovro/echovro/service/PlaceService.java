@@ -1,5 +1,7 @@
 package com.echovro.echovro.service;
 
+import com.echovro.echovro.dto.MusicPreferencesDto;
+import com.echovro.echovro.dto.MusicProfileDto;
 import com.echovro.echovro.dto.PlaceFeedResponse;
 import com.echovro.echovro.dto.PlacePersonDto;
 import com.echovro.echovro.model.User;
@@ -40,7 +42,7 @@ public class PlaceService {
                 tracks = new ArrayList<>();
             }
 
-            people.add(new PlacePersonDto(
+            PlacePersonDto person = new PlacePersonDto(
                     u.getName(),
                     u.getAvatar() != null ? u.getAvatar() : "male_avatar_1",
                     u.getCurrentSong(),
@@ -50,7 +52,21 @@ public class PlaceService {
                     u.getPy(),
                     u.getPz(),
                     u.getRy()
-            ));
+            );
+
+            if (u.getPreferencesJson() != null && !u.getPreferencesJson().isBlank()) {
+                try {
+                    person.setPreferences(objectMapper.readValue(u.getPreferencesJson(), MusicPreferencesDto.class));
+                } catch (Exception ignored) {}
+            }
+
+            if (u.getProfileJson() != null && !u.getProfileJson().isBlank()) {
+                try {
+                    person.setProfile(objectMapper.readValue(u.getProfileJson(), MusicProfileDto.class));
+                } catch (Exception ignored) {}
+            }
+
+            people.add(person);
         }
 
         List<List<String>> songs = getSongsForPlace(placeKey);

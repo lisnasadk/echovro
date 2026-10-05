@@ -1360,6 +1360,9 @@ function saveManualPreferences() {
   ]) : Promise.resolve();
 
   savePromise.then(() => {
+    // Invalidate compatibility cache so any live interactions immediately recalculate
+    cc = {};
+
     // Persist locally in cache
     try {
       localStorage.setItem('echovro_user_profile', JSON.stringify({
@@ -1367,6 +1370,17 @@ function saveManualPreferences() {
         music: state.music, tracks: state.tracks, preferences: state.preferences
       }));
     } catch(e) {}
+
+    // Update me avatar userData if in place
+    if (typeof me !== 'undefined' && me && me.w && me.w.userData && me.w.userData.P) {
+      me.w.userData.P.preferences = state.preferences;
+      me.w.userData.P.mlProfile = state.mlProfile;
+    }
+
+    // Immediately recalculate compatibility card if open
+    if (typeof cmP !== 'undefined' && cmP) {
+      showCompat(cmP);
+    }
 
     updatePrefUI();
     closePrefModal();
@@ -1378,6 +1392,14 @@ function saveManualPreferences() {
     }
   }).catch(err => {
     console.error('Preferences save error:', err);
+    cc = {};
+    if (typeof me !== 'undefined' && me && me.w && me.w.userData && me.w.userData.P) {
+      me.w.userData.P.preferences = state.preferences;
+      me.w.userData.P.mlProfile = state.mlProfile;
+    }
+    if (typeof cmP !== 'undefined' && cmP) {
+      showCompat(cmP);
+    }
     toast('Preferences saved locally!');
     updatePrefUI();
     closePrefModal();
@@ -1529,6 +1551,7 @@ const finish3=()=>{
   }
   if(state.preferences){
     state.mlProfile = ML.profileFromPreferences(state.preferences);
+    cc = {};
     if(CONFIG.USE_BACKEND && getToken()){
       api('/api/ml/preferences', {
         method: 'POST',
@@ -1685,7 +1708,18 @@ async function spawnCrowd(root,fp,tok){
  if(state.place==='city'){
    H=r*0.015; // Scaled down in city so buildings and skyscrapers tower realistically
  }
- const list=[{u:state.username,av:state.avatar,me:1,s:state.song},...((f&&f.people)||[]).map(p=>({u:p.u,av:p.av,s:p.s,m:p.m,t:p.t}))];
+ const list=[
+  {u:state.username,av:state.avatar,me:1,s:state.song,preferences:state.preferences,mlProfile:state.mlProfile},
+  ...((f&&f.people)||[]).map(p=>({
+    u:p.u,
+    av:p.av,
+    s:p.s,
+    m:p.m,
+    t:p.t,
+    preferences:p.preferences,
+    mlProfile:p.profile || (p.preferences && window.ML && ML.profileFromPreferences ? ML.profileFromPreferences(p.preferences) : null)
+  }))
+ ];
  const grp=new THREE.Group(),ray=new THREE.Raycaster(),n=list.length,R=H*1.5;
  const g0=PLACES[state.place].ground?groundSpots(root,ray,b,H,n):null,spots=[];
  for(let i=0;i<n;i++){if(g0){spots.push(g0[i]);continue}
@@ -1758,13 +1792,19 @@ async function syncCrowdPresences(newPeople){
      const pz = me.w.position.z + Math.cos(ang) * dist;
      w.position.set(px, me.w.position.y, pz);
      w.userData.me = false;
-     w.userData.P = p;
+     w.userData.P = {
+       ...p,
+       mlProfile: p.profile || (p.preferences && window.ML && ML.profileFromPreferences ? ML.profileFromPreferences(p.preferences) : null)
+     };
      w.userData.ry = w.rotation.y = Math.random() * Math.PI * 2;
      crowd.add(w);
      toast(p.u + ' entered the place');
    } else if(p.u !== state.username) {
      const child = crowd.children.find(c => c.userData.P && c.userData.P.u === p.u);
-     if(child && child.userData.P.s !== p.s){
+     if(child){
+       if(p.preferences) child.userData.P.preferences = p.preferences;
+       if(p.profile) child.userData.P.mlProfile = p.profile;
+       if(child.userData.P.s !== p.s){
        child.userData.P.s = p.s;
        if(child.userData.st){
          child.remove(child.userData.st);
@@ -1844,21 +1884,56 @@ const trackList=P=>{
   return [];
 };
 function showCompat(P){
- const key=P.u+'|'+myTracks().length+'|'+(P.s||'');let r=cc[key];
+ const myPrefCount = state.preferences ? ((state.preferences.artists||[]).length + (state.preferences.genres||[]).length) : 0;
+ const theirPrefCount = (P.preferences ? ((P.preferences.artists||[]).length + (P.preferences.genres||[]).length) : 0) || (P.t ? P.t.length : 0);
+ const key = P.u + '|' + myPrefCount + '|' + theirPrefCount + '|' + (P.s||'');
+ let r = cc[key];
  if(!r){
-  const mine=state.mlProfile || (state.preferences ? ML.profileFromPreferences(state.preferences) : null) || ML.profile(myTracks()), profs=[mine];
-  crowd.children.forEach(w=>{const q=w.userData.P;if(q&&!q.me)profs.push(q.prof||(q.prof=ML.profile(trackList(q))))});
-  ML.fit(profs);                                       // TF-IDF weights from everyone in the room
-  const theirs=P.mlProfile || (P.preferences ? ML.profileFromPreferences(P.preferences) : null) || P.prof || (P.prof=ML.profile(trackList(P)));
-  r=cc[key]=ML.compat(mine,theirs);
+  const mine = (state.preferences && ((state.preferences.genres||[]).length || (state.preferences.artists||[]).length))
+    ? ML.profileFromPreferences(state.preferences)
+    : (state.mlProfile || ML.profile(myTracks()));
+
+  const theirs = (P.preferences && ((P.preferences.genres||[]).length || (P.preferences.artists||[]).length))
+    ? ML.profileFromPreferences(P.preferences)
+    : (P.mlProfile || (P.prof = ML.profile(trackList(P))));
+
+  const profs = [mine, theirs];
+  crowd.children.forEach(w => {
+    const q = w.userData.P;
+    if (q && !q.me) {
+      const qp = (q.preferences && ((q.preferences.genres||[]).length || (q.preferences.artists||[]).length))
+        ? ML.profileFromPreferences(q.preferences)
+        : (q.mlProfile || q.prof || (q.prof = ML.profile(trackList(q))));
+      profs.push(qp);
+    }
+  });
+  ML.fit(profs);
+  r = cc[key] = ML.compat(mine, theirs);
  }
- const L=g=>ML.LABEL[g]||g,my=SVC[state.music&&state.music.service?state.music.service:'spotify'].n,th=SVC[P.m]?SVC[P.m].n:'';
- $('#cmav').innerHTML=pvw(avOf(P.av));$('#cmn').textContent=P.u;
- $('#cmsv').textContent=th?(th===my?'Also on '+th:my+' ↔ '+th):'';
- $('#cmpct').textContent=r.score==null?'—':r.score+'%';$('#cmlb').textContent=r.label;$('#cmfill').style.width=(r.score||0)+'%';
- $('#cmc').innerHTML=(r.shared&&r.shared.length)?r.shared.map(g=>'<u>'+L(g)+'</u>').join(''):(r.score==null?'':'<u>Similar music vibe</u>');
- $('#cmt').textContent=(P.s?'Listening to: '+P.s+'. ':'')+(r.theirTop&&r.theirTop.length?'Their taste: '+r.theirTop.slice(0,3).map(L).join(', ')+'.':'')+(r.bridge?' They could introduce you to '+L(r.bridge)+'.':'');
- cmP=P;renderCmActions();$('#cm').classList.add('on')}
+ const L = g => (ML.LABEL && ML.LABEL[g]) || g;
+ const my = (SVC[state.music && state.music.service ? state.music.service : 'spotify']?.n) || 'Preferences';
+ const th = (SVC[P.m] ? SVC[P.m].n : (P.preferences ? 'Preferences' : ''));
+ $('#cmav').innerHTML = pvw(avOf(P.av));
+ $('#cmn').textContent = P.u;
+ $('#cmsv').textContent = th ? (th === my ? 'Also on ' + th : my + ' ↔ ' + th) : '';
+ if (r.insufficientData) {
+  $('#cmpct').textContent = '—';
+  $('#cmlb').textContent = 'Insufficient data';
+  $('#cmfill').style.width = '0%';
+  $('#cmc').innerHTML = '<u>Pick taste cards to see compatibility</u>';
+  $('#cmt').textContent = P.s ? 'Listening to: ' + P.s : 'Select taste preferences to compute musical compatibility.';
+ } else {
+  $('#cmpct').textContent = (r.score == null ? '—' : r.score + '%');
+  $('#cmlb').textContent = r.label || 'Vibing';
+  $('#cmfill').style.width = (r.score || 0) + '%';
+  $('#cmc').innerHTML = (r.shared && r.shared.length) ? r.shared.map(g => '<u>' + L(g) + '</u>').join('') : (r.score == null ? '' : '<u>Similar music vibe</u>');
+  const bridgeTxt = r.bridge ? (' They could introduce you to ' + L(r.bridge) + (r.bridgeArtists && r.bridgeArtists.length ? ' via ' + r.bridgeArtists.slice(0, 1).join('') + '.' : '.')) : '';
+  $('#cmt').textContent = (P.s ? 'Listening to: ' + P.s + '. ' : '') + (r.theirTop && r.theirTop.length ? 'Their taste: ' + r.theirTop.slice(0, 3).map(L).join(', ') + '.' : '') + bridgeTxt;
+ }
+ cmP = P;
+ renderCmActions();
+ $('#cm').classList.add('on');
+}
 function tickNear(n){if(!me||!crowd||n-nearT<200)return;nearT=n;const p=me.w.position,H=me.H;let best=null,bd=1e9;
  crowd.children.forEach(w=>{if(w===me.w||!w.userData.P)return;const d=Math.hypot(w.position.x-p.x,w.position.z-p.z)+Math.abs(w.position.y-p.y)*2;if(d<bd){bd=d;best=w}});
  if(best&&bd<(nearU?H*1.7:H*1.1)){if(nearU!==best){nearU=best;showCompat(best.userData.P)}}

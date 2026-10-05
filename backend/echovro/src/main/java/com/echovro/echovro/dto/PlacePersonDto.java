@@ -12,6 +12,8 @@ public class PlacePersonDto {
     private Double py;
     private Double pz;
     private Double ry;
+    private MusicPreferencesDto preferences;
+    private MusicProfileDto profile;
 
     public PlacePersonDto() {}
 
@@ -105,5 +107,21 @@ public class PlacePersonDto {
 
     public void setRy(Double ry) {
         this.ry = ry;
+    }
+
+    public MusicPreferencesDto getPreferences() {
+        return preferences;
+    }
+
+    public void setPreferences(MusicPreferencesDto preferences) {
+        this.preferences = preferences;
+    }
+
+    public MusicProfileDto getProfile() {
+        return profile;
+    }
+
+    public void setProfile(MusicProfileDto profile) {
+        this.profile = profile;
     }
 }
