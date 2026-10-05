@@ -441,7 +441,7 @@ button, .btn, .av, .pc, #pad button {
 <div class="dots" id="dots"><i class="on"></i><i></i><i></i><i></i><i></i></div>
 <button id="pf" aria-label="Your profile"><div class="fa" id="pfa"></div><span id="pfb"></span></button>
 <aside id="pp"><div class="pph"><div class="fa" id="ppav"></div><div><b id="ppn"></b><i id="pps"></i></div><button class="btn g" id="ppx">✕</button></div><div id="ppb"></div></aside>
-<div id="call"><span id="cl"></span><button class="btn" id="cacc" style="display:none">Accept</button><button class="btn g" id="cmute">Mute</button><button class="btn" id="cend">End</button></div>
+<div id="call"><span id="cl"></span><button class="btn" id="cacc" style="display:none">Accept</button><button class="btn g" id="crej" style="display:none">Reject</button><button class="btn g" id="cmute">Mute</button><button class="btn" id="cend">End</button></div>
 <div id="sr"><div class="card"><h2 id="srt"></h2><p class="sub">Pick a song you think they would love. They will see it with your request.</p>
 <div class="row" id="srs"></div>
 <label for="sri">Song</label><input id="sri" list="srl" placeholder="Song – artist"><datalist id="srl"></datalist>
@@ -1137,9 +1137,26 @@ function sendMsg(u,text){const c=conns[u];if(!c||c.status!=='connected')return;c
 function receiveMsg(u,text){const c=conns[u];if(!c||c.status!=='connected')return;const m={t:text};c.msgs.push(m);
  if($('#pp').classList.contains('on')&&ppThread===u)pushBubble(m);else{c.unread=(c.unread||0)+1;if(!ppThread)renderPanel();toast(u+': '+text.slice(0,40))}saveConns();badge()}
 $('#pf').onclick=()=>openPanel();$('#ppx').onclick=()=>$('#pp').classList.remove('on');
-/* ---- voice chat (WebRTC; signalling goes through signal()/EchoVroReceive.signal) ---- */
-function showCall(t,inc){$('#call').classList.add('on');$('#cl').textContent=t;$('#cacc').style.display=inc?'':'none';$('#cmute').style.display=inc?'none':'';$('#cmute').textContent='Mute'}
-function makePc(c,stream){const pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
+/* ---- voice chat (WebRTC + Twilio Network Traversal; signalling goes through signal()/EchoVroReceive.signal) ---- */
+let iceServersCache = null;
+async function getVoiceIceServers(){
+  if(iceServersCache) return iceServersCache;
+  if(CONFIG.USE_BACKEND){
+    try {
+      const r = await api('/api/voice/ice-servers');
+      if(r.ok){
+        const servers = await r.json();
+        if(Array.isArray(servers) && servers.length > 0){
+          iceServersCache = servers;
+          return servers;
+        }
+      }
+    } catch(e){ console.warn('Could not fetch Twilio ICE servers, using fallback', e); }
+  }
+  return [{urls: ['stun:stun.l.google.com:19302', 'stun:global.stun.twilio.com:3478']}];
+}
+function showCall(t,inc){$('#call').classList.add('on');$('#cl').textContent=t;$('#cacc').style.display=inc?'':'none';$('#crej').style.display=inc?'':'none';$('#cmute').style.display=inc?'none':'';$('#cmute').textContent='Mute';$('#cend').style.display=''}
+function makePc(c,stream,iceServers){const pc=new RTCPeerConnection({iceServers: iceServers || [{urls:['stun:stun.l.google.com:19302','stun:global.stun.twilio.com:3478']}]});
  stream.getTracks().forEach(t=>pc.addTrack(t,stream));
  const au=new Audio();au.autoplay=true;
  pc.ontrack=e=>{au.srcObject=e.streams[0]; if(call) call.au = au; $('#call').appendChild(au);};
@@ -1148,22 +1165,26 @@ function makePc(c,stream){const pc=new RTCPeerConnection({iceServers:[{urls:'stu
  return pc}
 async function mic(){try{return await navigator.mediaDevices.getUserMedia({audio:true})}catch(e){toast('Microphone access is needed for voice chat.');return null}}
 async function openVoice(c){if(!c||c.status!=='connected')return toast('Connect with them first.');if(call)return toast('Already in a call.');const stream=await mic();if(!stream)return;
- call={c,stream,pc:null,t0:0,iv:0};showCall('Calling '+c.u+'…');
- const pc=call.pc=makePc(c,stream),o=await pc.createOffer();await pc.setLocalDescription(o);signal({to:c.u,type:'offer',data:o})}
+ const ice=await getVoiceIceServers();
+ call={c,stream,pc:null,t0:0,iv:0};showCall('Calling '+c.u+'…',false);
+ const pc=call.pc=makePc(c,stream,ice),o=await pc.createOffer();await pc.setLocalDescription(o);signal({to:c.u,type:'offer',data:o})}
 function callUp(){if(!call||call.t0)return;call.t0=Date.now();const tick=()=>{const s=Math.floor((Date.now()-call.t0)/1000);$('#cl').textContent='🎙 '+call.c.u+' · '+String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')};tick();call.iv=setInterval(tick,500)}
 async function onSignal(m){const c=conns[m.from];if(!c||c.status!=='connected')return;
  if(m.type==='offer'){if(call)return signal({to:m.from,type:'hangup'});pendingOffer=m;iceBuf=[];showCall(c.u+' is calling…',true)}
- else if(m.type==='hangup')endCall(true);
+ else if(m.type==='reject'){toast(c.u+' declined the call.');endCall(true)}
+ else if(m.type==='hangup'){toast('Call ended.');endCall(true)}
  else if(m.type==='ice'){if(call&&call.pc)try{await call.pc.addIceCandidate(m.data)}catch(e){}else iceBuf.push(m.data)}
  else if(m.type==='answer'&&call&&call.pc)await call.pc.setRemoteDescription(m.data)}
 async function acceptCall(){const m=pendingOffer;if(!m)return;pendingOffer=null;const c=conns[m.from],stream=await mic();if(!stream){signal({to:m.from,type:'hangup'});return endCall(true)}
- call={c,stream,pc:null,t0:0,iv:0};const pc=call.pc=makePc(c,stream);await pc.setRemoteDescription(m.data);
+ const ice=await getVoiceIceServers();
+ call={c,stream,pc:null,t0:0,iv:0};const pc=call.pc=makePc(c,stream,ice);await pc.setRemoteDescription(m.data);
  for(const i of iceBuf)try{await pc.addIceCandidate(i)}catch(e){}iceBuf=[];
- const a=await pc.createAnswer();await pc.setLocalDescription(a);signal({to:c.u,type:'answer',data:a});showCall('Connecting…')}
+ const a=await pc.createAnswer();await pc.setLocalDescription(a);signal({to:c.u,type:'answer',data:a});showCall('Connecting…',false)}
+function rejectCall(){if(pendingOffer){signal({to:pendingOffer.from,type:'reject'});pendingOffer=null}endCall(true)}
 function endCall(remote){if(pendingOffer){if(!remote)signal({to:pendingOffer.from,type:'hangup'});pendingOffer=null}
- if(call){clearInterval(call.iv);call.stream.getTracks().forEach(t=>t.stop());if(call.au)call.au.remove();if(call.pc)call.pc.close();if(!remote)signal({to:call.c.u,type:'hangup'});call=null}
+ if(call){clearInterval(call.iv);call.stream.getTracks().forEach(t=>t.stop());if(call.au)try{call.au.remove()}catch(e){}if(call.pc)try{call.pc.close()}catch(e){}if(!remote)signal({to:call.c.u,type:'hangup'});call=null}
  $('#call').classList.remove('on')}
-$('#cend').onclick=()=>endCall(false);$('#cacc').onclick=acceptCall;
+$('#cend').onclick=()=>endCall(false);$('#cacc').onclick=acceptCall;if($('#crej'))$('#crej').onclick=rejectCall;
 $('#cmute').onclick=()=>{if(!call)return;const t=call.stream.getAudioTracks();t.forEach(x=>x.enabled=!x.enabled);$('#cmute').textContent=t[0]&&t[0].enabled?'Mute':'Unmute'};
 function findSeat(){const m=me,o=m.w.position,H=m.H;
  for(let i=0;i<12;i++){const a=i/12*6.283,x=o.x+Math.sin(a)*H*.7,z=o.z+Math.cos(a)*H*.7;
