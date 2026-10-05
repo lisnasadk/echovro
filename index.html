@@ -574,7 +574,7 @@ button, .btn, .av, .pc, #pad button {
     <div style="flex:1;height:1px;background:var(--line);"></div>
   </div>
 
-  <button class="btn g" id="btn-manual-pref" type="button" style="width:100%;max-width:380px;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 18px;border-radius:18px;border:1px solid rgba(111,155,255,.45);background:rgba(111,155,255,.14);color:#e8eeff;font-weight:600;font-size:14px;box-shadow:0 8px 24px rgba(30,60,160,.25);transition:all .2s;">
+  <button class="btn g" id="btn-manual-pref" type="button" onclick="openPrefModal()" style="width:100%;max-width:380px;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 18px;border-radius:18px;border:1px solid rgba(111,155,255,.45);background:rgba(111,155,255,.14);color:#e8eeff;font-weight:600;font-size:14px;box-shadow:0 8px 24px rgba(30,60,160,.25);transition:all .2s;">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6f9bff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
     <span id="btn-manual-pref-text">Pick Taste Cards (Genres, Artists, Langs)</span>
   </button>
@@ -645,7 +645,7 @@ button, .btn, .av, .pc, #pad button {
         </h2>
         <p class="sub" style="font-size:13px;margin:0;color:var(--silver);">Pick cards from our dataset to train your ML recommendation & compatibility vibe.</p>
       </div>
-      <button class="btn g" id="pref-close-btn" type="button" aria-label="Close" style="border-radius:999px;width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
+      <button class="btn g" id="pref-close-btn" type="button" onclick="closePrefModal()" aria-label="Close" style="border-radius:999px;width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
     </div>
 
     <!-- Filter & Search Controls -->
@@ -675,7 +675,7 @@ button, .btn, .av, .pc, #pad button {
       </div>
       <div style="display:flex;gap:8px;margin-left:auto;">
         <button class="btn g" id="pref-clear-btn" type="button" style="padding:8px 14px;font-size:13px;">Clear All</button>
-        <button class="btn" id="pref-save-btn" type="button" style="padding:8px 22px;font-size:14px;font-weight:600;">Save Preferences</button>
+        <button class="btn" id="pref-save-btn" type="button" onclick="saveManualPreferences()" style="padding:8px 22px;font-size:14px;font-weight:600;">Save Preferences</button>
       </div>
     </div>
 
@@ -1054,6 +1054,7 @@ function renderCards(tab, query) {
 }
 
 function openPrefModal() {
+  bindPrefEvents();
   initPrefCards();
   tempPrefs = {
     genres: new Set((state.preferences && state.preferences.genres) || []),
@@ -1143,6 +1144,7 @@ function saveManualPreferences() {
   closePrefModal();
   toast(`Taste preferences saved! (${chosenGenres.length} genres, ${chosenArtists.length} artists)`);
   checkB3();
+  if($('#b3')) { $('#b3').textContent = 'Continue to Places →'; $('#b3').style.boxShadow = '0 0 20px rgba(91,120,255,.6)'; }
 }
 
 function updatePrefUI() {
@@ -1184,6 +1186,7 @@ function updatePrefUI() {
 }
 
 function drawPreferences() {
+  bindPrefEvents();
   updatePrefUI();
 }
 
