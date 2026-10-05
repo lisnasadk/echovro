@@ -350,13 +350,16 @@ button, .btn, .av, .pc, #pad button {
 #pref-modal {
   position: fixed;
   inset: 0;
-  z-index: 95;
+  z-index: 99999 !important;
   display: none;
   align-items: center;
   justify-content: center;
-  background: rgba(5, 9, 20, 0.82);
+  background: rgba(5, 9, 20, 0.88);
   backdrop-filter: blur(24px);
   padding: 16px;
+}
+#pref-modal.on {
+  display: flex !important;
 }
 #pref-modal-card {
   width: 100%;
@@ -624,7 +627,7 @@ button, .btn, .av, .pc, #pad button {
 
 <div class="dots" id="dots"><i class="on"></i><i></i><i></i><i></i><i></i></div>
 <button id="pf" aria-label="Your profile"><div class="fa" id="pfa"></div><span id="pfb"></span></button>
-<aside id="pp"><div class="pph"><div class="fa" id="ppav"></div><div><b id="ppn"></b><i id="pps"></i></div><button class="btn g" id="ppx">✕</button></div><div style="padding:0 18px 8px;"><button class="btn g" id="pp-edit-pref" type="button" style="width:100%;font-size:12px;padding:6px 12px;border-radius:999px;border:1px solid rgba(111,155,255,.3);">🎵 Edit Taste Preferences</button></div><div id="ppb"></div></aside>
+<aside id="pp"><div class="pph"><div class="fa" id="ppav"></div><div><b id="ppn"></b><i id="pps"></i></div><button class="btn g" id="ppx">✕</button></div><div style="padding:0 18px 8px;"><button class="btn g" id="pp-edit-pref" type="button" onclick="openPrefModal()" style="width:100%;font-size:12px;padding:8px 14px;border-radius:999px;border:1px solid rgba(111,155,255,.45);background:rgba(111,155,255,.15);color:#fff;cursor:pointer;font-weight:600;">🎵 Edit Taste Preferences</button></div><div id="ppb"></div></aside>
 <div id="call"><span id="cl"></span><button class="btn" id="cacc" style="display:none">Accept</button><button class="btn g" id="crej" style="display:none">Reject</button><button class="btn g" id="cmute">Mute</button><button class="btn" id="cend">End</button></div>
 <div id="sr"><div class="card"><h2 id="srt"></h2><p class="sub">Pick a song you think they would love. They will see it with your request.</p>
 <div class="row" id="srs"></div>
@@ -1053,7 +1056,13 @@ function renderCards(tab, query) {
   });
 }
 
+window.openPrefModal = openPrefModal;
+window.closePrefModal = closePrefModal;
+window.saveManualPreferences = saveManualPreferences;
+
 function openPrefModal() {
+  if (typeof initPrefCards === 'function') initPrefCards();
+  if (typeof bindPrefEvents === 'function') bindPrefEvents();
   bindPrefEvents();
   initPrefCards();
   tempPrefs = {
@@ -1067,12 +1076,12 @@ function openPrefModal() {
   renderCards('all', '');
   updateCounter();
   const modal = $('#pref-modal');
-  if (modal) modal.style.display = 'flex';
+  if (modal) { modal.classList.add('on'); modal.style.display = 'flex'; modal.style.visibility = 'visible'; }
 }
 
 function closePrefModal() {
   const modal = $('#pref-modal');
-  if (modal) modal.style.display = 'none';
+  if (modal) { modal.classList.remove('on'); modal.style.display = 'none'; modal.style.visibility = 'hidden'; }
 }
 
 function saveManualPreferences() {
@@ -1244,6 +1253,18 @@ function bindPrefEvents() {
   });
 }
 setTimeout(bindPrefEvents, 0);
+
+// Universal delegated click listener for taste preferences buttons
+document.addEventListener('click', function(e) {
+  const t = e.target;
+  if (!t) return;
+  if (t.id === 'pp-edit-pref' || t.closest('#pp-edit-pref') || t.id === 'btn-manual-pref' || t.closest('#btn-manual-pref')) {
+    e.preventDefault();
+    e.stopPropagation();
+    openPrefModal();
+  }
+});
+
 
 function linkedUI(){const m=state.music&&state.music.service;$$('[data-svc]').forEach(b=>{b.classList.toggle('ok',b.dataset.svc===m);b.classList.toggle('dim',!!m&&b.dataset.svc!==m)});$('#b3').disabled=!m}
 function linked(service,code){state.music={service,code};linkedUI();toast(SVC[service].n+' linked.')}
