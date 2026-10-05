@@ -606,7 +606,9 @@ async function authRequest(p){
   const d=await r.json().catch(()=>({}));
   if(!r.ok)return{ok:false,error:d.message||d.error||(r.status===401?'Wrong email or password.':'Something went wrong.')};
   setToken(d.token||'');
-  return{ok:true,username:d.name||d.username||p.username}}
+   if(d.avatar) state.avatar = d.avatar;
+   if(d.gender) state.gender = d.gender;
+  return{ok:true,username:d.name||d.username||p.username,avatar:d.avatar,gender:d.gender}}
  catch(e){return{ok:false,error:'Cannot reach the server. Is the backend running?'}}}
 
 $('#b1').onclick=async()=>{const e=$('#em').value.trim(),u=$('#un').value.trim(),pw=$('#pw').value,er=$('#err'),su=authMode==='signup';
@@ -622,7 +624,9 @@ $('#b1').onclick=async()=>{const e=$('#em').value.trim(),u=$('#un').value.trim()
  if(!r||!r.ok)return er.textContent=(r&&r.error)||'Something went wrong. Please try again.';
  $('#pw').value=$('#pc').value='';
  state.email=e;state.username=r.username||u;
- if(su)startVerify();else go(2)};
+ if(r.avatar) state.avatar = r.avatar;
+ if(r.gender) state.gender = r.gender;
+ if(su)startVerify();else{ if(state.avatar && state.music) go(4); else if(state.avatar) go(3); else go(2); }};
 
 /* ===== Email verification (EmailJS) — sends a 6-digit code after sign up ===== */
 let vc=null,vcool=0;
@@ -648,7 +652,20 @@ $('#vre').onclick=async()=>{const w=Math.ceil((vcool-Date.now())/1000);if(w>0)re
  $('#verr').textContent='';if(await sendCode()){vcool=Date.now()+30000;toast('New code sent')}};
 $('#vbk').onclick=()=>{vc=null;setAuth('signup')};
 $('#vc').onkeydown=e=>{if(e.key==='Enter')$('#vgo').click()};
-$('#b2').onclick=()=>go(3);
+$('#b2').onclick=()=>{
+  if(CONFIG.USE_BACKEND && getToken() && state.avatar){
+    api('/api/me/profile', {
+      method: 'PUT',
+      body: JSON.stringify({ avatar: state.avatar, gender: state.gender })
+    }).catch(()=>{});
+  }
+  try {
+    localStorage.setItem('echovro_user_profile', JSON.stringify({
+      username: state.username, email: state.email, gender: state.gender, avatar: state.avatar, music: state.music, tracks: state.tracks
+    }));
+  } catch(e){}
+  go(3);
+};
 
 /* ===== Step 3: link a music service (mandatory) — Spotify / YouTube Music / Gaana ===== */
 function linkedUI(){const m=state.music&&state.music.service;$$('[data-svc]').forEach(b=>{b.classList.toggle('ok',b.dataset.svc===m);b.classList.toggle('dim',!!m&&b.dataset.svc!==m)});$('#b3').disabled=!m}
