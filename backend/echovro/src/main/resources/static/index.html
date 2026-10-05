@@ -672,7 +672,7 @@ button, .btn, .av, .pc, #pad button {
 
 <div class="dots" id="dots"><i class="on"></i><i></i><i></i><i></i><i></i></div>
 <button id="pf" aria-label="Your profile"><div class="fa" id="pfa"></div><span id="pfb"></span></button>
-<aside id="pp"><div class="pph"><div class="fa" id="ppav"></div><div><b id="ppn"></b><i id="pps"></i></div><button class="btn g" id="ppx">✕</button></div><div style="padding:0 18px 8px;"><button class="btn g" id="pp-edit-pref" type="button" onclick="openPrefModal()" style="width:100%;font-size:12px;padding:8px 14px;border-radius:999px;border:1px solid rgba(111,155,255,.45);background:rgba(111,155,255,.15);color:#fff;cursor:pointer;font-weight:600;">🎵 Edit Taste Preferences</button></div><div id="ppb"></div></aside>
+<aside id="pp"><div class="pph"><div class="fa" id="ppav"></div><div><b id="ppn"></b><i id="pps"></i></div><button class="btn g" id="ppx">✕</button></div><div style="padding:0 18px 8px;"><button class="btn g" id="pp-edit-pref" type="button" onclick="openPrefModal()" style="width:100%;font-size:12px;padding:8px 14px;border-radius:999px;border:1px solid rgba(111,155,255,.45);background:rgba(111,155,255,.15);color:#fff;cursor:pointer;font-weight:600;">🎵 Edit Your Preferences</button></div><div id="ppb"></div></aside>
 <div id="call"><span id="cl"></span><button class="btn" id="cacc" style="display:none">Accept</button><button class="btn g" id="crej" style="display:none">Reject</button><button class="btn g" id="cmute">Mute</button><button class="btn" id="cend">End</button></div>
 <div id="sr"><div class="card"><h2 id="srt"></h2><p class="sub">Pick a song you think they would love. They will see it with your request.</p>
 <div class="row" id="srs"></div>
@@ -1232,13 +1232,25 @@ function renderCards(tab, query) {
 function openPrefModal() {
   if (typeof initPrefCards === 'function') initPrefCards();
   if (typeof bindPrefEvents === 'function') bindPrefEvents();
-  bindPrefEvents();
-  initPrefCards();
+
+  // Load existing saved preferences from state or localStorage
+  if (!state.preferences || (!state.preferences.artists && !state.preferences.genres)) {
+    try {
+      const raw = localStorage.getItem('echovro_user_profile');
+      if (raw) {
+        const lp = JSON.parse(raw);
+        if (lp.preferences) state.preferences = lp.preferences;
+      }
+    } catch(e) {}
+  }
+
+  const saved = state.preferences || {};
   tempPrefs = {
-    genres: new Set((state.preferences && state.preferences.genres) || []),
-    artists: new Set((state.preferences && state.preferences.artists) || []),
-    languages: new Set((state.preferences && state.preferences.languages) || [])
+    genres: new Set(saved.genres || []),
+    artists: new Set(saved.artists || []),
+    languages: new Set(saved.languages || [])
   };
+
   const searchInput = $('#pref-card-search');
   if (searchInput) searchInput.value = '';
   $('#pref-tab-filters button').forEach(b => b.classList.toggle('on', b.dataset.tab === 'all'));
@@ -1477,7 +1489,10 @@ setTimeout(bindPrefEvents, 0);
 document.addEventListener('click', function(e) {
   const t = e.target;
   if (!t) return;
-  if (t.id === 'pp-edit-pref' || t.closest('#pp-edit-pref') || t.id === 'btn-manual-pref' || t.closest('#btn-manual-pref')) {
+  const isPrefBtn = t.id === 'pp-edit-pref' || t.closest('#pp-edit-pref') ||
+                    t.id === 'btn-manual-pref' || t.closest('#btn-manual-pref') ||
+                    (t.textContent && t.textContent.toLowerCase().includes('edit') && t.textContent.toLowerCase().includes('preference'));
+  if (isPrefBtn) {
     e.preventDefault();
     e.stopPropagation();
     openPrefModal();
@@ -2457,7 +2472,8 @@ async function initSession(){
           gender: state.gender,
           avatar: state.avatar,
           music: state.music,
-          tracks: state.tracks
+          tracks: state.tracks,
+          preferences: state.preferences
         }));
         
         loadConns();
