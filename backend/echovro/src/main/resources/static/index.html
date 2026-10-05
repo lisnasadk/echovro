@@ -1274,6 +1274,28 @@ $('#srsend').onclick=()=>{const t=$('#sri').value.trim(),l=$('#srk').value.trim(
 
 /* ===== Listening room: same song, same moment, with text chat ===== */
 let room={with:null,link:'',msgs:[],cds:[],col:'aurora'};
+async function loadRoomSnaps(withUser){
+  if(!CONFIG.USE_BACKEND || !getToken() || !withUser) return;
+  try {
+    const r = await api('/api/room/snaps?with=' + encodeURIComponent(withUser));
+    if(r.ok){
+      const snaps = await r.json();
+      if(Array.isArray(snaps)){
+        room.cds = snaps.map(s => ({
+          t: s.t,
+          svc: s.svc,
+          link: s.link,
+          col: s.col,
+          from: s.from,
+          me: s.me ? 1 : 0,
+          fresh: 0
+        }));
+        renderCDs();
+      }
+    }
+  } catch(e){ console.warn('loadRoomSnaps error', e); }
+}
+
 async function onRoomSend(p){
   console.log('EchoVro room', p);
   if(!CONFIG.USE_BACKEND) return;
@@ -1290,9 +1312,9 @@ function parseLink(u){let m;
  if(/gaana\.com\/song\//.test(u))return{svc:'gaana',src:''};
  return null}
 function renderRoom(){const f=Object.values(conns).filter(c=>c.status==='connected');
- if(!room.with&&f[0])room.with=f[0].u;
+ if(!room.with&&f[0]){room.with=f[0].u;loadRoomSnaps(room.with);}
  $('#rwho').innerHTML=f.length?f.map(c=>`<button class="btn g${c.u===room.with?' ok':''}" data-u="${esc(c.u)}">${esc(c.u)}</button>`).join(''):'<p class="emp">Connect with someone through a song first, then invite them here.</p>';
- $$('#rwho [data-u]').forEach(b=>b.onclick=()=>{room.with=b.dataset.u;room.msgs=[];room.cds=[];renderRoom()});
+ $$('#rwho [data-u]').forEach(b=>b.onclick=()=>{room.with=b.dataset.u;room.msgs=[];room.cds=[];loadRoomSnaps(room.with);renderRoom()});
  renderCDs();$('#rch').innerHTML=room.msgs.map(bub).join('')||'<p class="emp">Say hi 👋</p>';$('#rch').scrollTop=1e5;
  const l=room.link&&parseLink(room.link);
  $('#rpl').innerHTML=!l?'':l.src?`<iframe src="${l.src}" allow="autoplay; encrypted-media" style="width:100%;height:${l.svc==='spotify'?152:220}px;border:0"></iframe>`:`<a class="btn" href="${esc(room.link)}" target="_blank" rel="noopener">Open in Gaana</a>`}

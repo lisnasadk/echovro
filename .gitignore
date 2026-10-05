@@ -12,3 +12,7 @@ backend/echovro/target/
 # OS
 .DS_Store
 Thumbs.db
+
+# Environment secrets (never commit!)
+.env
+*.env
